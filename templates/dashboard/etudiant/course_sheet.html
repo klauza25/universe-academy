@@ -1,0 +1,200 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Feuille de suivi — {{ enrollment.student.get_full_name|default:enrollment.student.email }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #1e2044;
+            background: #eef0f8;
+            font-size: 13px;
+        }
+        .sheet {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 32px 36px 40px;
+            box-shadow: 0 10px 30px rgba(30, 32, 68, .12);
+        }
+        .letterhead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        .letterhead img { width: 110px; height: auto; }
+        .org {
+            border: 2px solid #1d4ed8;
+            border-radius: 6px;
+            padding: 8px 14px;
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #1d4ed8;
+        }
+        .org strong { display: block; font-size: 12px; }
+        h1 {
+            font-size: 17px;
+            margin: 0 0 16px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            text-align: center;
+        }
+        .identity {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+        .identity th {
+            width: 130px;
+            text-align: left;
+            font-weight: 600;
+            padding: 7px 10px;
+            border: 1px solid #c7cbdd;
+            background: #f6f7fc;
+            font-size: 12px;
+        }
+        .identity td {
+            padding: 7px 10px;
+            border: 1px solid #c7cbdd;
+            font-size: 12px;
+        }
+        table.entries {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.entries th,
+        table.entries td {
+            border: 1px solid #9aa0bd;
+            padding: 7px 8px;
+            vertical-align: top;
+            font-size: 11.5px;
+        }
+        table.entries th {
+            background: #eef0fb;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        table.entries td.center { text-align: center; }
+        table.entries td.nowrap { white-space: nowrap; }
+        .empty { text-align: center; color: #6d719b; font-style: italic; }
+        .footer {
+            margin-top: 22px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: #6d719b;
+        }
+        .toolbar {
+            max-width: 820px;
+            margin: 0 auto 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .toolbar a, .toolbar button {
+            font: inherit;
+            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #c7cbdd;
+            background: #fff;
+            color: #1e2044;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .toolbar button { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+        @media print {
+            body { background: #fff; padding: 0; font-size: 12px; }
+            .sheet { box-shadow: none; max-width: none; padding: 0 8mm; }
+            .toolbar { display: none; }
+            table.entries th { background: #eef0fb !important; -webkit-print-color-adjust: exact; }
+        }
+        @page { size: A4; margin: 12mm; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <a href="{% url 'core:dashboard:student-notebook' %}">← Retour à mes fiches</a>
+        <button type="button" onclick="window.print()">Imprimer</button>
+    </div>
+
+    <div class="sheet">
+        <div class="letterhead">
+            <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy">
+            <div class="org">
+                <strong>Univers Academy</strong>
+                N° RCCM : CG-BZV-01-2025-A10-02201<br>
+                NIU : P23000000257459H<br>
+                CNSS : 12052348/65<br>
+                1<sup>er</sup> étage immeuble Monte Cristo<br>
+                +242-06-851-7179<br>
+                universacademy70@gmail.com
+            </div>
+        </div>
+
+        <h1>Feuille de suivi de l'apprenant</h1>
+
+        <table class="identity">
+            <tr>
+                <th>Apprenant</th>
+                <td>{{ enrollment.student.get_full_name|default:enrollment.student.email }}</td>
+            </tr>
+            <tr>
+                <th>Filière</th>
+                <td>{{ enrollment.session.course.domain|default:"—" }}</td>
+            </tr>
+            <tr>
+                <th>Classe</th>
+                <td>{{ enrollment.session.course.title }}{% if enrollment.session.schedule %} — {{ enrollment.session.schedule }}{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Formateur</th>
+                <td>
+                    {% for formateur in enrollment.session.formateurs.all %}{{ formateur.get_full_name|default:formateur.email }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
+                </td>
+            </tr>
+        </table>
+
+        <table class="entries">
+            <thead>
+                <tr>
+                    <th style="width:84px;">Dates</th>
+                    <th style="width:110px;">Heures suivies</th>
+                    <th>Notions retenues</th>
+                    <th style="width:80px;">Présence</th>
+                    <th style="width:150px;">Observations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for note in notes %}
+                <tr>
+                    <td class="nowrap">{{ note.session_record.date|date:"d/m/Y" }}</td>
+                    <td class="nowrap">
+                        {% if note.followed_start %}{{ note.followed_start|time:"H:i" }}{% else %}—{% endif %}{% if note.followed_end %} – {{ note.followed_end|time:"H:i" }}{% endif %}
+                    </td>
+                    <td>{{ note.notions_learned|linebreaksbr }}</td>
+                    <td class="center">{% if note.attended %}Oui{% else %}Non{% endif %}</td>
+                    <td>{{ note.observations|default:"—"|linebreaksbr }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty">Aucune fiche remplie pour cette formation.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <span>Univers Academy — Feuille de suivi de l'apprenant</span>
+            <span>Édité le {{ today|date:"d/m/Y" }}</span>
+        </div>
+    </div>
+</body>
+</html>

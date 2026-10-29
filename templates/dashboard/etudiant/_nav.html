@@ -8,3 +8,6 @@
 <a href="{% url 'core:dashboard:student-attendance' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-attendance' %}is-active{% endif %}">
     {% icon "clipboard" %}<span>Mes présences</span>
 </a>
+<a href="{% url 'core:dashboard:student-notebook' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-notebook' or request.resolver_match.url_name == 'student-note' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Mes fiches de cours</span>
+</a>

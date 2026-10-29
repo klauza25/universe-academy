@@ -32,6 +32,14 @@
    class="ua-nav-link {% if request.resolver_match.url_name == 'programs' or request.resolver_match.url_name == 'module-create' or request.resolver_match.url_name == 'module-edit' or request.resolver_match.url_name == 'lesson-create' or request.resolver_match.url_name == 'lesson-edit' %}is-active{% endif %}">
     {% icon "book-open" %}<span>Pédagogie</span>
 </a>
+<a href="{% url 'core:dashboard:resources' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'resources' or request.resolver_match.url_name == 'resource-create' or request.resolver_match.url_name == 'resource-edit' or request.resolver_match.url_name == 'resource-view' %}is-active{% endif %}">
+    {% icon "book-open" %}<span>Ressources</span>
+</a>
+<a href="{% url 'core:dashboard:course-sessions' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'course-sessions' or request.resolver_match.url_name == 'course-session-create' or request.resolver_match.url_name == 'course-session-edit' %}is-active{% endif %}">
+    {% icon "users" %}<span>Groupes</span>
+</a>
 <a href="{% url 'core:dashboard:session-records' %}"
    class="ua-nav-link {% if request.resolver_match.url_name == 'session-records' or request.resolver_match.url_name == 'session-record-detail' or request.resolver_match.url_name == 'session-record-attendance' %}is-active{% endif %}">
     {% icon "presentation" %}<span>Séances</span>

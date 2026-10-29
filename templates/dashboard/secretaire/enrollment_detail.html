@@ -14,7 +14,7 @@
     </div>
     <div class="flex flex-wrap gap-2">
         <a href="{% url 'core:dashboard:student-detail' enrollment.student.id %}" class="ua-btn ua-btn-light">{% icon "graduation" %} Fiche étudiant</a>
-        {% if not is_elevated %}
+        {% if is_elevated or 'SECRETAIRE' in user_roles or 'DIRECTION' in user_roles %}
         <a href="{% url 'core:dashboard:enrollment-edit' enrollment.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier</a>
         {% endif %}
         <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Retour</a>

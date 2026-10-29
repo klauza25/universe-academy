@@ -1,0 +1,211 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Cahier de texte — {{ session.course.title }}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            color: #1e2044;
+            background: #eef0f8;
+            font-size: 13px;
+        }
+        .sheet {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 32px 36px 40px;
+            box-shadow: 0 10px 30px rgba(30, 32, 68, .12);
+        }
+        .letterhead {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            border-bottom: 2px solid #4f46e5;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        .letterhead img { width: 110px; height: auto; }
+        .org {
+            border: 2px solid #1d4ed8;
+            border-radius: 6px;
+            padding: 8px 14px;
+            text-align: right;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #1d4ed8;
+        }
+        .org strong { display: block; font-size: 12px; }
+        h1 {
+            font-size: 17px;
+            margin: 0 0 16px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            text-align: center;
+        }
+        .identity {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+        }
+        .identity th {
+            width: 130px;
+            text-align: left;
+            font-weight: 600;
+            padding: 7px 10px;
+            border: 1px solid #c7cbdd;
+            background: #f6f7fc;
+            font-size: 12px;
+        }
+        .identity td {
+            padding: 7px 10px;
+            border: 1px solid #c7cbdd;
+            font-size: 12px;
+        }
+        table.entries {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.entries th,
+        table.entries td {
+            border: 1px solid #9aa0bd;
+            padding: 7px 8px;
+            vertical-align: top;
+            font-size: 11.5px;
+        }
+        table.entries th {
+            background: #eef0fb;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+        table.entries td.center { text-align: center; }
+        table.entries td.nowrap { white-space: nowrap; }
+        table.entries tfoot td { font-weight: 700; background: #f6f7fc; }
+        .status { display: block; font-style: italic; color: #b45309; font-size: 10.5px; }
+        .empty { text-align: center; color: #6d719b; font-style: italic; }
+        .footer {
+            margin-top: 22px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10.5px;
+            color: #6d719b;
+        }
+        .toolbar {
+            max-width: 820px;
+            margin: 0 auto 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .toolbar a, .toolbar button {
+            font: inherit;
+            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #c7cbdd;
+            background: #fff;
+            color: #1e2044;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .toolbar button { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+        @media print {
+            body { background: #fff; padding: 0; font-size: 12px; }
+            .sheet { box-shadow: none; max-width: none; padding: 0 8mm; }
+            .toolbar { display: none; }
+            table.entries th { background: #eef0fb !important; -webkit-print-color-adjust: exact; }
+        }
+        @page { size: A4; margin: 12mm; }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <a href="{% url 'core:dashboard:textbook-session' session.id %}">← Retour au cahier</a>
+        <button type="button" onclick="window.print()">Imprimer</button>
+    </div>
+
+    <div class="sheet">
+        <div class="letterhead">
+            <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy">
+            <div class="org">
+                <strong>Univers Academy</strong>
+                N° RCCM : CG-BZV-01-2025-A10-02201<br>
+                NIU : P23000000257459H<br>
+                CNSS : 12052348/65<br>
+                1<sup>er</sup> étage immeuble Monte Cristo<br>
+                +242-06-851-7179<br>
+                universacademy70@gmail.com
+            </div>
+        </div>
+
+        <h1>Cahier de texte</h1>
+
+        <table class="identity">
+            <tr>
+                <th>Formateur</th>
+                <td>{{ header.formateur }}</td>
+            </tr>
+            <tr>
+                <th>Filière</th>
+                <td>{{ header.filiere }}</td>
+            </tr>
+            <tr>
+                <th>Classe</th>
+                <td>{{ header.classe }}</td>
+            </tr>
+        </table>
+
+        <table class="entries">
+            <thead>
+                <tr>
+                    <th style="width:84px;">Dates</th>
+                    <th style="width:92px;">Heures</th>
+                    <th>Notions enseignées</th>
+                    <th style="width:92px;">Nombre d'apprenants</th>
+                    <th style="width:150px;">Observations</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td class="nowrap">{{ record.date|date:"d/m/Y" }}</td>
+                    <td class="nowrap">
+                        {% if record.display_start %}{{ record.display_start|time:"H:i" }}{% else %}—{% endif %}{% if record.display_end %} – {{ record.display_end|time:"H:i" }}{% endif %}
+                    </td>
+                    <td>
+                        {{ record.content_covered|default:record.topic|default:"—"|linebreaksbr }}
+                        {% if record.status != 'COMPLETED' %}
+                        <span class="status">{{ record.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="center">{{ record.displayed_attendee_count }}</td>
+                    <td>{{ record.notes|default:"—"|linebreaksbr }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty">Aucune séance enregistrée pour cette classe.</td></tr>
+                {% endfor %}
+            </tbody>
+            {% if records %}
+            <tfoot>
+                <tr>
+                    <td colspan="2">Total : {{ totals.seances }} séance{{ totals.seances|pluralize }}</td>
+                    <td>{{ totals.heures }} heure{{ totals.heures|pluralize }} assurée{{ totals.heures|pluralize }}</td>
+                    <td class="center">{{ totals.apprenants }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+
+        <div class="footer">
+            <span>Univers Academy — Cahier de texte</span>
+            <span>Édité le {{ today|date:"d/m/Y" }}</span>
+        </div>
+    </div>
+</body>
+</html>

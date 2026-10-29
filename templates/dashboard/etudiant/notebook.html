@@ -1,0 +1,116 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Mes fiches de cours — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/etudiant/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Mes fiches de cours</h1>
+        <p class="ua-page-sub">
+            Après chaque séance, notez les notions retenues, vos difficultés et
+            vos observations. Le formateur peut les consulter.
+        </p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
+    {% include "dashboard/_stat.html" with label="Séances réalisées" value=stats.total icon="presentation" tone="indigo" hint="à documenter" %}
+    {% include "dashboard/_stat.html" with label="Fiches remplies" value=stats.filled icon="check-circle" tone="green" hint="enregistrées" %}
+    {% include "dashboard/_stat.html" with label="À remplir" value=stats.missing icon="clock" tone="amber" hint="en attente" %}
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="Notion, formation, sujet…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Formation</label>
+            <select name="session" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for enrollment in enrollments %}
+                <option value="{{ enrollment.session.id }}" {% if session_filter == enrollment.session.id|stringformat:'s' %}selected{% endif %}>{{ enrollment.session.course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">État</label>
+            <select name="etat" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                <option value="a_remplir" {% if state_filter == 'a_remplir' %}selected{% endif %}>À remplir</option>
+                <option value="remplies" {% if state_filter == 'remplies' %}selected{% endif %}>Remplies</option>
+            </select>
+        </div>
+        <div class="md:col-span-4">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} Filtrer</button>
+        </div>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Dates</th>
+                    <th>Heures</th>
+                    <th>Formation / notions</th>
+                    <th>Présence</th>
+                    <th>Ma fiche</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="whitespace-nowrap">{{ row.record.date|date:"d/m/Y" }}</td>
+                    <td class="whitespace-nowrap">
+                        {% if row.record.display_start %}{{ row.record.display_start|time:"H:i" }}{% else %}—{% endif %}{% if row.record.display_end %} – {{ row.record.display_end|time:"H:i" }}{% endif %}
+                    </td>
+                    <td>
+                        <span class="ua-cell-title">{{ row.record.session.course.title }}</span>
+                        <span class="ua-cell-sub">{{ row.record.content_covered|default:row.record.topic|default:"—"|truncatechars:90 }}</span>
+                    </td>
+                    <td>
+                        {% if row.attendance %}
+                        <span class="ua-badge {% if row.attendance.status == 'PRESENT' %}ua-badge-green{% elif row.attendance.status == 'ABSENT' %}ua-badge-rose{% else %}ua-badge-amber{% endif %}">{{ row.attendance.get_status_display }}</span>
+                        {% else %}
+                        <span class="ua-muted text-xs">Non pointée</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.note %}
+                        <span class="ua-badge ua-badge-green">Remplie</span>
+                        <span class="ua-cell-sub">{{ row.note.updated_at|date:"d/m/Y H:i" }}</span>
+                        {% else %}
+                        <span class="ua-badge ua-badge-amber">À remplir</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'core:dashboard:student-course-sheet' row.record.session.id %}"
+                               class="ua-btn ua-btn-sm ua-btn-ghost" title="Feuille imprimable de la formation">
+                                {% icon "printer" %}
+                            </a>
+                            <a href="{% url 'core:dashboard:student-note' row.record.id %}"
+                               class="ua-btn ua-btn-sm {% if row.note %}ua-btn-ghost{% else %}ua-btn-primary{% endif %}">
+                                {% if row.note %}Consulter / modifier{% else %}Remplir{% endif %}
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucune séance réalisée pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -481,6 +481,51 @@ class Attendance(models.Model):
         ordering = ['-date']
 
 
+class StudentSessionNote(models.Model):
+    """Fiche de cours remplie par l'apprenant après chaque séance.
+
+    Reprend les colonnes de la fiche papier remise aux étudiants : notions
+    retenues, difficultés rencontrées et observations.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    enrollment = models.ForeignKey(
+        Enrollment, on_delete=models.CASCADE, related_name='session_notes'
+    )
+    session_record = models.ForeignKey(
+        'SessionRecord', on_delete=models.CASCADE, related_name='student_notes'
+    )
+    notions_learned = models.TextField(
+        "Notions retenues",
+        help_text="Ce que j'ai appris pendant cette séance",
+    )
+    difficulties = models.TextField("Difficultés", blank=True)
+    observations = models.TextField("Observations", blank=True)
+    attended = models.BooleanField(
+        "J'étais présent à cette séance", default=True,
+    )
+    followed_start = models.TimeField(
+        "Heure de début suivie", null=True, blank=True,
+    )
+    followed_end = models.TimeField(
+        "Heure de fin suivie", null=True, blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'student_session_notes'
+        unique_together = ('enrollment', 'session_record')
+        ordering = ['-session_record__date', '-created_at']
+
+    def __str__(self):
+        return f"{self.enrollment.student} — {self.session_record.date}"
+
+    @property
+    def student(self):
+        return self.enrollment.student
+
+
 class Payment(models.Model):
     class Method(models.TextChoices):
         CASH = 'CASH', 'Espèces'
@@ -1090,6 +1135,10 @@ class SessionRecord(models.Model):
     exercises_done = models.TextField(blank=True)
     difficulties = models.TextField(blank=True)
     notes = models.TextField(blank=True)
+    attendee_count = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Nombre d'apprenants présents relevé sur le cahier de texte",
+    )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PLANNED
     )
@@ -1131,6 +1180,40 @@ class SessionRecord(models.Model):
     @property
     def actual_hours(self):
         return round(self.actual_minutes / 60, 2)
+
+    # -- Cahier de texte -------------------------------------------------
+    @property
+    def attendance_count(self):
+        """Apprenants pointés présents ou en retard sur la feuille de présence."""
+        return self.attendances.exclude(
+            status=Attendance.Status.ABSENT
+        ).count()
+
+    @property
+    def displayed_attendee_count(self):
+        """Nombre d'apprenants du cahier de texte.
+
+        Le relevé manuscrit saisi par le formateur fait foi ; à défaut, le
+        nombre est déduit de la feuille de présence (annotation
+        ``present_count`` quand la liste est annotée).
+        """
+        if self.attendee_count is not None:
+            return self.attendee_count
+        if hasattr(self, 'present_count'):
+            return self.present_count
+        return self.attendance_count
+
+    @property
+    def display_start(self):
+        return self.actual_start or self.planned_start
+
+    @property
+    def display_end(self):
+        return self.actual_end or self.planned_end
+
+    @property
+    def display_hours(self):
+        return self.actual_hours or self.planned_hours
 
 
 class Resource(models.Model):

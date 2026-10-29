@@ -1,0 +1,126 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Cahier de texte — {{ session.course.title }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Cahier de texte</h1>
+        <p class="ua-page-sub">{{ session.course.title }} · {{ header.filiere }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:textbook-print' session.id %}" class="ua-btn ua-btn-primary">
+            {% icon "file-text" %} Imprimer
+        </a>
+        <a href="{% url 'core:dashboard:textbook' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <dl class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+        <div>
+            <dt class="ua-stat-label">Formateur</dt>
+            <dd class="font-semibold mt-1" style="color:#1e2044;">{{ header.formateur }}</dd>
+        </div>
+        <div>
+            <dt class="ua-stat-label">Filière</dt>
+            <dd class="font-semibold mt-1" style="color:#1e2044;">{{ header.filiere }}</dd>
+        </div>
+        <div>
+            <dt class="ua-stat-label">Classe</dt>
+            <dd class="font-semibold mt-1" style="color:#1e2044;">{{ header.classe }}</dd>
+        </div>
+    </dl>
+</section>
+
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-5">
+    {% include "dashboard/_stat.html" with label="Séances" value=totals.seances icon="calendar" tone="indigo" hint="lignes du cahier" %}
+    {% include "dashboard/_stat.html" with label="Heures assurées" value=totals.heures icon="clock" tone="green" hint="cumul" %}
+    {% include "dashboard/_stat.html" with label="Apprenants" value=totals.apprenants icon="users" tone="sky" hint="cumul des présences" %}
+    {% include "dashboard/_stat.html" with label="Notions saisies" value=totals.notions icon="book-open" tone="amber" hint="séances renseignées" %}
+</div>
+
+{% if can_edit %}
+<details class="ua-card ua-card-pad mb-5" {% if form.errors %}open{% endif %}>
+    <summary class="ua-section-title" style="cursor:pointer;">Ajouter la séance du jour</summary>
+    <form method="post" action="{% url 'core:dashboard:textbook-create' session.id %}" class="ua-form mt-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-1">{{ form.date.label_tag }}{{ form.date }}{{ form.date.errors }}</div>
+            <div>{{ form.planned_start.label_tag }}{{ form.planned_start }}{{ form.planned_start.errors }}</div>
+            <div>{{ form.planned_end.label_tag }}{{ form.planned_end }}{{ form.planned_end.errors }}</div>
+        </div>
+        {{ form.non_field_errors }}
+        <div class="mt-4">{{ form.content_covered.label_tag }}{{ form.content_covered }}{{ form.content_covered.errors }}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+            <div>{{ form.attendee_count.label_tag }}{{ form.attendee_count }}{{ form.attendee_count.errors }}</div>
+            <div>{{ form.status.label_tag }}{{ form.status }}{{ form.status.errors }}</div>
+        </div>
+        <div class="mt-4">{{ form.notes.label_tag }}{{ form.notes }}{{ form.notes.errors }}</div>
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">
+                {% icon "check-circle" %} Enregistrer la séance
+            </button>
+        </div>
+    </form>
+</details>
+{% else %}
+<section class="ua-card ua-card-pad mb-5">
+    <p class="text-sm ua-muted">
+        Consultation seule : seuls le formateur affecté, le responsable
+        pédagogique et la direction peuvent remplir le cahier de texte.
+    </p>
+</section>
+{% endif %}
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Dates</th>
+                    <th>Heures</th>
+                    <th>Notions enseignées</th>
+                    <th class="text-center">Nombre d'apprenants</th>
+                    <th>Observations</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td class="whitespace-nowrap">{{ record.date|date:"d/m/Y" }}</td>
+                    <td class="whitespace-nowrap">
+                        {% if record.display_start %}{{ record.display_start|time:"H:i" }}{% else %}—{% endif %}{% if record.display_end %} – {{ record.display_end|time:"H:i" }}{% endif %}
+                    </td>
+                    <td>
+                        <span class="ua-cell-title">{{ record.content_covered|default:record.topic|default:"—"|linebreaksbr }}</span>
+                        {% if record.module %}<span class="ua-cell-sub">{{ record.module.title }}</span>{% endif %}
+                    </td>
+                    <td class="text-center font-semibold">{{ record.displayed_attendee_count }}</td>
+                    <td>{{ record.notes|default:"—"|linebreaksbr }}</td>
+                    <td>
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'core:dashboard:session-record-attendance' record.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                                Présences
+                            </a>
+                            {% if can_edit %}
+                            <a href="{% url 'core:dashboard:textbook-edit' record.id %}" class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">
+                                Modifier
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucune séance enregistrée pour cette formation.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

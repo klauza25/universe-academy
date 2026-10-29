@@ -85,4 +85,36 @@
 </section>
 
 {% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de la séance" audit_subtitle="Création du compte rendu et pointage des présences." audit_empty="Aucun événement d'audit pour cette séance." %}
+
+<section class="ua-card overflow-hidden mt-5">
+    <div class="px-6 pt-6 pb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="ua-section-title">Fiches des apprenants ({{ student_notes|length }})</h2>
+            <p class="text-xs ua-muted mt-1">
+                Notions retenues et difficultés déclarées après le cours.
+            </p>
+        </div>
+        <a href="{% url 'core:dashboard:textbook-session' record.session.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+            {% icon "book-open" %} Cahier de texte
+        </a>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Apprenant</th><th>Notions retenues</th><th>Difficultés</th><th>Observations</th><th>Mise à jour</th></tr></thead>
+            <tbody>
+                {% for note in student_notes %}
+                <tr>
+                    <td class="ua-cell-title">{{ note.enrollment.student.get_full_name|default:note.enrollment.student.email }}</td>
+                    <td>{{ note.notions_learned|linebreaksbr }}</td>
+                    <td>{{ note.difficulties|default:"—"|linebreaksbr }}</td>
+                    <td>{{ note.observations|default:"—"|linebreaksbr }}</td>
+                    <td class="ua-muted whitespace-nowrap">{{ note.updated_at|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="ua-empty">Aucune fiche remplie par les apprenants pour cette séance.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
 {% endblock %}

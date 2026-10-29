@@ -1,0 +1,73 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Fiche de cours du {{ record.date|date:"d/m/Y" }} — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/etudiant/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Fiche de cours</h1>
+        <p class="ua-page-sub">
+            {{ record.session.course.title }} · {{ record.date|date:"d/m/Y" }}
+            {% if record.display_start %} · {{ record.display_start|time:"H:i" }}{% if record.display_end %} – {{ record.display_end|time:"H:i" }}{% endif %}{% endif %}
+        </p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'core:dashboard:student-course-sheet' record.session.id %}" class="ua-btn ua-btn-ghost">
+            {% icon "printer" %} Feuille imprimable
+        </a>
+        <a href="{% url 'core:dashboard:student-notebook' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">La séance</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Formation</dt><dd>{{ record.session.course.title }}</dd></div>
+            <div><dt class="text-xs ua-muted">Module</dt><dd>{{ record.module.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Leçon</dt><dd>{{ record.lesson.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Notions enseignées</dt><dd>{{ record.content_covered|default:record.topic|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Formateur</dt><dd>{{ record.recorded_by.display_label|default:"—" }}</dd></div>
+            <div>
+                <dt class="text-xs ua-muted">Ma présence</dt>
+                <dd>
+                    {% if attendance %}
+                    <span class="ua-badge {% if attendance.status == 'PRESENT' %}ua-badge-green{% elif attendance.status == 'ABSENT' %}ua-badge-rose{% else %}ua-badge-amber{% endif %}">{{ attendance.get_status_display }}</span>
+                    {% else %}
+                    <span class="ua-muted">Non pointée</span>
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+    </section>
+
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-1">
+            {% if note %}Ma fiche enregistrée{% else %}Remplir ma fiche{% endif %}
+        </h2>
+        <p class="text-xs ua-muted mb-4">
+            Ces informations sont visibles par le formateur de la séance et
+            l'équipe pédagogique.
+        </p>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <div class="flex flex-wrap gap-3 mt-5">
+                <button type="submit" class="ua-btn ua-btn-primary">
+                    {% icon "check-circle" %} Enregistrer ma fiche
+                </button>
+                <a href="{% url 'core:dashboard:student-notebook' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            </div>
+        </form>
+        {% if note %}
+        <p class="text-xs ua-muted mt-4">
+            Dernière mise à jour : {{ note.updated_at|date:"d/m/Y à H:i" }}
+        </p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ from .models import (
     Contact, Visit, VisitReason, Prospect, ProspectFollowUp,
     Module, Lesson, SessionRecord, Resource, StudentDocument,
     CashAccount, CashTransaction, CashClosure, TransactionCategory,
+    StudentSessionNote,
 )
 
 # Styles partagés pour les formulaires publics (cohérents avec la page de connexion)
@@ -761,6 +762,60 @@ class LessonForm(forms.ModelForm):
         }
 
 
+class CourseSessionForm(forms.ModelForm):
+    """Groupe de formation : période, capacité et formateurs affectés."""
+
+    class Meta:
+        model = CourseSession
+        fields = [
+            'course', 'starts_at', 'ends_at', 'schedule', 'capacity',
+            'status', 'formateurs',
+        ]
+        labels = {
+            'course': 'Formation',
+            'starts_at': 'Date de début',
+            'ends_at': 'Date de fin',
+            'schedule': 'Horaires',
+            'capacity': 'Capacité',
+            'status': 'Statut',
+            'formateurs': 'Formateurs',
+        }
+        widgets = {
+            'course': forms.Select(attrs={'class': INPUT_CLASS}),
+            'starts_at': forms.DateInput(
+                attrs={'class': INPUT_CLASS, 'type': 'date'}, format='%Y-%m-%d'),
+            'ends_at': forms.DateInput(
+                attrs={'class': INPUT_CLASS, 'type': 'date'}, format='%Y-%m-%d'),
+            'schedule': forms.TextInput(
+                attrs={'class': INPUT_CLASS, 'placeholder': 'Ex: Lun-Ven 13h-15h'}),
+            'capacity': forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 1}),
+            'status': forms.Select(attrs={'class': INPUT_CLASS}),
+            'formateurs': forms.SelectMultiple(attrs={'class': INPUT_CLASS, 'size': 6}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ('starts_at', 'ends_at'):
+            self.fields[name].input_formats = ['%Y-%m-%d']
+        self.fields['course'].queryset = Course.objects.filter(active=True)
+        self.fields['formateurs'].queryset = User.objects.filter(
+            roles__key=RoleKey.FORMATEUR
+        ).distinct().order_by('first_name', 'last_name', 'email')
+        self.fields['formateurs'].help_text = (
+            "Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs formateurs."
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        starts_at = cleaned.get('starts_at')
+        ends_at = cleaned.get('ends_at')
+        if starts_at and ends_at and ends_at < starts_at:
+            self.add_error(
+                'ends_at', "La date de fin doit suivre la date de début."
+            )
+        return cleaned
+
+
 class SessionRecordForm(forms.ModelForm):
     class Meta:
         model = SessionRecord
@@ -829,6 +884,132 @@ class SessionRecordForm(forms.ModelForm):
         lesson = cleaned.get('lesson')
         if module and lesson and lesson.module_id != module.id:
             self.add_error('lesson', "Cette leçon n'appartient pas au module choisi.")
+        return cleaned
+
+
+class TextbookEntryForm(forms.ModelForm):
+    """Ligne du cahier de texte : les colonnes de la fiche papier du formateur.
+
+    Reprend exactement : date, heures, notions enseignées, nombre d'apprenants
+    et observations.
+    """
+
+    class Meta:
+        model = SessionRecord
+        fields = [
+            'date', 'planned_start', 'planned_end', 'content_covered',
+            'attendee_count', 'notes', 'status',
+        ]
+        labels = {
+            'date': 'Date',
+            'planned_start': 'Heure de début',
+            'planned_end': 'Heure de fin',
+            'content_covered': 'Notions enseignées',
+            'attendee_count': "Nombre d'apprenants",
+            'notes': 'Observations',
+            'status': 'Statut de la séance',
+        }
+        widgets = {
+            'date': forms.DateInput(
+                attrs={'class': INPUT_CLASS, 'type': 'date'}, format='%Y-%m-%d'),
+            'planned_start': forms.TimeInput(
+                attrs={'class': INPUT_CLASS, 'type': 'time'}, format='%H:%M'),
+            'planned_end': forms.TimeInput(
+                attrs={'class': INPUT_CLASS, 'type': 'time'}, format='%H:%M'),
+            'content_covered': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 3,
+                       'placeholder': "Ex : les composants d'un ordinateur"},
+            ),
+            'attendee_count': forms.NumberInput(
+                attrs={'class': INPUT_CLASS, 'min': 0}),
+            'notes': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 2,
+                       'placeholder': 'Observations, matériel, incident…'},
+            ),
+            'status': forms.Select(attrs={'class': INPUT_CLASS}),
+        }
+
+    def __init__(self, *args, session=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.session = session or getattr(self.instance, 'session', None)
+        self.fields['date'].input_formats = ['%Y-%m-%d']
+        for name in ('planned_start', 'planned_end'):
+            self.fields[name].input_formats = ['%H:%M']
+        self.fields['content_covered'].required = True
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get('planned_start')
+        end = cleaned.get('planned_end')
+        if start and end and end <= start:
+            self.add_error('planned_end', "L'heure de fin doit suivre le début.")
+
+        record_date = cleaned.get('date')
+        if self.session and record_date and start:
+            duplicates = SessionRecord.objects.filter(
+                session=self.session, date=record_date, planned_start=start,
+            )
+            if self.instance and self.instance.pk:
+                duplicates = duplicates.exclude(pk=self.instance.pk)
+            if duplicates.exists():
+                raise forms.ValidationError(
+                    "Une séance est déjà enregistrée à cette date et à cette "
+                    "heure pour ce groupe."
+                )
+        return cleaned
+
+
+class StudentSessionNoteForm(forms.ModelForm):
+    """Fiche de cours de l'apprenant (après chaque séance)."""
+
+    class Meta:
+        model = StudentSessionNote
+        fields = [
+            'notions_learned', 'difficulties', 'observations',
+            'attended', 'followed_start', 'followed_end',
+        ]
+        labels = {
+            'notions_learned': 'Notions retenues',
+            'difficulties': 'Difficultés rencontrées',
+            'observations': 'Observations',
+            'attended': "J'étais présent à cette séance",
+            'followed_start': 'Heure de début suivie',
+            'followed_end': 'Heure de fin suivie',
+        }
+        widgets = {
+            'notions_learned': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 3,
+                       'placeholder': "Ce que j'ai appris pendant cette séance"},
+            ),
+            'difficulties': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 2,
+                       'placeholder': "Ce que je n'ai pas compris"},
+            ),
+            'observations': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 2,
+                       'placeholder': 'Remarque, question pour le formateur…'},
+            ),
+            'attended': forms.CheckboxInput(attrs={'class': 'ua-check'}),
+            'followed_start': forms.TimeInput(
+                attrs={'class': INPUT_CLASS, 'type': 'time'}, format='%H:%M'),
+            'followed_end': forms.TimeInput(
+                attrs={'class': INPUT_CLASS, 'type': 'time'}, format='%H:%M'),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['notions_learned'].required = True
+        for name in ('followed_start', 'followed_end'):
+            self.fields[name].input_formats = ['%H:%M']
+
+    def clean(self):
+        cleaned = super().clean()
+        start = cleaned.get('followed_start')
+        end = cleaned.get('followed_end')
+        if start and end and end <= start:
+            raise forms.ValidationError(
+                "L'heure de fin suivie doit être après l'heure de début."
+            )
         return cleaned
 
 

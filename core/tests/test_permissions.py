@@ -5,8 +5,8 @@ from django.urls import reverse
 
 from core.models import (
     AccessEvent, AccessRequest, Attendance, AuditLog, CashAccount,
-    CashTransaction, Contact, Destination, Module, Payment, Prospect,
-    Resource, RoleKey, ScholarshipApplication, SessionRecord, Visit,
+    CashTransaction, Contact, Destination, Enrollment, Module, Payment,
+    Prospect, Resource, RoleKey, ScholarshipApplication, SessionRecord, Visit,
     VisitReason,
 )
 
@@ -187,7 +187,6 @@ class AdminTransversalAccessTests(BusinessTestBase):
         client = self.client_for(self.admin)
         write_routes = (
             ('student-edit', [self.etudiant.id]),
-            ('enrollment-edit', [self.enrollment.id]),
             ('payment-create', []),
             ('transaction-create', []),
             ('closure-create', []),
@@ -299,8 +298,10 @@ class ElevatedReadOnlyBusinessTests(BusinessTestBase):
     """SUPER_ADMIN et ADMIN voient tout sans écrire dans le métier.
 
     Seuls les comptes, rôles, demandes d'accès et bourses restent
-    administrables : transactions, étudiants, inscriptions, présences,
-    visites, prospects et ressources sont en consultation seule.
+    administrables : transactions, étudiants, présences, visites, prospects
+    et ressources sont en consultation seule. Exception assumée : la
+    modification de l'inscription d'un étudiant (formation, statut, montant)
+    est ouverte aux deux rôles élevés.
     """
 
     CONSULTATION_ONLY = (
@@ -357,7 +358,6 @@ class ElevatedReadOnlyBusinessTests(BusinessTestBase):
             ('student-create', []),
             ('student-edit', [self.etudiant.id]),
             ('enrollment-create', []),
-            ('enrollment-edit', [self.enrollment.id]),
             ('payment-create', []),
             ('transaction-create', []),
             ('closure-create', []),
@@ -380,6 +380,36 @@ class ElevatedReadOnlyBusinessTests(BusinessTestBase):
                     self.assertContains(
                         response, self.CONSULTATION_ONLY, status_code=403,
                     )
+
+    def test_elevated_roles_can_edit_enrollment(self):
+        """Exception assumée : les rôles élevés modifient l'inscription."""
+        url = reverse('core:dashboard:enrollment-edit',
+                      args=[self.enrollment.id])
+        for user in (self.super_admin, self.admin):
+            with self.subTest(role=user.primary_role):
+                client = self.client_for(user)
+                self.assertEqual(client.get(url).status_code, 200)
+                response = client.post(url, {
+                    'student': self.etudiant.pk,
+                    'session': self.session.pk,
+                    'status': Enrollment.Status.COMPLETED,
+                    'start_date': self.local_date(),
+                    'tariff_amount': '120000',
+                    'discount_amount': '20000',
+                    'payment_plan': 'Soldé',
+                    'notes': 'Modifié par supervision',
+                })
+                self.assertRedirects(
+                    response,
+                    reverse('core:dashboard:enrollment-detail',
+                            args=[self.enrollment.id]),
+                    fetch_redirect_response=False,
+                )
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, Enrollment.Status.COMPLETED)
+        self.assertEqual(self.enrollment.net_amount, 100000)
+        self.assertEqual(self.enrollment.notes, 'Modifié par supervision')
+        self.assert_audited('ENROLLMENT_EDIT', self.enrollment.pk)
 
     def test_elevated_roles_cannot_post_mixed_views(self):
         cases = (

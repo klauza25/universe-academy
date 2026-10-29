@@ -242,7 +242,7 @@ def enrollment_create(request):
     })
 
 
-@business_write_required(*SECRETARIAT_ROLES)
+@role_required(*SECRETARIAT_ROLES)
 def enrollment_edit(request, enrollment_id):
     enrollment = get_object_or_404(Enrollment, id=enrollment_id)
     form = EnrollmentForm(instance=enrollment)

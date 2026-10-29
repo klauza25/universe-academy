@@ -7,7 +7,7 @@ from django.urls import reverse
 from core.forms import SessionRecordForm
 from core.models import (
     Attendance, Course, CourseSession, Enrollment, Lesson, Module, Resource,
-    RoleKey, SessionRecord,
+    RoleKey, SessionRecord, StudentSessionNote,
 )
 
 from .base import BusinessTestBase
@@ -461,3 +461,257 @@ class ResourceTests(PedagogyTestBase):
             [self.enrollment.pk],
         )
         self.assertEqual(response.context['totals']['total'], 1)
+
+
+class StudentNotebookTests(PedagogyTestBase):
+    """Fiche de cours remplie par l'apprenant après chaque séance."""
+
+    def setUp(self):
+        super().setUp()
+        self.student_client = self.client_for(self.etudiant)
+        self.record = self.make_record(
+            status=SessionRecord.Status.COMPLETED,
+            actual_start=dt_time(8, 0),
+            actual_end=dt_time(10, 0),
+            content_covered='Les balises de base',
+        )
+
+    def note_payload(self, **overrides):
+        payload = {
+            'notions_learned': 'Balises html, head et body',
+            'difficulties': '',
+            'observations': '',
+            'attended': 'on',
+            'followed_start': '08:00',
+            'followed_end': '10:00',
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_notebook_lists_completed_record(self):
+        response = self.student_client.get(
+            reverse('core:dashboard:student-notebook'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['stats']['total'], 1)
+        self.assertEqual(response.context['stats']['missing'], 1)
+
+    def test_student_can_fill_note(self):
+        url = reverse('core:dashboard:student-note', args=[self.record.id])
+        response = self.student_client.post(url, self.note_payload())
+        self.assertRedirects(
+            response, reverse('core:dashboard:student-notebook'))
+        note = StudentSessionNote.objects.get(
+            enrollment=self.enrollment, session_record=self.record)
+        self.assertTrue(note.attended)
+        self.assertEqual(note.followed_start, dt_time(8, 0))
+        self.assertEqual(note.followed_end, dt_time(10, 0))
+        self.assert_audited('STUDENT_NOTE_CREATE')
+
+    def test_end_must_follow_start(self):
+        url = reverse('core:dashboard:student-note', args=[self.record.id])
+        response = self.student_client.post(
+            url, self.note_payload(followed_start='10:00', followed_end='08:00'))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(StudentSessionNote.objects.exists())
+        self.assertContains(
+            response, "heure de fin suivie doit")
+
+    def test_planned_record_redirects(self):
+        planned = self.make_record(
+            status=SessionRecord.Status.PLANNED,
+            planned_start=dt_time(14, 0), planned_end=dt_time(16, 0))
+        url = reverse('core:dashboard:student-note', args=[planned.id])
+        response = self.student_client.get(url)
+        self.assertRedirects(
+            response, reverse('core:dashboard:student-notebook'))
+        self.assertFalse(StudentSessionNote.objects.exists())
+
+    def test_cannot_fill_note_for_foreign_session(self):
+        other = self.make_user(RoleKey.ETUDIANT, 'etudiant9@test.local')
+        url = reverse('core:dashboard:student-note', args=[self.record.id])
+        self.assertEqual(self.client_for(other).get(url).status_code, 404)
+
+    def test_elevated_user_blocked_from_notebook(self):
+        response = self.client_for(self.admin).get(
+            reverse('core:dashboard:student-notebook'))
+        self.assertEqual(response.status_code, 403)
+
+
+class StudentCourseSheetTests(PedagogyTestBase):
+    """Feuille de suivi imprimable de l'apprenant."""
+
+    def setUp(self):
+        super().setUp()
+        self.student_client = self.client_for(self.etudiant)
+        record = self.make_record(
+            status=SessionRecord.Status.COMPLETED,
+            actual_start=dt_time(8, 0),
+            actual_end=dt_time(10, 0),
+        )
+        StudentSessionNote.objects.create(
+            enrollment=self.enrollment, session_record=record,
+            notions_learned='Balises html', attended=True,
+            followed_start=dt_time(8, 0), followed_end=dt_time(10, 0),
+        )
+        self.url = reverse(
+            'core:dashboard:student-course-sheet', args=[self.session.id])
+
+    def test_owner_can_view_sheet(self):
+        response = self.student_client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Feuille de suivi")
+        self.assertContains(response, "Balises html")
+
+    def test_sheet_is_owner_only(self):
+        other = self.make_user(RoleKey.ETUDIANT, 'etudiant8@test.local')
+        self.assertEqual(self.client_for(other).get(self.url).status_code, 404)
+
+    def test_trainer_cannot_view_student_sheet(self):
+        self.assertEqual(self.trainer_client.get(self.url).status_code, 403)
+
+
+class TextbookPrintTests(PedagogyTestBase):
+    """Cahier de texte imprimable du formateur."""
+
+    def test_trainer_can_print_textbook(self):
+        self.make_record(
+            status=SessionRecord.Status.COMPLETED,
+            actual_start=dt_time(8, 0), actual_end=dt_time(10, 0))
+        url = reverse(
+            'core:dashboard:textbook-print', args=[self.session.id])
+        response = self.trainer_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Cahier de texte")
+
+    def test_student_cannot_print_textbook(self):
+        url = reverse(
+            'core:dashboard:textbook-print', args=[self.session.id])
+        response = self.client_for(self.etudiant).get(url)
+        self.assertEqual(response.status_code, 403)
+
+
+class CourseSessionGroupTests(PedagogyTestBase):
+    """Écran Groupes : création, édition et périmètre de lecture."""
+
+    def group_payload(self, **overrides):
+        payload = {
+            'course': self.course.id,
+            'starts_at': self.local_date(1),
+            'ends_at': self.local_date(30),
+            'schedule': 'Lun-Ven 13h-15h',
+            'capacity': 25,
+            'status': CourseSession.Status.PLANNED,
+            'formateurs': [self.formateur.id],
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_resp_peda_and_direction_can_create_group(self):
+        for user in (self.peda, self.direction):
+            with self.subTest(role=user.primary_role):
+                client = self.client_for(user)
+                before = CourseSession.objects.count()
+                response = client.post(
+                    reverse('core:dashboard:course-session-create'),
+                    self.group_payload(schedule='Mar-Jeu 09h-11h'),
+                )
+                self.assertRedirects(
+                    response,
+                    reverse('core:dashboard:course-sessions'),
+                    fetch_redirect_response=False,
+                )
+                self.assertEqual(CourseSession.objects.count(), before + 1)
+                group = CourseSession.objects.get(schedule='Mar-Jeu 09h-11h')
+                self.assertEqual(group.capacity, 25)
+                self.assertIn(self.formateur, group.formateurs.all())
+                self.assert_audited('COURSE_SESSION_CREATE', group.pk)
+                group.delete()
+
+    def test_formateur_cannot_create_group(self):
+        response = self.trainer_client.get(
+            reverse('core:dashboard:course-session-create'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_elevated_roles_cannot_create_group(self):
+        for user in (self.super_admin, self.admin):
+            with self.subTest(role=user.primary_role):
+                client = self.client_for(user)
+                self.assertEqual(
+                    client.get(
+                        reverse('core:dashboard:course-session-create')
+                    ).status_code,
+                    403,
+                )
+                self.assertEqual(
+                    client.post(
+                        reverse('core:dashboard:course-session-create'),
+                        self.group_payload(),
+                    ).status_code,
+                    403,
+                )
+
+    def test_end_before_start_is_rejected(self):
+        before = CourseSession.objects.count()
+        response = self.manager_client.post(
+            reverse('core:dashboard:course-session-create'),
+            self.group_payload(
+                starts_at=self.local_date(30), ends_at=self.local_date(1)),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(CourseSession.objects.count(), before)
+        self.assertContains(response, "date de fin doit suivre")
+
+    def test_authorized_roles_can_list_groups(self):
+        for user in (
+            self.super_admin, self.admin, self.peda, self.direction,
+            self.formateur, self.secretaire,
+        ):
+            with self.subTest(role=user.primary_role):
+                client = self.client_for(user)
+                self.assertEqual(
+                    client.get(
+                        reverse('core:dashboard:course-sessions')
+                    ).status_code,
+                    200,
+                )
+
+    def test_student_cannot_list_groups(self):
+        self.assertEqual(
+            self.client_for(self.etudiant).get(
+                reverse('core:dashboard:course-sessions')).status_code,
+            403,
+        )
+
+    def test_formateur_sees_only_own_groups(self):
+        other = CourseSession.objects.create(
+            course=self.course,
+            starts_at=self.today + timedelta(days=5),
+            ends_at=self.today + timedelta(days=40),
+            schedule='Sam 08h-12h',
+            capacity=10,
+            status=CourseSession.Status.PLANNED,
+        )
+        response = self.trainer_client.get(
+            reverse('core:dashboard:course-sessions'))
+        listed = [s.id for s in response.context['page']]
+        self.assertIn(self.session.id, listed)
+        self.assertNotIn(other.id, listed)
+
+    def test_resp_peda_can_edit_group(self):
+        url = reverse(
+            'core:dashboard:course-session-edit', args=[self.session.id])
+        response = self.manager_client.post(url, self.group_payload(
+            schedule='Lun-Ven 08h-10h',
+            capacity=42,
+            status=CourseSession.Status.ACTIVE,
+            formateurs=[self.formateur.id],
+        ))
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:course-sessions'),
+            fetch_redirect_response=False,
+        )
+        self.session.refresh_from_db()
+        self.assertEqual(self.session.capacity, 42)
+        self.assertEqual(self.session.status, CourseSession.Status.ACTIVE)
+        self.assert_audited('COURSE_SESSION_EDIT', self.session.pk)

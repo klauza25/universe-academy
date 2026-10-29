@@ -1,0 +1,95 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Groupes — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Groupes de formation</h1>
+        <p class="ua-page-sub">Périodes, capacités et formateurs affectés à chaque groupe.</p>
+    </div>
+    {% if can_manage %}
+    <a href="{% url 'core:dashboard:course-session-create' %}" class="ua-btn ua-btn-primary">{% icon "presentation" %} Nouveau groupe</a>
+    {% endif %}
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Formation, horaires…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Formation</th>
+                    <th>Période</th>
+                    <th>Horaires</th>
+                    <th>Formateurs</th>
+                    <th>Inscrits</th>
+                    <th>Statut</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in page %}
+                <tr>
+                    <td><span class="ua-cell-title">{{ session.course.title }}</span>
+                        <span class="ua-cell-sub block">{{ session.course.domain }}</span></td>
+                    <td>{{ session.starts_at|date:"d/m/Y" }} → {{ session.ends_at|date:"d/m/Y" }}</td>
+                    <td>{{ session.schedule|default:"—" }}</td>
+                    <td>
+                        {% for formateur in session.formateurs.all %}
+                        <span class="ua-cell-sub block">{{ formateur.get_full_name|default:formateur.email }}</span>
+                        {% empty %}
+                        <span class="ua-cell-sub">Aucun formateur affecté</span>
+                        {% endfor %}
+                    </td>
+                    <td>{{ session.enrolled_count }} / {{ session.capacity }}</td>
+                    <td>
+                        {% if session.status == 'ACTIVE' %}<span class="ua-badge ua-badge-green">{{ session.get_status_display }}</span>
+                        {% elif session.status == 'CANCELLED' %}<span class="ua-badge ua-badge-rose">{{ session.get_status_display }}</span>
+                        {% elif session.status == 'COMPLETED' %}<span class="ua-badge ua-badge-amber">{{ session.get_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-indigo">{{ session.get_status_display }}</span>{% endif %}
+                    </td>
+                    <td>
+                        <div class="flex flex-wrap gap-2 justify-end">
+                            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:session-records' %}?session={{ session.id }}">Séances</a>
+                            {% if not is_elevated %}
+                            <a class="ua-btn ua-btn-light ua-btn-sm" href="{% url 'core:dashboard:session-record-create' session.id %}">Planifier</a>
+                            {% endif %}
+                            {% if can_manage %}
+                            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:course-session-edit' session.id %}">Modifier</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="ua-empty">Aucun groupe pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

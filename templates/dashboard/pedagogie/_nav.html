@@ -2,8 +2,14 @@
 <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-nav-link">
     {% icon "grid" %}<span>Mon tableau de bord</span>
 </a>
+<a href="{% url 'core:dashboard:course-sessions' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'course-sessions' or request.resolver_match.url_name == 'course-session-create' or request.resolver_match.url_name == 'course-session-edit' %}is-active{% endif %}">
+    {% icon "users" %}<span>Groupes</span>
+</a>
 <a href="{% url 'core:dashboard:session-records' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'session-records' or request.resolver_match.url_name == 'session-record-detail' or request.resolver_match.url_name == 'session-record-attendance' %}is-active{% endif %}">
     {% icon "presentation" %}<span>Séances</span>
+</a>
+<a href="{% url 'core:dashboard:textbook' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'textbook' or request.resolver_match.url_name == 'textbook-session' or request.resolver_match.url_name == 'textbook-create' or request.resolver_match.url_name == 'textbook-edit' or request.resolver_match.url_name == 'textbook-print' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Cahier de texte</span>
 </a>
 <a href="{% url 'core:dashboard:attendance-history' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'attendance-history' %}is-active{% endif %}">
     {% icon "clipboard" %}<span>Présences</span>

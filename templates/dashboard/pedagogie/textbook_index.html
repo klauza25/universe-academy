@@ -1,0 +1,89 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Cahier de texte — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Cahier de texte</h1>
+        <p class="ua-page-sub">
+            Une ligne par cours : date, heures, notions enseignées, nombre
+            d'apprenants et observations.
+        </p>
+    </div>
+    <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">
+        {% icon "presentation" %} Séances
+    </a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Recherche</label>
+            <input type="search" name="q" value="{{ query }}"
+                   placeholder="Formation, filière…"
+                   class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary">
+            {% icon "search" %} Filtrer
+        </button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Formation</th>
+                    <th>Filière / domaine</th>
+                    <th>Période</th>
+                    <th>Formateur(s)</th>
+                    <th>Séances</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'core:dashboard:textbook-session' session.id %}" class="ua-cell-title">
+                            {{ session.course.title }}
+                        </a>
+                        <span class="ua-cell-sub">{{ session.schedule|default:"Horaire non défini" }}</span>
+                    </td>
+                    <td>{{ session.course.domain|default:"—" }}</td>
+                    <td class="whitespace-nowrap">
+                        {{ session.starts_at|date:"d/m/Y" }} → {{ session.ends_at|date:"d/m/Y" }}
+                    </td>
+                    <td>
+                        {% for f in session.formateurs.all %}
+                        <span class="ua-badge ua-badge-indigo">{{ f.display_label }}</span>
+                        {% empty %}
+                        <span class="ua-muted text-xs">Non affecté</span>
+                        {% endfor %}
+                    </td>
+                    <td><span class="ua-badge ua-badge-slate">{{ session.record_count }}</span></td>
+                    <td>
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'core:dashboard:textbook-session' session.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                                {% icon "arrow-right" %} Ouvrir
+                            </a>
+                            <a href="{% url 'core:dashboard:textbook-print' session.id %}" class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">
+                                Imprimer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucune formation ne correspond à cette recherche.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -10,11 +10,12 @@ from django.utils import timezone
 
 from .decorators import business_write_required, role_required
 from .forms import (
-    LessonForm, ModuleForm, ResourceForm, SessionRecordForm,
+    CourseSessionForm, LessonForm, ModuleForm, ResourceForm, SessionRecordForm,
+    StudentSessionNoteForm, TextbookEntryForm,
 )
 from .models import (
     Attendance, AuditLog, Course, CourseSession, Enrollment, Lesson, Module,
-    Resource, RoleKey, SessionRecord,
+    Resource, RoleKey, SessionRecord, StudentSessionNote,
 )
 from .utils import log_audit
 
@@ -148,6 +149,95 @@ def lesson_edit(request, lesson_id):
 
 
 # ---------------------------------------------------------------------------
+# Groupes de formation (CourseSession)
+# ---------------------------------------------------------------------------
+
+@role_required(*PEDAGOGY_ROLES)
+def course_session_list(request):
+    sessions = _my_sessions(request.user).select_related(
+        'course'
+    ).prefetch_related('formateurs')
+
+    status = request.GET.get('status') or ''
+    query = (request.GET.get('q') or '').strip()
+    if status:
+        sessions = sessions.filter(status=status)
+    if query:
+        sessions = sessions.filter(
+            Q(course__title__icontains=query) | Q(schedule__icontains=query)
+        )
+
+    paginator = Paginator(sessions.distinct(), 20)
+    page = paginator.get_page(request.GET.get('page', 1))
+    return render(request, 'dashboard/pedagogie/course_session_list.html', {
+        'page': page,
+        'query': query,
+        'status_filter': status,
+        'status_choices': CourseSession.Status.choices,
+        'can_manage': not request.user.is_elevated and request.user.has_any_role(
+            'RESP_PEDA', 'DIRECTION'
+        ),
+    })
+
+
+@business_write_required('RESP_PEDA', 'DIRECTION')
+def course_session_create(request):
+    form = CourseSessionForm()
+    if request.method == 'POST':
+        form = CourseSessionForm(request.POST)
+        if form.is_valid():
+            session = form.save()
+            log_audit(
+                request, 'COURSE_SESSION_CREATE', 'CourseSession',
+                str(session.id),
+                after={'course': str(session.course_id),
+                       'starts_at': str(session.starts_at),
+                       'ends_at': str(session.ends_at),
+                       'status': session.status,
+                       'formateurs': [str(f.id) for f in session.formateurs.all()]},
+            )
+            messages.success(request, "Groupe créé.")
+            return redirect('core:dashboard:course-sessions')
+    return render(request, 'dashboard/pedagogie/course_session_form.html', {
+        'form': form, 'creating': True,
+    })
+
+
+@business_write_required('RESP_PEDA', 'DIRECTION')
+def course_session_edit(request, session_id):
+    session = get_object_or_404(
+        CourseSession.objects.select_related('course'), id=session_id
+    )
+    form = CourseSessionForm(instance=session)
+    if request.method == 'POST':
+        before = {
+            'course': str(session.course_id),
+            'starts_at': str(session.starts_at),
+            'ends_at': str(session.ends_at),
+            'status': session.status,
+            'formateurs': [str(f.id) for f in session.formateurs.all()],
+        }
+        form = CourseSessionForm(request.POST, instance=session)
+        if form.is_valid():
+            session = form.save()
+            log_audit(
+                request, 'COURSE_SESSION_EDIT', 'CourseSession',
+                str(session.id),
+                before=before,
+                after={'course': str(session.course_id),
+                       'starts_at': str(session.starts_at),
+                       'ends_at': str(session.ends_at),
+                       'status': session.status,
+                       'formateurs': [str(f.id) for f in session.formateurs.all()]},
+            )
+            messages.success(request, "Groupe mis à jour.")
+            return redirect('core:dashboard:course-sessions')
+    return render(request, 'dashboard/pedagogie/course_session_form.html', {
+        'form': form, 'session': session, 'creating': False,
+    })
+
+
+# ---------------------------------------------------------------------------
 # Séances
 # ---------------------------------------------------------------------------
 
@@ -268,6 +358,9 @@ def session_record_detail(request, record_id):
         'can_manage': can_manage,
         'attendances': attendances,
         'summary': summary,
+        'student_notes': record.student_notes.select_related(
+            'enrollment__student'
+        ).order_by('enrollment__student__last_name'),
         'audit_entries': AuditLog.objects.filter(
             entity_type='SessionRecord', entity_id=str(record.id),
         ).select_related('actor').order_by('-created_at')[:20],
@@ -705,4 +798,365 @@ def student_attendance(request):
         'date_from': date_from,
         'date_to': date_to,
         'status_choices': Attendance.Status.choices,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Cahier de texte du formateur et fiches de cours des apprenants
+# ---------------------------------------------------------------------------
+
+def _can_write_session(user, session):
+    """Écriture pédagogique : formateur affecté, responsable ou direction."""
+    if user.is_elevated:
+        return False
+    if user.has_any_role('RESP_PEDA', 'DIRECTION'):
+        return True
+    return (
+        user.has_role('FORMATEUR')
+        and session.formateurs.filter(id=user.id).exists()
+    )
+
+
+def _textbook_records(session):
+    """Lignes du cahier de texte, dans l'ordre chronologique."""
+    return SessionRecord.objects.filter(session=session).select_related(
+        'module', 'lesson', 'recorded_by'
+    ).annotate(
+        present_count=Count(
+            'attendances',
+            filter=~Q(attendances__status=Attendance.Status.ABSENT),
+        )
+    ).order_by('date', 'planned_start')
+
+
+def _textbook_header(session):
+    formateurs = ', '.join(
+        f.display_label for f in session.formateurs.all()
+    ) or '—'
+    return {
+        'formateur': formateurs,
+        'filiere': session.course.domain or session.course.title,
+        'classe': (
+            f"{session.course.title} — du "
+            f"{session.starts_at:%d/%m/%Y} au {session.ends_at:%d/%m/%Y}"
+        ),
+    }
+
+
+def _textbook_context(request, session, form=None):
+    records = list(_textbook_records(session))
+    return {
+        'session': session,
+        'records': records,
+        'can_edit': _can_write_session(request.user, session),
+        'form': form or TextbookEntryForm(
+            session=session,
+            initial={
+                'date': timezone.localdate(),
+                'status': SessionRecord.Status.COMPLETED,
+            },
+        ),
+        'header': _textbook_header(session),
+        'totals': {
+            'seances': len(records),
+            'heures': round(sum(r.display_hours for r in records), 2),
+            'apprenants': sum(r.displayed_attendee_count for r in records),
+            'notions': sum(1 for r in records if r.content_covered.strip()),
+        },
+    }
+
+
+@role_required(*PEDAGOGY_ROLES)
+def textbook_index(request):
+    sessions = _my_sessions(request.user).select_related(
+        'course'
+    ).prefetch_related('formateurs').annotate(
+        record_count=Count('records', distinct=True)
+    )
+    query = (request.GET.get('q') or '').strip()
+    if query:
+        sessions = sessions.filter(
+            Q(course__title__icontains=query) |
+            Q(course__domain__icontains=query)
+        )
+    return render(request, 'dashboard/pedagogie/textbook_index.html', {
+        'sessions': sessions.order_by('-starts_at', 'course__title'),
+        'query': query,
+    })
+
+
+@role_required(*PEDAGOGY_ROLES)
+def textbook_session(request, session_id):
+    session = get_object_or_404(
+        CourseSession.objects.select_related('course'), id=session_id
+    )
+    if not _can_access_session(request.user, session):
+        return render(request, 'dashboard/403.html', status=403)
+    return render(
+        request, 'dashboard/pedagogie/textbook_session.html',
+        _textbook_context(request, session),
+    )
+
+
+@business_write_required(*MANAGE_ROLES)
+def textbook_create(request, session_id):
+    session = get_object_or_404(
+        CourseSession.objects.select_related('course'), id=session_id
+    )
+    if not _can_write_session(request.user, session):
+        return render(request, 'dashboard/403.html', status=403)
+
+    if request.method != 'POST':
+        return redirect('core:dashboard:textbook-session',
+                        session_id=session.id)
+
+    form = TextbookEntryForm(request.POST, session=session)
+    if form.is_valid():
+        record = form.save(commit=False)
+        record.session = session
+        record.recorded_by = request.user
+        if record.status == SessionRecord.Status.COMPLETED:
+            record.actual_start = record.actual_start or record.planned_start
+            record.actual_end = record.actual_end or record.planned_end
+        if not record.topic and record.content_covered:
+            record.topic = record.content_covered.strip()[:200]
+        record.save()
+        log_audit(
+            request, 'SESSION_CREATE', 'SessionRecord', str(record.id),
+            after={
+                'source': 'cahier_de_texte',
+                'session': str(session.id),
+                'date': str(record.date),
+                'status': record.status,
+                'attendee_count': record.attendee_count,
+            },
+        )
+        messages.success(request, "Séance enregistrée dans le cahier de texte.")
+        return redirect('core:dashboard:textbook-session',
+                        session_id=session.id)
+
+    return render(
+        request, 'dashboard/pedagogie/textbook_session.html',
+        _textbook_context(request, session, form=form),
+    )
+
+
+@business_write_required(*MANAGE_ROLES)
+def textbook_edit(request, record_id):
+    record = get_object_or_404(_record_queryset(), id=record_id)
+    if not _can_manage_record(request.user, record):
+        return render(request, 'dashboard/403.html', status=403)
+
+    form = TextbookEntryForm(session=record.session, instance=record)
+    if request.method == 'POST':
+        before = {
+            'date': str(record.date),
+            'content_covered': record.content_covered,
+            'attendee_count': record.attendee_count,
+            'notes': record.notes,
+        }
+        form = TextbookEntryForm(
+            request.POST, session=record.session, instance=record
+        )
+        if form.is_valid():
+            record = form.save(commit=False)
+            record.recorded_by = request.user
+            if record.status == SessionRecord.Status.COMPLETED:
+                record.actual_start = record.actual_start or record.planned_start
+                record.actual_end = record.actual_end or record.planned_end
+            record.save()
+            log_audit(
+                request, 'SESSION_UPDATE', 'SessionRecord', str(record.id),
+                before=before,
+                after={
+                    'source': 'cahier_de_texte',
+                    'date': str(record.date),
+                    'content_covered': record.content_covered,
+                    'attendee_count': record.attendee_count,
+                    'notes': record.notes,
+                },
+            )
+            messages.success(request, "Ligne du cahier de texte mise à jour.")
+            return redirect('core:dashboard:textbook-session',
+                            session_id=record.session_id)
+
+    return render(request, 'dashboard/pedagogie/textbook_form.html', {
+        'form': form,
+        'record': record,
+        'session': record.session,
+    })
+
+
+@role_required(*PEDAGOGY_ROLES)
+def textbook_print(request, session_id):
+    session = get_object_or_404(
+        CourseSession.objects.select_related('course'), id=session_id
+    )
+    if not _can_access_session(request.user, session):
+        return render(request, 'dashboard/403.html', status=403)
+    context = _textbook_context(request, session)
+    context['today'] = timezone.localdate()
+    return render(
+        request, 'dashboard/pedagogie/textbook_print.html', context
+    )
+
+
+def _student_sessions(user):
+    return Enrollment.objects.filter(
+        student=user,
+        status__in=[Enrollment.Status.ACTIVE, Enrollment.Status.COMPLETED],
+    ).select_related('session__course')
+
+
+@role_required('ETUDIANT')
+def student_notebook(request):
+    if request.user.is_elevated:
+        return render(request, 'dashboard/403.html', status=403)
+
+    enrollments = list(_student_sessions(request.user))
+    by_session = {e.session_id: e for e in enrollments}
+    today = timezone.localdate()
+
+    records = SessionRecord.objects.filter(
+        session_id__in=list(by_session),
+        status=SessionRecord.Status.COMPLETED,
+        date__lte=today,
+    ).select_related('session__course', 'module', 'lesson').order_by(
+        '-date', '-planned_start'
+    )
+
+    query = (request.GET.get('q') or '').strip()
+    session_filter = request.GET.get('session') or ''
+    state = request.GET.get('etat') or ''
+    if query:
+        records = records.filter(
+            Q(topic__icontains=query) |
+            Q(content_covered__icontains=query) |
+            Q(session__course__title__icontains=query)
+        )
+    if session_filter:
+        records = records.filter(session_id=session_filter)
+
+    notes = {
+        note.session_record_id: note
+        for note in StudentSessionNote.objects.filter(
+            enrollment__student=request.user
+        )
+    }
+    record_list = list(records)
+    attendance_by_date = {
+        attendance.date: attendance
+        for attendance in Attendance.objects.filter(
+            enrollment__student=request.user,
+            date__in=[record.date for record in record_list],
+        )
+    }
+    all_rows = [
+        {'record': record, 'note': notes.get(record.id),
+         'enrollment': by_session.get(record.session_id),
+         'attendance': attendance_by_date.get(record.date)}
+        for record in record_list
+    ]
+    stats = {
+        'total': len(all_rows),
+        'filled': sum(1 for row in all_rows if row['note']),
+        'missing': sum(1 for row in all_rows if not row['note']),
+    }
+
+    rows = all_rows
+    if state == 'a_remplir':
+        rows = [row for row in rows if row['note'] is None]
+    elif state == 'remplies':
+        rows = [row for row in rows if row['note'] is not None]
+
+    return render(request, 'dashboard/etudiant/notebook.html', {
+        'rows': rows,
+        'stats': stats,
+        'enrollments': enrollments,
+        'query': query,
+        'session_filter': session_filter,
+        'state_filter': state,
+    })
+
+
+@role_required('ETUDIANT')
+def student_note_form(request, record_id):
+    if request.user.is_elevated:
+        return render(request, 'dashboard/403.html', status=403)
+
+    record = get_object_or_404(
+        SessionRecord.objects.select_related(
+            'session__course', 'module', 'lesson'
+        ),
+        id=record_id,
+    )
+    enrollment = Enrollment.objects.filter(
+        student=request.user, session=record.session
+    ).first()
+    if enrollment is None:
+        raise Http404("Séance hors de votre parcours.")
+
+    if record.status != SessionRecord.Status.COMPLETED:
+        messages.error(
+            request, "Cette séance n'est pas encore réalisée."
+        )
+        return redirect('core:dashboard:student-notebook')
+
+    note = StudentSessionNote.objects.filter(
+        enrollment=enrollment, session_record=record
+    ).first()
+    created = note is None
+    form = StudentSessionNoteForm(instance=note)
+
+    if request.method == 'POST':
+        form = StudentSessionNoteForm(request.POST, instance=note)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.enrollment = enrollment
+            note.session_record = record
+            note.save()
+            log_audit(
+                request,
+                'STUDENT_NOTE_CREATE' if created else 'STUDENT_NOTE_UPDATE',
+                'StudentSessionNote', str(note.id),
+                after={
+                    'record': str(record.id),
+                    'notions_learned': note.notions_learned[:200],
+                },
+            )
+            messages.success(
+                request, "Votre fiche de cours a été enregistrée.")
+            return redirect('core:dashboard:student-notebook')
+
+    return render(request, 'dashboard/etudiant/notebook_form.html', {
+        'form': form,
+        'record': record,
+        'note': note,
+        'enrollment': enrollment,
+        'attendance': Attendance.objects.filter(
+            enrollment=enrollment, date=record.date
+        ).first(),
+    })
+
+
+
+@role_required('ETUDIANT')
+def student_course_sheet(request, session_id):
+    """Feuille de suivi imprimable de l'apprenant pour une formation."""
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_related(
+            'session__course', 'student'
+        ).prefetch_related('session__formateurs'),
+        student=request.user,
+        session_id=session_id,
+    )
+    notes = list(
+        StudentSessionNote.objects.filter(enrollment=enrollment)
+        .select_related('session_record')
+        .order_by('session_record__date', 'session_record__planned_start')
+    )
+    return render(request, 'dashboard/etudiant/course_sheet.html', {
+        'enrollment': enrollment,
+        'notes': notes,
+        'today': timezone.localdate(),
     })

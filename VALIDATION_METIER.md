@@ -2,7 +2,7 @@
 
 Document de suivi des fonctionnalités implémentées et des tests automatisés.
 Dernière exécution : **29/10/2026** — `python manage.py test core.tests` :
-**205 tests, 0 échec** (8,3 s sur la base de test).
+**225 tests, 0 échec** (19,3 s sur la base de test).
 
 ## 1. Comment lancer les tests
 
@@ -78,6 +78,16 @@ production.
 
 ### Pédagogie (responsable pédagogique / formateur)
 - Programmes : modules et leçons (création, modification).
+- Groupes de formation (`CourseSession`) : écran `pedagogie/groupes/` listant
+  les groupes visibles (période, horaires, formateurs affectés, inscrits /
+  capacité, statut), avec création et modification (formation, dates,
+  horaires, capacité, statut, formateurs). La gestion est réservée au
+  responsable pédagogique et à la direction (`business_write_required`) ; les
+  rôles élevés et le formateur y ont accès en lecture, un formateur ne voyant
+  que ses propres groupes. La date de fin doit suivre la date de début ; chaque
+  création / modification est auditée (`COURSE_SESSION_CREATE` /
+  `COURSE_SESSION_EDIT`). C'est l'écran qui manquait pour affecter un formateur
+  à un groupe sans passer par l'admin Django.
 - Séances : compte rendu (horaires prévus/réels, contenu, prochain contenu),
   statut, validation des incohérences horaires.
 - Feuille de présences par séance (présent, absent, retard, excusé), motif
@@ -91,6 +101,18 @@ production.
   brouillon/publié/archivé ; visibilité limitée aux étudiants inscrits au
   cours (et au groupe lorsque la ressource est rattachée à une session).
 - Espace étudiant : ressources publiées et historique de ses présences.
+- Cahier de texte du formateur : après chaque séance, le formateur renseigne
+  les notions enseignées, les horaires réellement assurés et le nombre
+  d'apprenants ; une feuille imprimable (en-tête Univers Academy, identité
+  formateur/filière/classe, tableau dates-heures-notions-effectif-observations
+  et totaux) reprend exactement le formulaire papier.
+- Fiche de cours de l'apprenant : après chaque séance réalisée, l'étudiant
+  confirme sa présence, indique les heures suivies, les notions retenues, ses
+  difficultés et ses observations. Une feuille de suivi imprimable par
+  formation regroupe ces fiches (dates, heures suivies, notions, présence,
+  observations). L'accès est strictement personnel : un étudiant ne voit ni la
+  feuille ni la fiche d'un autre parcours, et les rôles élevés n'y ont pas
+  accès.
 
 ### Comptabilité
 - Journal des opérations avec recherche et filtres (type, caisse, catégorie,
@@ -198,11 +220,11 @@ production.
 - Techniquement : `ELEVATED_ROLES` / `User.is_elevated` ouvrent `role_required`
   et `permission_required` aux rôles `SUPER_ADMIN` et ADMIN ; le menu
   back-office est mutualisé dans `dashboard/admin/_nav.html` (Tableau de bord,
-  Utilisateurs, Accueil & visites, Secrétariat, Étudiants, Pédagogie, Séances,
-  Comptabilité, Journal, Caisses, Vue direction, Demandes d'accès, Bourses,
-  Journal d'audit), le tableau de bord ADMIN regroupe des cartes d'accès direct
-  aux modules et la topbar expose une icône « Pilotage » pour les deux rôles
-  transversaux (`is_platform_admin`).
+  Utilisateurs, Accueil & visites, Secrétariat, Étudiants, Pédagogie,
+  Ressources, Groupes, Séances, Comptabilité, Journal, Caisses, Vue direction,
+  Demandes d'accès, Bourses, Journal d'audit), le tableau de bord ADMIN regroupe
+  des cartes d'accès direct aux modules et la topbar expose une icône
+  « Pilotage » pour les deux rôles transversaux (`is_platform_admin`).
 
 ### Consultation seule des données métier (SUPER_ADMIN et ADMIN)
 - Les deux rôles transversaux voient tout — visites, prospects, étudiants,
@@ -210,9 +232,18 @@ production.
   n'écrivent plus dans le métier. Le décorateur `business_write_required` et
   des gardes explicites sur les vues mixtes renvoient un 403 côté serveur.
 - Écritures refusées : visite (création, départ, conversion), prospect
-  (création, modification, relance), dossier étudiant et inscription, paiement
-  et opération de caisse, clôture, caisse, motifs de visite, compte rendu de
-  séance, feuille de présences, ressources, modules et leçons.
+  (création, modification, relance), dossier étudiant et création
+  d'inscription, paiement et opération de caisse, clôture, caisse, motifs de
+  visite, compte rendu de séance, feuille de présences, ressources, modules et
+  leçons.
+- Exception assumée : la **modification d'une inscription existante**
+  (formation/session, statut, montant) est ouverte aux deux rôles élevés.
+  La vue `enrollment_edit` est protégée par `role_required(*SECRETARIAT_ROLES)`
+  — qui autorise `SUPER_ADMIN`/`ADMIN` en plus de `SECRETAIRE`/`DIRECTION` —
+  et chaque modification est auditée (`ENROLLMENT_EDIT`). Le bouton
+  « Modifier » de la fiche inscription n'est affiché qu'à ces rôles ; le
+  `COMPTABLE` et les autres rôles élevés en écriture restent exclus. La
+  création d'inscription et les autres écritures métier demeurent refusées.
 - Écritures conservées : comptes utilisateurs, rôles, demandes d'accès et
   décision de bourse (réservée au SUPER_ADMIN ; l'ADMIN consulte le dossier
   avec une mention de lecture seule).
@@ -232,14 +263,14 @@ production.
 | `core/tests/test_profile.py` | 13 | Profil, avatar (upload, suppression, service protégé, fichier absent), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
 | `core/tests/test_accueil.py` | 14 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche |
 | `core/tests/test_secretariat.py` | 15 | Étudiants, conversion prospect, inscriptions, remises, doublons, documents |
-| `core/tests/test_pedagogie.py` | 25 | Modules/leçons, séances, validations, présences, non-écrasement, ressources, accès étudiant |
+| `core/tests/test_pedagogie.py` | 44 | Modules/leçons, groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances, validations, présences, non-écrasement, ressources, accès étudiant, fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
 | `core/tests/test_comptabilite.py` | 28 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, source unique des soldes et indicateurs |
-| `core/tests/test_permissions.py` | 28 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier, décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
+| `core/tests/test_permissions.py` | 29 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier (exception : édition d'inscription ouverte aux rôles élevés), décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
 | `core/tests/test_supervision.py` | 10 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, calcul du reste à recouvrer dossier par dossier, historique de transaction, filtres et rendu du journal d'audit |
 | `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources ; refus (403) sur création/édition de comptes, attribution de rôles et revue de demande d'accès |
 | `core/tests/test_audit_finances.py` | 3 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse |
 | `core/tests/test_user_access.py` | 22 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif |
-| **Total** | **205** | |
+| **Total** | **225** | |
 
 Points explicitement vérifiés :
 
