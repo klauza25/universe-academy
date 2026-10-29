@@ -82,6 +82,27 @@ class ProfileTests(BusinessTestBase):
         self.assertFalse(self.secretaire.avatar)
         self.assert_audited('PROFILE_AVATAR_DELETE', self.secretaire.pk)
 
+    def test_avatar_file_is_served_to_authenticated_users_only(self):
+        self.secretaire.avatar = png_upload(name='portrait.png')
+        self.secretaire.save(update_fields=['avatar'])
+        url = self.secretaire.avatar.url
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/png')
+
+        anonymous = self.client_class()
+        response = anonymous.get(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('core:login'), response['Location'])
+
+    def test_missing_avatar_file_returns_404(self):
+        self.secretaire.avatar = png_upload(name='absent.png')
+        self.secretaire.save(update_fields=['avatar'])
+        url = self.secretaire.avatar.url
+        self.secretaire.avatar.delete(save=False)
+        self.assertEqual(self.client.get(url).status_code, 404)
+
     # -- Changement d'email -------------------------------------------------
 
     def test_email_change_request_sends_link_without_changing_email(self):

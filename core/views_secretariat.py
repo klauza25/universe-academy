@@ -180,7 +180,7 @@ def student_detail(request, student_id):
         'documents': student.student_documents.all(),
         'total_due': total_due,
         'total_paid': total_paid,
-        'balance': max(total_due - total_paid, 0),
+        'balance': sum(e.balance_due for e in enrollments),
         'doc_form': StudentDocumentForm(),
         'audit_entries': AuditLog.objects.filter(
             entity_type='User', entity_id=str(student.id),

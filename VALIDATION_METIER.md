@@ -2,7 +2,7 @@
 
 Document de suivi des fonctionnalités implémentées et des tests automatisés.
 Dernière exécution : **29/10/2026** — `python manage.py test core.tests` :
-**177 tests, 0 échec** (8,2 s sur la base de test).
+**205 tests, 0 échec** (8,3 s sur la base de test).
 
 ## 1. Comment lancer les tests
 
@@ -117,6 +117,30 @@ production.
 - Les accès sont vérifiés côté serveur (`role_required`,
   `active_account_required`) et testés par rôle.
 
+### Gestion des rôles et des accès (super administrateur)
+- Depuis la fiche utilisateur (`/dashboard/super-admin/users/<id>/`, section
+  « Rôles et accès ») : liste des rôles attribués avec bouton **Retirer**, et
+  liste déroulante pour **Attribuer** un rôle non encore porté.
+- Toujours depuis la même fiche : changement du **statut d'accès**
+  (`ACTIVE`, `SUSPENDED`, `DISABLED`, `REJECTED`, `PENDING_APPROVAL`).
+  L'activation remet `disabled_at` à vide, toute autre valeur l'horodate.
+- Chaque attribution, retrait (`ROLE_ASSIGN` / `ROLE_REMOVE`) et changement de
+  statut (`USER_STATUS_CHANGE`, avant/après conservés) est journalisé dans
+  `AuditLog` avec l'auteur de l'action.
+- Contrôles réservés au SUPER_ADMIN : l'ADMIN voit la fiche mais aucun des
+  contrôles, et reçoit un 403 sur les routes `user-role-assign` et
+  `user-status-change`.
+- Une personne ne peut pas modifier ses propres rôles ni son propre statut
+  (403) : la fiche de son propre compte affiche un message explicite.
+- Garde-fou de verrouillage : `_is_last_active_super_admin` empêche de retirer
+  le rôle SUPER_ADMIN au dernier super administrateur actif (protection
+  complémentaire, en plus de l'interdiction d'auto-modification).
+- Un rôle ou un statut inconnu est refusé avec un message, sans écriture ni
+  entrée d'audit ; une action répétée (rôle déjà attribué, statut identique)
+  ne crée pas de doublon d'audit.
+- La liste des utilisateurs expose un raccourci « Rôles & accès » vers cette
+  section, visible du seul SUPER_ADMIN.
+
 ### Supervision financière (super administrateur)
 - Espace dédié `/dashboard/super-admin/finances/` (`finance-supervision`) :
   toutes les `CashTransaction` de la base, quel que soit le module d'origine
@@ -142,6 +166,20 @@ production.
   (étudiant, formation, moyen, statut, solde restant) et dépense liée.
 - Accès : `role_required('SUPER_ADMIN')` — SUPER_ADMIN et ADMIN (accès
   transversal) ; les autres rôles reçoivent un 403 côté serveur.
+
+### Contrôles de cohérence (lecture seule)
+- `manage.py audit_finances` signale, sans rien modifier : trop-perçus par
+  dossier, paiements validés sans mouvement de caisse, montants divergents entre
+  paiement et caisse, soldes de caisse négatifs. Option `--fail-on-issue` pour
+  un code de sortie 1 en supervision automatisée.
+- `manage.py audit_privileges` signale les attributions de rôles à vérifier
+  (SUPER_ADMIN lié à Clerk, compte inactif avec rôle administratif, etc.).
+- Le « reste à recouvrer » des tableaux de bord est calculé dossier par dossier
+  (`core.utils.outstanding_receivables`) : un trop-perçu sur un dossier ne
+  masque plus la dette d'un autre. Idem pour le solde affiché sur les fiches
+  étudiant.
+- Les avatars sont servis par une vue dédiée (`core:avatar`, utilisateur actif
+  requis), sans exposer le reste de `media/` (pièces justificatives privées).
 
 ### Administrateur (accès transversal)
 - Rôle `ADMIN` : accès en lecture à tous les modules (accueil, secrétariat,
@@ -191,15 +229,17 @@ production.
 |---|---:|---|
 | `core/tests/test_public.py` | 16 | Landing, login local prioritaire devant Clerk, code interne, inscription avec rôle demandé, refus d'un rôle élevé, comptes en attente/suspendus, déconnexion |
 | `core/tests/test_auth_roles.py` | 22 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus réservés au SUPER_ADMIN, rôles élevés refusés, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
-| `core/tests/test_profile.py` | 11 | Profil, avatar, e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
+| `core/tests/test_profile.py` | 13 | Profil, avatar (upload, suppression, service protégé, fichier absent), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
 | `core/tests/test_accueil.py` | 14 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche |
 | `core/tests/test_secretariat.py` | 15 | Étudiants, conversion prospect, inscriptions, remises, doublons, documents |
 | `core/tests/test_pedagogie.py` | 25 | Modules/leçons, séances, validations, présences, non-écrasement, ressources, accès étudiant |
 | `core/tests/test_comptabilite.py` | 28 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, source unique des soldes et indicateurs |
 | `core/tests/test_permissions.py` | 28 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier, décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
-| `core/tests/test_supervision.py` | 9 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, historique de transaction, filtres et rendu du journal d'audit |
+| `core/tests/test_supervision.py` | 10 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, calcul du reste à recouvrer dossier par dossier, historique de transaction, filtres et rendu du journal d'audit |
 | `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources ; refus (403) sur création/édition de comptes, attribution de rôles et revue de demande d'accès |
-| **Total** | **177** | |
+| `core/tests/test_audit_finances.py` | 3 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse |
+| `core/tests/test_user_access.py` | 22 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif |
+| **Total** | **205** | |
 
 Points explicitement vérifiés :
 
@@ -308,12 +348,29 @@ Points explicitement vérifiés :
 - Auto-attribution : un utilisateur connecté pouvait modifier ses propres
   rôles. La vue `user_role_assign` renvoie un 403 sur sa propre fiche ; le POST
   du profil ignore rôle, statut et `is_superuser`.
+- Rôles et accès : l'attribution de rôle existait mais n'était pas exposée dans
+  le dashboard (il fallait passer par la fiche d'édition). La fiche utilisateur
+  porte désormais les contrôles (ajout/retrait de rôle, changement de statut)
+  via `user_role_assign` et le nouvel itinéraire `user-status-change`.
+  Rôle et statut inconnus sont refusés sans écriture ; une action sans effet ne
+  crée pas d'entrée d'audit ; `user_edit` remet `disabled_at` à vide lors d'une
+  réactivation.
 - `manage.py seed_demo` ne contient plus de mots de passe en dur : ils sont
   générés aléatoirement et affichés une seule fois (ou fournis via
   `DEMO_PASSWORD`).
 - Nouvelle migration `0007_accessrequest_assigned_role` (champ
   `AccessRequest.assigned_role`), appliquée sur la base de développement sans
   suppression ni rétrogradation de compte.
+- Reste à recouvrer : il était calculé globalement (`max(total dû - total payé,
+  0)`), si bien qu'un trop-perçu sur un dossier pouvait masquer la dette d'un
+  autre. Le calcul est désormais dossier par dossier via
+  `core.utils.outstanding_receivables` (dashboards super admin et admin) et via
+  `Enrollment.balance_due` sur les fiches étudiant.
+- Avatars : les images étaient stockées sous `media/avatars/` mais aucun
+  itinéraire ne les servait (404). Une vue dédiée `core:avatar` les sert aux
+  utilisateurs actifs uniquement, sans exposer le reste de `media/`.
+- Nouvelle commande `manage.py audit_finances` (lecture seule) : trop-perçus,
+  paiements sans mouvement de caisse, montants divergents, soldes négatifs.
 
 ## 5. Éléments volontairement non couverts / restants
 
@@ -355,3 +412,18 @@ Ces points ne sont pas déclarés terminés :
   `(enrollment, date)`. Deux séances le même jour ne peuvent donc pas avoir
   deux présences distinctes pour un même étudiant ; la feuille ignore la
   seconde saisie plutôt que de l'écraser.
+- **Anomalie de données constatée le 29/10/2026** : le dossier
+  `etudiant@univers.academy` / « Anglais B2 » (net 75 000 FCFA) porte quatre
+  paiements validés pour 135 000 FCFA, soit 60 000 FCFA de trop-perçu. Le
+  formulaire actuel refuse un montant supérieur au reste à payer ; ces
+  encaissements proviennent d'une saisie antérieure au garde-fou. Aucune
+  correction automatique n'a été faite : à régulariser manuellement
+  (remboursement ou annulation tracée). `manage.py audit_finances` le signale.
+- **Sécurité de déploiement** : le `.env` de développement laisse `DEBUG=True`,
+  `SECRET_KEY` ne fait que 23 caractères et `SECURE_HSTS_SECONDS` n'est pas
+  défini. Les comptes de démonstration (`admin@univers.academy`, superuser,
+  `secretaire@…`, `comptable@…`, etc.) ont encore leurs mots de passe par
+  défaut actifs : à désactiver ou renouveler avant toute exposition publique.
+- **Compte Clerk privilégié** : `japhetsamba52@gmail.com` possède le rôle
+  SUPER_ADMIN tout en étant lié à Clerk ; `manage.py audit_privileges` demande
+  de vérifier que cette attribution était volontaire.

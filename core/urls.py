@@ -40,6 +40,7 @@ dashboard_urlpatterns = [
     path('super-admin/users/<uuid:user_id>/', views.user_detail, name='user-detail'),
     path('super-admin/users/<uuid:user_id>/edit/', views.user_edit, name='user-edit'),
     path('super-admin/users/<uuid:user_id>/roles/', views.user_role_assign, name='user-role-assign'),
+    path('super-admin/users/<uuid:user_id>/status/', views.user_status_change, name='user-status-change'),
     path('super-admin/access-requests/', views.access_requests_list, name='access-requests'),
     path('super-admin/access-requests/<uuid:request_id>/', views.access_request_review, name='access-request-review'),
     path('super-admin/audit/', views.audit_log_view, name='audit-log'),
@@ -119,4 +120,5 @@ urlpatterns = [
     path('bourses/', include((bourses_urlpatterns, 'bourses'))),
     path('dashboard/', include((dashboard_urlpatterns, 'dashboard'))),
     path('documents/<uuid:doc_id>/', views.serve_private_file, name='serve-private-file'),
+    path('media/avatars/<path:path>', views_profile.serve_avatar, name='avatar'),
 ]

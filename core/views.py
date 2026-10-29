@@ -35,7 +35,7 @@ from .decorators import (
     active_account_required, business_write_required, permission_required,
     role_required, super_admin_required,
 )
-from .utils import log_audit
+from .utils import log_audit, outstanding_receivables
 from .clerk import ClerkError, sync_clerk_user, verify_clerk_token
 
 logger = logging.getLogger(__name__)
@@ -342,14 +342,6 @@ def super_admin_dashboard(request):
         category__name__in=salaries_categories,
     ).aggregate(total=Sum('amount'))['total'] or 0
 
-    total_due = Enrollment.objects.filter(
-        status=Enrollment.Status.ACTIVE
-    ).aggregate(total=Sum('net_amount'))['total'] or 0
-    total_paid = Payment.objects.filter(
-        status=Payment.Status.COMPLETED,
-        enrollment__status=Enrollment.Status.ACTIVE,
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
     paid_per_enrollment = Payment.objects.filter(
         enrollment=OuterRef('pk'),
         status=Payment.Status.COMPLETED,
@@ -399,7 +391,7 @@ def super_admin_dashboard(request):
         ).count(),
         'cash_rows': cash_rows,
         'cash_total': sum(row['balance'] for row in cash_rows),
-        'outstanding_amount': max(total_due - total_paid, 0),
+        'outstanding_amount': outstanding_receivables(),
         'incomplete_enrollments': incomplete_enrollments,
         'closure_gap_count': CashClosure.objects.exclude(
             difference=0
@@ -483,15 +475,43 @@ def user_create(request):
     return render(request, 'dashboard/super_admin/user_form.html', {'form': form})
 
 
+def _is_last_active_super_admin(user):
+    """Vrai si ``user`` est le dernier SUPER_ADMIN encore actif.
+
+    Protège la plateforme d'un verrouillage : on refuse de retirer le rôle ou
+    de suspendre le dernier super administrateur actif.
+    """
+    if not user.has_role(RoleKey.SUPER_ADMIN):
+        return False
+    if user.account_status != AccountStatus.ACTIVE:
+        return False
+    return not User.objects.filter(
+        roles__key=RoleKey.SUPER_ADMIN,
+        account_status=AccountStatus.ACTIVE,
+    ).exclude(id=user.id).exists()
+
+
 @role_required('SUPER_ADMIN', 'ADMIN')
 def user_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
     audit = AuditLog.objects.filter(
         entity_type='User', entity_id=str(user_id)
     )[:20]
+    held_keys = list(user.roles.values_list('key', flat=True))
+    is_self = request.user.id == user.id
+    can_manage = request.user.has_role(RoleKey.SUPER_ADMIN) and not is_self
+
     return render(request, 'dashboard/super_admin/user_detail.html', {
         'profile_user': user,
         'audit_entries': audit,
+        'held_role_keys': held_keys,
+        'available_roles': (
+            Role.objects.exclude(key__in=held_keys).order_by('label')
+            if can_manage else Role.objects.none()
+        ),
+        'status_choices': AccountStatus.choices,
+        'can_manage_access': can_manage,
+        'is_self': is_self,
     })
 
 
@@ -514,6 +534,9 @@ def user_edit(request, user_id):
             elif (updated_user.account_status == AccountStatus.DISABLED and
                   before['status'] != AccountStatus.DISABLED):
                 updated_user.disabled_at = timezone.now()
+            elif (updated_user.account_status == AccountStatus.ACTIVE and
+                  updated_user.disabled_at is not None):
+                updated_user.disabled_at = None
             updated_user.save()
 
             log_audit(
@@ -534,37 +557,113 @@ def user_edit(request, user_id):
 
 @super_admin_required
 def user_role_assign(request, user_id):
-    if request.method == 'POST':
-        user = get_object_or_404(User, id=user_id)
-        if user.id == request.user.id:
-            return HttpResponseForbidden(
-                "Vous ne pouvez pas modifier vos propres rôles."
-            )
-        role_key = request.POST.get('role_key')
-        action = request.POST.get('action', 'add')
+    redirect_to_detail = redirect(
+        'core:dashboard:user-detail', user_id=user_id)
+    if request.method != 'POST':
+        return redirect_to_detail
 
-        role = get_object_or_404(Role, key=role_key)
+    user = get_object_or_404(User, id=user_id)
+    if user.id == request.user.id:
+        return HttpResponseForbidden(
+            "Vous ne pouvez pas modifier vos propres rôles."
+        )
 
-        if role.is_privileged and not request.user.has_role('SUPER_ADMIN'):
-            return HttpResponseForbidden("Impossible d'attribuer un rôle privilégié.")
+    role_key = request.POST.get('role_key')
+    action = request.POST.get('action', 'add')
+    if action not in {'add', 'remove'}:
+        messages.error(request, "Action sur le rôle inconnue.")
+        return redirect_to_detail
 
-        if action == 'add':
-            UserRole.objects.get_or_create(
-                user=user, role=role, defaults={'assigned_by': request.user}
-            )
+    role = Role.objects.filter(key=role_key).first()
+    if role is None:
+        messages.error(request, "Rôle inconnu.")
+        return redirect_to_detail
+
+    if role.is_privileged and not request.user.has_role('SUPER_ADMIN'):
+        return HttpResponseForbidden("Impossible d'attribuer un rôle privilégié.")
+
+    if action == 'add':
+        _, created = UserRole.objects.get_or_create(
+            user=user, role=role, defaults={'assigned_by': request.user}
+        )
+        if created:
             log_audit(
                 request, 'ROLE_ASSIGN', 'User', str(user.id),
                 after={'role': role_key}
             )
-        elif action == 'remove':
-            UserRole.objects.filter(user=user, role=role).delete()
+            messages.success(request, f"Rôle {role.label} ajouté.")
+        else:
+            messages.info(request, f"Le rôle {role.label} est déjà attribué.")
+    else:
+        if (role.key == RoleKey.SUPER_ADMIN and
+                _is_last_active_super_admin(user)):
+            messages.error(
+                request,
+                "Impossible de retirer le rôle SUPER_ADMIN au dernier "
+                "super administrateur actif."
+            )
+            return redirect_to_detail
+        removed, _ = UserRole.objects.filter(user=user, role=role).delete()
+        if removed:
             log_audit(
                 request, 'ROLE_REMOVE', 'User', str(user.id),
                 after={'role': role_key}
             )
+            messages.success(request, f"Rôle {role.label} retiré.")
+        else:
+            messages.info(request, f"Le rôle {role.label} n'était pas attribué.")
 
-        messages.success(request, f"Rôle {role.label} {'ajouté' if action == 'add' else 'retiré'}.")
-    return redirect('core:dashboard:user-detail', user_id=user_id)
+    return redirect_to_detail
+
+
+@super_admin_required
+def user_status_change(request, user_id):
+    """Change le statut d'accès d'un compte depuis sa fiche (POST uniquement)."""
+    redirect_to_detail = redirect(
+        'core:dashboard:user-detail', user_id=user_id)
+    if request.method != 'POST':
+        return redirect_to_detail
+
+    user = get_object_or_404(User, id=user_id)
+    if user.id == request.user.id:
+        return HttpResponseForbidden(
+            "Vous ne pouvez pas modifier le statut de votre propre compte."
+        )
+
+    status = request.POST.get('account_status')
+    valid_statuses = {choice for choice, _ in AccountStatus.choices}
+    if status not in valid_statuses:
+        messages.error(request, "Statut de compte invalide.")
+        return redirect_to_detail
+
+    before = user.account_status
+    if before == status:
+        messages.info(request, "Le compte a déjà ce statut.")
+        return redirect_to_detail
+
+    if status != AccountStatus.ACTIVE and _is_last_active_super_admin(user):
+        messages.error(
+            request,
+            "Impossible de désactiver le dernier super administrateur actif."
+        )
+        return redirect_to_detail
+
+    user.account_status = status
+    if status == AccountStatus.ACTIVE:
+        user.disabled_at = None
+    else:
+        user.disabled_at = timezone.now()
+    user.save(update_fields=['account_status', 'disabled_at'])
+
+    log_audit(
+        request, 'USER_STATUS_CHANGE', 'User', str(user.id),
+        before={'status': before}, after={'status': status},
+    )
+    messages.success(
+        request,
+        f"Statut du compte passé à « {user.get_account_status_display()} »."
+    )
+    return redirect_to_detail
 
 
 @role_required('SUPER_ADMIN')
@@ -821,14 +920,6 @@ def admin_dashboard(request):
     )
     cash_rows = accounts_with_balance()
 
-    total_due = Enrollment.objects.filter(
-        status=Enrollment.Status.ACTIVE
-    ).aggregate(total=Sum('net_amount'))['total'] or 0
-    total_paid = Payment.objects.filter(
-        status=Payment.Status.COMPLETED,
-        enrollment__status=Enrollment.Status.ACTIVE,
-    ).aggregate(total=Sum('amount'))['total'] or 0
-
     context = {
         'active_students': User.objects.filter(
             roles__key='ETUDIANT', account_status=AccountStatus.ACTIVE
@@ -851,7 +942,7 @@ def admin_dashboard(request):
         ).aggregate(total=Sum('amount'))['total'] or 0,
         'cash_rows': cash_rows,
         'cash_total': sum(row['balance'] for row in cash_rows),
-        'outstanding_amount': max(total_due - total_paid, 0),
+        'outstanding_amount': outstanding_receivables(),
         'new_enrollments': Enrollment.objects.filter(
             enrolled_at__date__gte=month_start
         ).count(),
@@ -1185,7 +1276,6 @@ def etudiant_dashboard(request):
     total_paid = sum(
         p.amount for p in payments if p.status == Payment.Status.COMPLETED
     )
-
     return render(request, 'dashboard/etudiant/index.html', {
         'enrollments': enrollments,
         'payments': payments,
@@ -1202,7 +1292,7 @@ def etudiant_dashboard(request):
         ),
         'total_due': total_due,
         'total_paid': total_paid,
-        'balance': max(total_due - total_paid, 0),
+        'balance': sum(e.balance_due for e in enrollments),
         'upcoming_records': SessionRecord.objects.filter(
             session_id__in=session_ids,
             date__gte=today,

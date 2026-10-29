@@ -100,4 +100,112 @@
         </div>
     </section>
 </div>
+
+{% if can_manage_access %}
+<section id="acces" class="ua-card ua-card-pad mt-6">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div>
+            <h2 class="ua-section-title">Rôles et accès</h2>
+            <p class="text-xs ua-muted mt-1">
+                Attribuez les rôles métier et le statut d'accès de ce compte.
+                Chaque changement est tracé dans le journal d'audit.
+            </p>
+        </div>
+        <span class="ua-badge ua-badge-indigo">Super administrateur uniquement</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+            <p class="ua-stat-label mb-2">Rôles attribués</p>
+            <ul class="flex flex-col gap-2">
+                {% for r in profile_user.roles.all %}
+                <li class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border border-[#e6e7f5] bg-[#fbfbff]">
+                    <span class="text-sm font-semibold" style="color:#1e2044;">
+                        {{ r.label }}
+                        {% if r.is_privileged %}
+                        <span class="ua-badge ua-badge-amber ml-1">privilégié</span>
+                        {% endif %}
+                    </span>
+                    <form method="post" action="{% url 'core:dashboard:user-role-assign' profile_user.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="role_key" value="{{ r.key }}">
+                        <button type="submit" class="ua-btn ua-btn-ghost ua-btn-sm"
+                                onclick="return confirm('Retirer le rôle {{ r.label|escapejs }} à ce compte ?');">
+                            {% icon "close" %} Retirer
+                        </button>
+                    </form>
+                </li>
+                {% empty %}
+                <li class="text-sm ua-muted">Aucun rôle attribué.</li>
+                {% endfor %}
+            </ul>
+
+            {% if available_roles %}
+            <form method="post" action="{% url 'core:dashboard:user-role-assign' profile_user.id %}"
+                  class="flex flex-wrap gap-3 items-end mt-4">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Ajouter un rôle</label>
+                    <select name="role_key"
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                        {% for role in available_roles %}
+                        <option value="{{ role.key }}">{{ role.label }}{% if role.is_privileged %} (privilégié){% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="ua-btn ua-btn-primary">
+                    {% icon "user-plus" %} Attribuer
+                </button>
+            </form>
+            {% else %}
+            <p class="text-xs ua-muted mt-4">Tous les rôles existants sont déjà attribués à ce compte.</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <p class="ua-stat-label mb-2">Statut d'accès</p>
+            <p class="text-xs ua-muted mb-3">
+                Statut actuel :
+                <span class="ua-badge
+                    {% if profile_user.account_status == 'ACTIVE' %}ua-badge-green
+                    {% elif profile_user.account_status == 'PENDING_APPROVAL' %}ua-badge-amber
+                    {% else %}ua-badge-rose{% endif %}">{{ profile_user.get_account_status_display }}</span>
+                {% if profile_user.disabled_at %}
+                <span class="ua-muted">depuis le {{ profile_user.disabled_at|date:"d/m/Y H:i" }}</span>
+                {% endif %}
+            </p>
+            <form method="post" action="{% url 'core:dashboard:user-status-change' profile_user.id %}"
+                  class="flex flex-wrap gap-3 items-end">
+                {% csrf_token %}
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Nouveau statut</label>
+                    <select name="account_status"
+                            class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if profile_user.account_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="ua-btn ua-btn-primary">
+                    {% icon "check-circle" %} Appliquer
+                </button>
+            </form>
+            <p class="text-xs ua-muted mt-3">
+                Un compte suspendu, désactivé ou refusé perd immédiatement l'accès
+                au back-office ; les données restent consultables par le super
+                administrateur.
+            </p>
+        </div>
+    </div>
+</section>
+{% elif is_self and 'SUPER_ADMIN' in user_roles %}
+<section class="ua-card ua-card-pad mt-6">
+    <p class="text-sm ua-muted">
+        Vous consultez votre propre fiche : vos rôles et votre statut ne peuvent
+        pas être modifiés ici. Utilisez un autre compte super administrateur.
+    </p>
+</section>
+{% endif %}
 {% endblock %}

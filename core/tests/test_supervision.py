@@ -6,7 +6,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import (
-    AuditLog, CashTransaction, Payment, TransactionCategory,
+    AuditLog, CashTransaction, Enrollment, Payment, RoleKey,
+    TransactionCategory,
 )
 
 from .base import BusinessTestBase
@@ -156,6 +157,38 @@ class FinanceSupervisionTests(BusinessTestBase):
         self.assertContains(response, 'Historique des modifications')
         self.assertContains(response, 'CASH_TRANSACTION_CANCEL')
         self.assertContains(response, 'VALIDATED')
+
+
+class ReceivablesCalculationTests(BusinessTestBase):
+    """Le reste à recouvrer se calcule dossier par dossier."""
+
+    def test_overpayment_does_not_hide_another_file_debt(self):
+        extra_student = self.make_user(RoleKey.ETUDIANT, 'autre@test.local')
+        extra = Enrollment.objects.create(
+            student=extra_student,
+            session=self.session,
+            status=Enrollment.Status.ACTIVE,
+            start_date=self.today,
+            tariff_amount=50000,
+            net_amount=50000,
+        )
+        Payment.objects.create(
+            enrollment=extra,
+            amount=70000,
+            method=Payment.Method.CASH,
+            recorded_by=self.comptable,
+        )
+
+        # Le dossier de base reste dû à hauteur de 90 000 FCFA ; le trop-perçu
+        # de 20 000 sur l'autre dossier ne doit pas le masquer.
+        for user, route in (
+            (self.super_admin, DASHBOARD_URL),
+            (self.admin, 'core:dashboard:admin-dashboard'),
+        ):
+            with self.subTest(role=user.primary_role):
+                response = self.client_for(user).get(reverse(route))
+                self.assertEqual(
+                    response.context['outstanding_amount'], 90000)
 
 
 class AuditLogTests(BusinessTestBase):

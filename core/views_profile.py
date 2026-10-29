@@ -1,6 +1,8 @@
 """Profil utilisateur : informations, photo, changement d'email vérifié."""
 import logging
+import os
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core import signing
@@ -8,6 +10,7 @@ from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.static import serve
 
 from .decorators import active_account_required
 from .forms import AvatarForm, EmailChangeForm, ProfileForm
@@ -163,3 +166,16 @@ def profile_email_confirm(request, token):
     )
     messages.success(request, "Votre adresse e-mail a été mise à jour.")
     return redirect('core:dashboard:profile')
+
+
+@login_required
+@active_account_required
+def serve_avatar(request, path):
+    """Sert les photos de profil aux utilisateurs connectés.
+
+    ``MEDIA_URL`` n'est volontairement pas exposé (les pièces justificatives
+    vivent sous ``media/private/``). Seul le sous-dossier public des avatars
+    est servi, et uniquement à un compte actif.
+    """
+    root = os.path.join(settings.MEDIA_ROOT, 'avatars')
+    return serve(request, path, document_root=root)

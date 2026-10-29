@@ -105,6 +105,10 @@
                         <div class="flex items-center justify-end gap-2">
                             <a href="{% url 'core:dashboard:user-detail' u.id %}"
                                class="ua-btn ua-btn-ghost ua-btn-sm">Détail</a>
+                            {% if 'SUPER_ADMIN' in user_roles and u.id != user.id %}
+                            <a href="{% url 'core:dashboard:user-detail' u.id %}#acces"
+                               class="ua-btn ua-btn-sm" style="background:#eef2ff;color:#4338ca;">Rôles &amp; accès</a>
+                            {% endif %}
                             {% if 'SUPER_ADMIN' in user_roles %}
                             <a href="{% url 'core:dashboard:user-edit' u.id %}"
                                class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">Modifier</a>
