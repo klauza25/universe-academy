@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}En attente d'approbation — Univers Academy{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+    <div class="w-full max-w-md">
+        <div class="mb-8 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-slate-200">
+                <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
+            </div>
+            <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
+            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+        </div>
+
+        <div class="rounded-2xl bg-white px-6 py-8 text-center shadow-xl shadow-slate-200/60 ring-1 ring-slate-200 sm:px-8">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 ring-1 ring-amber-100">
+                <svg class="h-6 w-6 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M12 7v5l3 2"/>
+                </svg>
+            </div>
+
+            <h2 class="mt-4 text-xl font-semibold text-slate-900">En attente d'approbation</h2>
+            <p class="mt-2 text-sm text-slate-500">
+                Votre compte a été créé avec succès. Un administrateur doit l'approuver
+                avant que vous puissiez accéder à la plateforme.
+            </p>
+
+            <form method="post" action="{% url 'core:logout' %}" class="mt-6">
+                {% csrf_token %}
+                <button type="submit"
+                        class="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    Se déconnecter
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

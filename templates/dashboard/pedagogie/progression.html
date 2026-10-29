@@ -1,0 +1,55 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Progression — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Progression des programmes</h1>
+        <p class="ua-page-sub">Heures prévues, heures réalisées et séances terminées.</p>
+    </div>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="text-xs ua-muted block mb-1">Formation</label>
+            <select name="course" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Formation / groupe</th><th>Séances</th><th>Réalisées</th><th>Heures prévues</th><th>Heures réalisées</th><th>Restantes</th><th>Leçons terminées</th><th>Dernier point</th></tr></thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="ua-cell-title">{{ row.session.course.title }}<span class="ua-cell-sub block">{{ row.session.starts_at|date:"d/m/Y" }}</span></td>
+                    <td>{{ row.records }}</td>
+                    <td>{{ row.completed }}</td>
+                    <td>{{ row.planned_hours }} h</td>
+                    <td>{{ row.actual_hours }} h</td>
+                    <td>{{ row.remaining_hours }} h</td>
+                    <td>{{ row.lessons_done }}</td>
+                    <td>{% if row.last_record %}{{ row.last_record.next_content|default:row.last_record.topic|default:"—"|truncatechars:60 }}{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="ua-empty">Aucune séance pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% load ui %}
+<div class="ua-card ua-stat">
+    <div class="ua-stat-top">
+        <span class="ua-stat-icon ua-tone-{{ tone|default:'indigo' }}">
+            {% icon icon|default:'chart' %}
+        </span>
+        {% if badge %}
+        <span class="ua-badge ua-badge-{{ badge_tone|default:'indigo' }}">{{ badge }}</span>
+        {% endif %}
+    </div>
+    <p class="ua-stat-label">{{ label }}</p>
+    <p class="ua-stat-value">{{ value }}</p>
+    {% if hint %}<p class="ua-stat-hint">{{ hint }}</p>{% endif %}
+</div>

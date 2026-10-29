@@ -1,0 +1,119 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Responsable Pédagogique — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Suivi pédagogique{% endblock %}
+{% block hero_text %}
+{{ courses|length }} formation{{ courses|length|pluralize }} au catalogue,
+{{ records_completed }} séance{{ records_completed|pluralize }} documentée{{ records_completed|pluralize }} et
+{{ hours_actual }} h réalisées.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:programs' %}" class="ua-btn ua-btn-light">{% icon "book-open" %} Programmes</a>
+<a href="{% url 'core:dashboard:progression' %}" class="ua-btn ua-btn-ghost">{% icon "chart" %} Progression</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Formations actives" value=courses|length icon="book-open" tone="indigo" hint="Catalogue" %}
+    {% include "dashboard/_stat.html" with label="Séances documentées" value=records_completed icon="presentation" tone="green" hint="Comptes rendus" %}
+    {% include "dashboard/_stat.html" with label="Heures prévues" value=hours_planned icon="clock" tone="sky" hint="Sur les séances" %}
+    {% include "dashboard/_stat.html" with label="Heures réalisées" value=hours_actual icon="check-circle" tone="violet" hint="Déclarées" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Prochaines séances</h2>
+        {% for record in upcoming_records %}
+        <div class="ua-list-row">
+            <div>
+                <a class="ua-cell-title" href="{% url 'core:dashboard:session-record-detail' record.id %}">{{ record.session.course.title }}</a>
+                <span class="ua-cell-sub block">{{ record.date|date:"d/m/Y" }}{% if record.planned_start %} · {{ record.planned_start|time:"H:i" }}{% endif %}{% if record.topic %} · {{ record.topic }}{% endif %}</span>
+            </div>
+            <span class="ua-badge ua-badge-indigo">{{ record.get_status_display }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune séance planifiée.</p>
+        {% endfor %}
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Derniers comptes rendus</h2>
+            <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Tous</a>
+        </div>
+        {% for record in recent_records %}
+        <div class="ua-list-row">
+            <div>
+                <a class="ua-cell-title" href="{% url 'core:dashboard:session-record-detail' record.id %}">{{ record.session.course.title }}</a>
+                <span class="ua-cell-sub block">{{ record.date|date:"d/m/Y" }} · {{ record.actual_hours }} h · {{ record.topic|default:"Sans sujet" }}</span>
+            </div>
+            <span class="ua-badge ua-badge-green">{{ record.get_status_display }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun compte rendu.</p>
+        {% endfor %}
+    </section>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
+    {% include "dashboard/_stat.html" with label="Modules" value=modules_count icon="grid" tone="indigo" hint="Programmes" %}
+    {% include "dashboard/_stat.html" with label="Leçons" value=lessons_count icon="file-text" tone="sky" hint="Programmes" %}
+    {% include "dashboard/_stat.html" with label="Absences" value=attendance_totals.absents icon="close" tone="rose" hint="Toutes périodes" %}
+    {% include "dashboard/_stat.html" with label="Ressources publiées" value=published_resources icon="book-open" tone="green" hint="Supports et exercices" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <section class="ua-card overflow-hidden">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Catalogue des formations</h2>
+            <p class="text-xs ua-muted mt-1">Programmes actuellement proposés</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Formation</th><th>Domaine</th><th>Durée</th><th class="text-right">Frais</th></tr></thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td class="ua-cell-title">{{ course.title }}</td>
+                        <td><span class="ua-badge ua-badge-indigo">{{ course.domain }}</span></td>
+                        <td class="ua-muted">{{ course.duration_months }} mois</td>
+                        <td class="text-right font-semibold" style="color:#1e2044;">{{ course.fee_amount|floatformat:0 }} FCFA</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="ua-empty">Aucune formation au catalogue</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="mb-4">
+            <h2 class="ua-section-title">Sessions en cours</h2>
+            <p class="text-xs ua-muted mt-1">Encadrement et remplissage</p>
+        </div>
+        {% for session in active_sessions %}
+        <div class="ua-list-row">
+            <span class="ua-avatar-sm">{% icon "presentation" %}</span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold truncate" style="color:#1e2044;">{{ session.course.title }}</p>
+                <p class="text-xs ua-muted truncate">
+                    {{ session.starts_at|date:"d/m/Y" }} → {{ session.ends_at|date:"d/m/Y" }}
+                    · {{ session.schedule|default:"Horaires à définir" }}
+                </p>
+                <p class="text-xs ua-muted">Formateurs :
+                    {% for teacher in session.formateurs.all %}{{ teacher.display_label }}{% if not forloop.last %}, {% endif %}{% empty %}non affecté{% endfor %}
+                </p>
+            </div>
+            <span class="ua-badge ua-badge-green">{{ session.enrolled_count }}/{{ session.capacity }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune session active</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

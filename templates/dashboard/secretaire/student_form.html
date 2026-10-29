@@ -1,0 +1,42 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Nouvel étudiant — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Nouvel étudiant</h1>
+        <p class="ua-page-sub">Le compte et la première inscription sont créés en une seule opération.</p>
+    </div>
+    <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost">Retour aux étudiants</a>
+</div>
+
+{% if prospect %}
+<div class="ua-card ua-card-pad mb-5 text-sm">
+    {% icon "user-check" %} Données reprises du prospect <strong>{{ prospect.reference }}</strong>
+    ({{ prospect.contact.full_name }}). Son historique de suivi sera conservé.
+</div>
+{% endif %}
+
+<form method="post" class="ua-form">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <section class="ua-card ua-card-pad">
+            <h2 class="ua-section-title mb-4">Informations personnelles</h2>
+            {% include "dashboard/_form.html" with form=form %}
+        </section>
+        <section class="ua-card ua-card-pad">
+            <h2 class="ua-section-title mb-4">Première inscription</h2>
+            {% include "dashboard/_form.html" with form=enroll_form %}
+        </section>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-5">
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Créer l'étudiant et l'inscription</button>
+        <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Gestion des utilisateurs — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Demandes d'accès</span>
+</a>
+<a href="{% url 'core:dashboard:scholarship-review-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Candidatures bourse</span>
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Journal d'audit</span>
+</a>
+{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Utilisateurs</h1>
+        <p class="ua-page-sub">
+            {{ page.paginator.count }} compte{{ page.paginator.count|pluralize }} enregistré{{ page.paginator.count|pluralize }}
+        </p>
+    </div>
+    <a href="{% url 'core:dashboard:user-create' %}" class="ua-btn ua-btn-primary">
+        {% icon "user-plus" %} Créer un compte
+    </a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[180px]">
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Recherche</label>
+            <input type="text" name="q" value="{{ query }}"
+                   class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300"
+                   placeholder="Nom, email, code…">
+        </div>
+        <div class="min-w-[150px]">
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Statut</label>
+            <select name="status"
+                    class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                <option value="">Tous</option>
+                {% for val, label in status_choices %}
+                <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="min-w-[150px]">
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Rôle</label>
+            <select name="role"
+                    class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                <option value="">Tous</option>
+                {% for val, label in role_choices %}
+                <option value="{{ val }}" {% if role_filter == val %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-ghost">
+            {% icon "search" %} Filtrer
+        </button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Utilisateur</th>
+                    <th>Rôle(s)</th>
+                    <th>Statut</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in page %}
+                <tr>
+                    <td class="font-mono text-xs whitespace-nowrap">{{ u.internal_code|default:"—" }}</td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <span class="ua-avatar-sm">
+                                {{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="ua-cell-title truncate">{{ u.get_full_name|default:u.email }}</p>
+                                <p class="ua-cell-sub truncate">{{ u.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="flex flex-wrap gap-1">
+                            {% for role in u.roles.all %}
+                            <span class="ua-badge ua-badge-indigo">{{ role.label }}</span>
+                            {% empty %}
+                            <span class="ua-muted text-xs">Aucun</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="ua-badge
+                            {% if u.account_status == 'ACTIVE' %}ua-badge-green
+                            {% elif u.account_status == 'PENDING_APPROVAL' %}ua-badge-amber
+                            {% elif u.account_status == 'SUSPENDED' or u.account_status == 'DISABLED' %}ua-badge-rose
+                            {% else %}ua-badge-slate{% endif %}">
+                            {{ u.get_account_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'core:dashboard:user-detail' u.id %}"
+                               class="ua-btn ua-btn-ghost ua-btn-sm">Détail</a>
+                            <a href="{% url 'core:dashboard:user-edit' u.id %}"
+                               class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">Modifier</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="ua-empty">Aucun utilisateur trouvé</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if page.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-5">
+    {% if page.has_previous %}
+    <a href="?page={{ page.previous_page_number }}&q={{ query }}&status={{ status_filter }}&role={{ role_filter }}"
+       class="ua-btn ua-btn-ghost ua-btn-sm">{% icon "arrow-right" %} Précédent</a>
+    {% endif %}
+    <span class="ua-badge ua-badge-indigo">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+    <a href="?page={{ page.next_page_number }}&q={{ query }}&status={{ status_filter }}&role={{ role_filter }}"
+       class="ua-btn ua-btn-ghost ua-btn-sm">Suivant {% icon "arrow-right" %}</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

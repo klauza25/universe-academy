@@ -1,0 +1,10 @@
+{% load ui %}
+<a href="{% url 'core:dashboard:etudiant-dashboard' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'etudiant-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:student-resources' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-resources' %}is-active{% endif %}">
+    {% icon "book-open" %}<span>Mes cours & ressources</span>
+</a>
+<a href="{% url 'core:dashboard:student-attendance' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-attendance' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Mes présences</span>
+</a>

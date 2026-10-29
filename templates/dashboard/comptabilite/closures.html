@@ -1,0 +1,60 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Clôtures de caisse — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Clôtures de caisse</h1>
+        <p class="ua-page-sub">Comparaison entre le solde théorique et le montant physiquement constaté.</p>
+    </div>
+    <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Nouvelle clôture</a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="text-xs ua-muted block mb-1">Caisse</label>
+            <select name="account" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if account_filter == account.id|stringformat:'s' %}selected{% endif %}>{{ account.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Date</th><th>Caisse</th><th>Ouverture</th><th>Théorique</th><th>Constaté</th><th>Écart</th><th>Clôturé par</th><th>Note</th></tr></thead>
+            <tbody>
+                {% for closure in page %}
+                <tr>
+                    <td class="ua-cell-title">{{ closure.date|date:"d/m/Y" }}</td>
+                    <td>{{ closure.account.name }}</td>
+                    <td>{{ closure.opening_balance }} FCFA</td>
+                    <td>{{ closure.theoretical_balance }} FCFA</td>
+                    <td>{{ closure.counted_amount }} FCFA</td>
+                    <td>
+                        {% if closure.difference == 0 %}<span class="ua-badge ua-badge-green">0 FCFA</span>
+                        {% else %}<span class="ua-badge ua-badge-rose">{{ closure.difference }} FCFA</span>{% endif %}
+                    </td>
+                    <td>{{ closure.closed_by.display_label|default:"—" }}</td>
+                    <td>{{ closure.note|default:"—"|truncatechars:60 }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="ua-empty">Aucune clôture enregistrée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

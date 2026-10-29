@@ -1,0 +1,100 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Présences — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Historique des présences</h1>
+        <p class="ua-page-sub">Par étudiant, formation, séance et période.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
+    {% include "dashboard/_stat.html" with label="Enregistrements" value=totals.total icon="clipboard" tone="indigo" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label="Présents" value=totals.presents icon="user-check" tone="green" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label="Absents" value=totals.absents icon="close" tone="rose" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label="Retards" value=totals.retards icon="clock" tone="amber" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label="Excusés" value=totals.excuses icon="info" tone="sky" hint="lignes" %}
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Étudiant</label>
+            <input type="search" name="q" value="{{ query }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Formation</label>
+            <select name="course" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Au</label>
+            <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Date</th><th>Étudiant</th><th>Formation</th><th>Séance</th><th>Statut</th><th>Motif</th></tr></thead>
+                <tbody>
+                    {% for attendance in page %}
+                    <tr>
+                        <td>{{ attendance.date|date:"d/m/Y" }}</td>
+                        <td class="ua-cell-title">{{ attendance.enrollment.student.get_full_name|default:attendance.enrollment.student.email }}</td>
+                        <td>{{ attendance.enrollment.session.course.title }}</td>
+                        <td>{{ attendance.session_record.topic|default:"—" }}</td>
+                        <td><span class="ua-badge ua-badge-slate">{{ attendance.get_status_display }}</span></td>
+                        <td>{{ attendance.absence_reason|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="ua-empty">Aucune présence pour ces critères.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Étudiants les plus absents</h2>
+        {% for row in recurrent %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ row.enrollment__student__first_name }} {{ row.enrollment__student__last_name }}</span>
+                <span class="ua-cell-sub block">{{ row.enrollment__student__internal_code|default:"—" }}</span>
+            </div>
+            <span class="ua-badge ua-badge-amber">{{ row.count }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune absence sur la période.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

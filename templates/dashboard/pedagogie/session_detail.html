@@ -1,0 +1,86 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Séance {{ record.date|date:"d/m/Y" }} — {{ record.session.course.title }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ record.session.course.title }}</h1>
+        <p class="ua-page-sub">{{ record.date|date:"d/m/Y" }} · {{ record.get_status_display }}{% if record.topic %} · {{ record.topic }}{% endif %}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:session-record-attendance' record.id %}" class="ua-btn ua-btn-primary">{% icon "clipboard" %} Gérer les présences</a>
+        <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
+    {% include "dashboard/_stat.html" with label="Durée prévue" value=record.planned_hours icon="clock" tone="indigo" hint="heures" %}
+    {% include "dashboard/_stat.html" with label="Durée réalisée" value=record.actual_hours icon="check-circle" tone="green" hint="heures" %}
+    {% include "dashboard/_stat.html" with label="Présents" value=summary.present icon="user-check" tone="sky" hint="étudiants" %}
+    {% include "dashboard/_stat.html" with label="Absents" value=summary.absent icon="users" tone="rose" hint="étudiants" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Séance</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Groupe / session</dt><dd>{{ record.session }}</dd></div>
+            <div><dt class="text-xs ua-muted">Module</dt><dd>{{ record.module.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Leçon</dt><dd>{{ record.lesson.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Début prévu / réel</dt><dd>{{ record.planned_start|time:"H:i"|default:"—" }} / {{ record.actual_start|time:"H:i"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Fin prévue / réelle</dt><dd>{{ record.planned_end|time:"H:i"|default:"—" }} / {{ record.actual_end|time:"H:i"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Compte rendu par</dt><dd>{{ record.recorded_by.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Contenu terminé</dt><dd>{{ record.content_covered|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Contenu restant</dt><dd>{{ record.content_remaining|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Prochaine séance</dt><dd>{{ record.next_content|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Difficultés</dt><dd>{{ record.difficulties|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Commentaires</dt><dd>{{ record.notes|default:"—"|linebreaksbr }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">Compte rendu pédagogique</h2>
+        {% if can_manage %}
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <div class="flex flex-wrap gap-3 mt-4">
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
+                <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            </div>
+        </form>
+        {% else %}
+        <p class="ua-empty">Consultation seule : vous n'êtes pas affecté à cette session.</p>
+        {% endif %}
+    </section>
+</div>
+
+<section class="ua-card ua-card-pad mt-5">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="ua-section-title">Présences enregistrées ({{ summary.total }})</h2>
+        <span class="ua-muted text-sm">{{ summary.present }} présent(s) · {{ summary.absent }} absent(s) · {{ summary.late }} retard(s) · {{ summary.excused }} excusé(s)</span>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Étudiant</th><th>Statut</th><th>Arrivée</th><th>Motif</th></tr></thead>
+            <tbody>
+                {% for attendance in attendances %}
+                <tr>
+                    <td class="ua-cell-title">{{ attendance.enrollment.student.get_full_name|default:attendance.enrollment.student.email }}</td>
+                    <td><span class="ua-badge ua-badge-slate">{{ attendance.get_status_display }}</span></td>
+                    <td>{{ attendance.arrival_time|time:"H:i"|default:"—" }}</td>
+                    <td>{{ attendance.absence_reason|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="ua-empty">Aucune présence enregistrée pour cette séance.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

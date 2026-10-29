@@ -1,0 +1,28 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Nouveau prospect — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Nouveau prospect</h1>
+        <p class="ua-page-sub">L'identifiant prospect est généré automatiquement.</p>
+    </div>
+    <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost">Retour aux prospects</a>
+</div>
+
+<section class="ua-card ua-card-pad max-w-3xl">
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer le prospect</button>
+            <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

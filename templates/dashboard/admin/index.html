@@ -1,0 +1,102 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Administrateur — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+{% endblock %}
+
+{% block hero_title %}Pilotage de la vie académique{% endblock %}
+{% block hero_text %}
+{{ active_students }} étudiant{{ active_students|pluralize }} actif{{ active_students|pluralize }}
+et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en attente sur la plateforme.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-light">
+    {% icon "users" %} Consulter les utilisateurs
+</a>
+{% endblock %}
+{% block hero_aside %}
+<div class="ua-hero-card">
+    <p class="ua-hero-card-value">{{ total_trainers }}</p>
+    <p class="ua-hero-card-label">Formateurs actifs</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Étudiants actifs" value=active_students icon="graduation" tone="green" hint="Comptes étudiants ouverts" %}
+    {% include "dashboard/_stat.html" with label="Demandes en attente" value=pending_requests icon="clipboard" tone="amber" hint="En attente de validation" %}
+    {% include "dashboard/_stat.html" with label="Formateurs" value=total_trainers icon="presentation" tone="indigo" hint="Encadrants actifs" %}
+    {% include "dashboard/_stat.html" with label="Formations actives" value=active_courses icon="book-open" tone="sky" hint="Catalogue en cours" %}
+</div>
+
+<section class="ua-card overflow-hidden">
+    <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+        <div>
+            <h2 class="ua-section-title">Derniers comptes créés</h2>
+            <p class="text-xs ua-muted mt-1">Les 6 inscriptions les plus récentes</p>
+        </div>
+        <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+            Tous les utilisateurs {% icon "arrow-right" %}
+        </a>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Utilisateur</th>
+                    <th>Code interne</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
+                    <th>Créé le</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in recent_users %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <span class="ua-avatar-sm">
+                                {{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="ua-cell-title truncate">{{ u.get_full_name|default:u.email }}</p>
+                                <p class="ua-cell-sub truncate">{{ u.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="font-mono text-xs">{{ u.internal_code|default:"—" }}</td>
+                    <td>
+                        {% for r in u.roles.all %}
+                        <span class="ua-badge ua-badge-indigo">{{ r.label }}</span>
+                        {% empty %}
+                        <span class="ua-muted">—</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        <span class="ua-badge
+                            {% if u.account_status == 'ACTIVE' %}ua-badge-green
+                            {% elif u.account_status == 'PENDING_APPROVAL' %}ua-badge-amber
+                            {% else %}ua-badge-rose{% endif %}">
+                            {{ u.get_account_status_display }}
+                        </span>
+                    </td>
+                    <td class="ua-muted whitespace-nowrap">{{ u.date_joined|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="ua-empty">Aucun utilisateur pour le moment</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

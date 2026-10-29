@@ -1,0 +1,94 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Visites — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Visites au centre</h1>
+        <p class="ua-page-sub">Personnes reçues à l'accueil, présentes ou déjà reparties.</p>
+    </div>
+    <a href="{% url 'core:dashboard:visit-create' %}" class="ua-btn ua-btn-primary">
+        {% icon "user-plus" %} Enregistrer une visite
+    </a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Nom, téléphone, référence…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div class="flex gap-2">
+            <div class="flex-1">
+                <label class="text-xs ua-muted block mb-1">Au</label>
+                <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+            </div>
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %}</button>
+        </div>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Visiteur</th>
+                    <th>Téléphone</th>
+                    <th>Motif</th>
+                    <th>Arrivée</th>
+                    <th>Départ</th>
+                    <th>Statut</th>
+                    <th>Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visit in page %}
+                <tr>
+                    <td><a href="{% url 'core:dashboard:visit-detail' visit.id %}" class="ua-cell-title">{{ visit.reference }}</a></td>
+                    <td>
+                        <span class="ua-cell-title">{{ visit.contact.full_name|default:visit.contact.phone }}</span>
+                        {% if visit.contact.email %}<span class="ua-cell-sub block">{{ visit.contact.email }}</span>{% endif %}
+                    </td>
+                    <td>{{ visit.contact.phone }}</td>
+                    <td>{{ visit.reason|default:"—" }}</td>
+                    <td>{{ visit.arrival_at|date:"d/m/Y H:i" }}</td>
+                    <td>{{ visit.departure_at|date:"d/m/Y H:i"|default:"—" }}</td>
+                    <td>
+                        {% if visit.status == 'COMPLETED' %}<span class="ua-badge ua-badge-green">{{ visit.get_status_display }}</span>
+                        {% elif visit.status == 'CANCELLED' %}<span class="ua-badge ua-badge-rose">{{ visit.get_status_display }}</span>
+                        {% elif visit.status == 'WAITING' %}<span class="ua-badge ua-badge-amber">{{ visit.get_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-indigo">{{ visit.get_status_display }}</span>{% endif %}
+                    </td>
+                    <td>{{ visit.agent.display_label|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="ua-empty">Aucune visite enregistrée pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

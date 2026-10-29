@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Univers Academy — Centre de Formation en Langues{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col"
+     style="background: radial-gradient(900px 500px at 15% 0%, #2d5a8e 0%, transparent 60%), radial-gradient(800px 600px at 90% 100%, #1b3554 0%, transparent 60%), linear-gradient(135deg, #1e3a5f 0%, #152a45 100%);">
+
+    <main class="flex-1 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md text-center">
+            <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-white shadow-xl ring-4 ring-white/10">
+                <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-20 w-20 object-cover">
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
+                Univers Academy
+            </h1>
+            <p class="mt-2 text-sm sm:text-base text-blue-200">
+                Centre de Formation en Langues — Brazzaville
+            </p>
+
+            {% if messages %}
+            <div class="mt-6 space-y-2 text-left">
+                {% for message in messages %}
+                <div class="rounded-lg px-3 py-2 text-sm {% if message.tags == 'error' %}bg-rose-500/15 text-rose-100 ring-1 ring-rose-400/30{% else %}bg-sky-500/15 text-sky-100 ring-1 ring-sky-400/30{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="mt-8 space-y-3">
+                <a href="{% url 'core:login' %}"
+                   class="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-900/20 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white/40">
+                    Se connecter
+                </a>
+                <a href="{% url 'core:register' %}"
+                   class="inline-flex w-full items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10">
+                    Créer un compte
+                </a>
+            </div>
+
+            <div class="mt-6">
+                <a href="{% url 'core:bourses:scholarship-apply' %}"
+                   class="text-sm text-blue-200 underline-offset-4 transition hover:text-white hover:underline">
+                    Candidater à une bourse d'études
+                </a>
+            </div>
+
+            <p class="mt-10 text-xs text-blue-300/80">
+                Connexion sécurisée par Clerk — Google, Gmail ou email et mot de passe.
+            </p>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/10 px-4 py-5 text-center text-xs text-blue-200/80">
+        <p>Immeuble Monte Cristo, Rond-point la Gare — Brazzaville</p>
+        <p class="mt-1">+242 068 517 179 · universeacademy70@gmail.com</p>
+    </footer>
+</div>
+{% endblock %}

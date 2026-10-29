@@ -1,0 +1,101 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui core_tags %}
+
+{% block title %}Journal comptable — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Journal comptable</h1>
+        <p class="ua-page-sub">Toutes les opérations financières, validées ou en attente.</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-primary">{% icon "wallet" %} Nouvelle opération</a>
+        <a href="?{% query_replace export='csv' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} Export CSV</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-5">
+    {% include "dashboard/_stat.html" with label="Entrées validées (filtre)" value=totals.incoming|default:0 icon="trending-up" tone="green" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Sorties validées (filtre)" value=totals.outgoing|default:0 icon="wallet" tone="rose" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Opérations affichées" value=page.paginator.count icon="file-text" tone="indigo" hint="lignes" %}
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Référence, libellé, bénéficiaire…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Type</label>
+            <select name="type" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in type_choices %}
+                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Caisse</label>
+            <select name="account" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if account_filter == account.id|stringformat:'s' %}selected{% endif %}>{{ account.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Au</label>
+            <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Référence</th><th>Date effective</th><th>Type</th><th>Catégorie</th>
+                    <th>Libellé</th><th>Bénéf. / payeur</th><th>Entrée</th><th>Sortie</th>
+                    <th>Caisse</th><th>Auteur</th><th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in page %}
+                <tr>
+                    <td><a class="ua-cell-title" href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a></td>
+                    <td>{{ tx.occurred_at|date:"d/m/Y H:i" }}</td>
+                    <td>{{ tx.get_tx_type_display }}</td>
+                    <td>{{ tx.category.name|default:"—" }}</td>
+                    <td>{{ tx.label }}</td>
+                    <td>{{ tx.counterparty|default:"—" }}</td>
+                    <td class="font-semibold" style="color:#15803d;">{% if tx.tx_type == 'IN' %}{{ tx.amount }} FCFA{% else %}—{% endif %}</td>
+                    <td class="font-semibold" style="color:#be123c;">{% if tx.tx_type == 'OUT' %}{{ tx.amount }} FCFA{% else %}—{% endif %}</td>
+                    <td>{{ tx.account.name }}{% if tx.destination_account %} → {{ tx.destination_account.name }}{% endif %}</td>
+                    <td>{{ tx.created_by.display_label|default:"—" }}</td>
+                    <td>
+                        {% if tx.status == 'VALIDATED' %}<span class="ua-badge ua-badge-green">{{ tx.get_status_display }}</span>
+                        {% elif tx.status == 'DRAFT' %}<span class="ua-badge ua-badge-amber">{{ tx.get_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-rose">{{ tx.get_status_display }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="11" class="ua-empty">Aucune opération pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

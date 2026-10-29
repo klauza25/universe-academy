@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Suivi de candidature — Univers Academy{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 px-4 py-10">
+    <div class="mx-auto w-full max-w-lg">
+        <div class="mb-8 text-center">
+            <a href="{% url 'core:home' %}" class="inline-block">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-slate-200">
+                    <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
+                </div>
+            </a>
+            <h1 class="text-2xl font-semibold text-slate-900">Suivi de candidature</h1>
+            <p class="mt-1 text-sm text-slate-500">Consultez l'état de votre dossier de bourse.</p>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
+            <div class="px-6 py-8 sm:px-8">
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="rounded-lg px-3 py-2 text-sm {% if message.tags == 'error' %}bg-rose-50 text-rose-700 ring-1 ring-rose-100{% else %}bg-sky-50 text-sky-700 ring-1 ring-sky-100{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label for="reference" class="mb-1 block text-xs font-medium text-slate-600">Référence</label>
+                        <input type="text" name="reference" id="reference" required
+                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                               placeholder="BRS-2026-0001">
+                    </div>
+                    <div>
+                        <label for="token" class="mb-1 block text-xs font-medium text-slate-600">Token de suivi</label>
+                        <input type="text" name="token" id="token" required
+                               class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 font-mono text-sm text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+                               placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                    </div>
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">
+                        Consulter
+                    </button>
+                </form>
+
+                {% if application %}
+                <div class="mt-8 border-t border-slate-200 pt-6">
+                    <h2 class="text-sm font-semibold text-slate-900">Votre candidature</h2>
+                    <dl class="mt-4 space-y-3 text-sm">
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-slate-500">Référence</dt>
+                            <dd class="font-mono font-semibold text-slate-900">{{ application.reference }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-slate-500">Nom</dt>
+                            <dd class="text-slate-900">{{ application.last_name }} {{ application.first_name }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-slate-500">Destination</dt>
+                            <dd class="text-slate-900">{{ application.destination.name }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-slate-500">Programme</dt>
+                            <dd class="text-slate-900">{{ application.program }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <dt class="text-slate-500">Soumise le</dt>
+                            <dd class="text-slate-900">{{ application.submitted_at|date:"d/m/Y à H:i" }}</dd>
+                        </div>
+                        <div class="flex items-center justify-between gap-4 pt-1">
+                            <dt class="text-slate-500">Statut</dt>
+                            <dd>
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1
+                                    {% if application.status == 'SUBMITTED' %}bg-amber-50 text-amber-700 ring-amber-100
+                                    {% elif application.status == 'UNDER_REVIEW' %}bg-sky-50 text-sky-700 ring-sky-100
+                                    {% elif application.status == 'APPROVED' %}bg-emerald-50 text-emerald-700 ring-emerald-100
+                                    {% elif application.status == 'REJECTED' %}bg-rose-50 text-rose-700 ring-rose-100
+                                    {% else %}bg-slate-100 text-slate-600 ring-slate-200{% endif %}">
+                                    {{ application.get_status_display }}
+                                </span>
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-slate-500">
+            <a href="{% url 'core:home' %}" class="transition hover:text-slate-900">← Retour à l'accueil</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

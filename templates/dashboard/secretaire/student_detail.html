@@ -1,0 +1,127 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}{{ student.get_full_name|default:student.email }} — Étudiant{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ student.get_full_name|default:student.email }}</h1>
+        <p class="ua-page-sub">{{ student.internal_code|default:"—" }} · {{ student.email }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:student-edit' student.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier la fiche</a>
+        <a href="{% url 'core:dashboard:enrollment-create' %}?student={{ student.id }}" class="ua-btn ua-btn-light">{% icon "clipboard" %} Nouvelle inscription</a>
+        <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
+    {% include "dashboard/_stat.html" with label="Total dû" value=total_due icon="wallet" tone="indigo" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Total payé" value=total_paid icon="credit-card" tone="green" hint="Paiements validés" %}
+    {% include "dashboard/_stat.html" with label="Solde restant" value=balance icon="trending-up" tone="amber" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Documents" value=documents|length icon="file-text" tone="sky" hint="Pièces au dossier" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Informations</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Téléphone</dt><dd>{{ student.phone|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Adresse</dt><dd>{{ student.address|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Date de naissance</dt><dd>{{ student.birth_date|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Compte</dt><dd>{{ student.get_account_status_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">Créé le</dt><dd>{{ student.date_joined|date:"d/m/Y H:i" }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">Formations et inscriptions</h2>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Formation</th><th>Date début</th><th>Net dû</th><th>Payé</th><th>Solde</th><th>Statut</th><th></th></tr></thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td class="ua-cell-title">{{ enrollment.session.course.title }}</td>
+                        <td>{{ enrollment.start_date|date:"d/m/Y"|default:"—" }}</td>
+                        <td>{{ enrollment.net_amount }} FCFA</td>
+                        <td>{{ enrollment.total_paid }} FCFA</td>
+                        <td>{{ enrollment.balance_due }} FCFA</td>
+                        <td>
+                            {% if enrollment.payment_state == 'SOLDE' %}<span class="ua-badge ua-badge-green">Soldé</span>
+                            {% elif enrollment.payment_state == 'PARTIEL' %}<span class="ua-badge ua-badge-amber">Partiel</span>
+                            {% else %}<span class="ua-badge ua-badge-rose">Impayé</span>{% endif %}
+                        </td>
+                        <td><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:enrollment-detail' enrollment.id %}">Détail</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="ua-empty">Aucune inscription.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Paiements</h2>
+        {% for payment in payments %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ payment.reference }} · {{ payment.amount }} FCFA</span>
+                <span class="ua-cell-sub block">{{ payment.enrollment.session.course.title }} · {{ payment.paid_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">Reçu</a>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun paiement enregistré.</p>
+        {% endfor %}
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Documents administratifs</h2>
+        <form method="post" action="{% url 'core:dashboard:student-document-upload' student.id %}" enctype="multipart/form-data" class="ua-form mb-4">
+            {% csrf_token %}
+            {{ doc_form.as_p }}
+            <button type="submit" class="ua-btn ua-btn-primary mt-2">{% icon "file-text" %} Ajouter le document</button>
+        </form>
+        {% for document in documents %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ document.get_doc_type_display }}</span>
+                <span class="ua-cell-sub block">{{ document.original_name }} · {{ document.uploaded_at|date:"d/m/Y" }}</span>
+            </div>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:student-document-download' document.id %}">Télécharger</a>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun document au dossier.</p>
+        {% endfor %}
+    </section>
+</div>
+
+<section class="ua-card ua-card-pad mt-5">
+    <h2 class="ua-section-title mb-4">Dernières présences</h2>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Date</th><th>Formation</th><th>Statut</th><th>Motif</th></tr></thead>
+            <tbody>
+                {% for attendance in attendances %}
+                <tr>
+                    <td>{{ attendance.date|date:"d/m/Y" }}</td>
+                    <td>{{ attendance.enrollment.session.course.title }}</td>
+                    <td><span class="ua-badge ua-badge-slate">{{ attendance.get_status_display }}</span></td>
+                    <td>{{ attendance.absence_reason|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="ua-empty">Aucune présence enregistrée.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

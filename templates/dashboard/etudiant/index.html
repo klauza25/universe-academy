@@ -1,0 +1,160 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Mon espace — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/etudiant/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Votre parcours de formation{% endblock %}
+{% block hero_text %}
+{{ enrollments|length }} formation{{ enrollments|length|pluralize }} suivie{{ enrollments|length|pluralize }}
+et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }} enregistrée{{ attendance_totals.total|pluralize }}.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-light">
+    {% icon "book-open" %} Mes cours et ressources
+</a>
+{% endblock %}
+{% block hero_aside %}
+<div class="ua-hero-card">
+    <p class="ua-hero-card-value">{{ enrollments|length }}</p>
+    <p class="ua-hero-card-label">Formation{{ enrollments|length|pluralize }}</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Mes formations" value=enrollments|length icon="book-open" tone="indigo" hint="Parcours en cours" %}
+    {% include "dashboard/_stat.html" with label="Solde restant" value=balance icon="wallet" tone="amber" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Présences" value=attendance_totals.presents icon="user-check" tone="green" hint="Relevés validés" %}
+    {% include "dashboard/_stat.html" with label="Absences" value=attendance_totals.absents icon="close" tone="rose" hint="À justifier si besoin" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <section class="ua-card xl:col-span-2 overflow-hidden">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Mes formations</h2>
+            <p class="text-xs ua-muted mt-1">Vos inscriptions et leur avancement</p>
+        </div>
+        <div class="px-6 pb-6 space-y-3">
+            {% for enrollment in enrollments %}
+            <article class="rounded-2xl border border-[#eef0fb] bg-[#fbfbff] p-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <p class="font-semibold" style="color:#1e2044;">
+                            {{ enrollment.session.course.title }}
+                        </p>
+                        <p class="text-xs ua-muted mt-1">
+                            {{ enrollment.session.starts_at|date:"d/m/Y" }} → {{ enrollment.session.ends_at|date:"d/m/Y" }}
+                            · {{ enrollment.session.schedule|default:"Horaires à définir" }}
+                        </p>
+                    </div>
+                    <span class="ua-badge
+                        {% if enrollment.status == 'ACTIVE' %}ua-badge-green
+                        {% elif enrollment.status == 'PENDING' %}ua-badge-amber
+                        {% elif enrollment.status == 'COMPLETED' %}ua-badge-indigo
+                        {% else %}ua-badge-rose{% endif %}">
+                        {{ enrollment.get_status_display }}
+                    </span>
+                </div>
+            </article>
+            {% empty %}
+            <p class="ua-empty">Aucune formation en cours</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <div class="space-y-6">
+        <section class="ua-card ua-card-pad">
+            <h2 class="ua-section-title mb-4">Mes paiements</h2>
+            {% for payment in payments|slice:":5" %}
+            <div class="ua-list-row">
+                <span class="ua-avatar-sm" style="background:#e6f8ef;color:#15803d;">
+                    {% icon "wallet" %}
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold" style="color:#1e2044;">
+                        {{ payment.amount|floatformat:0 }} FCFA
+                    </p>
+                    <p class="text-xs ua-muted">{{ payment.paid_at|date:"d/m/Y" }} · {{ payment.get_method_display }}</p>
+                </div>
+                <span class="ua-badge
+                    {% if payment.status == 'COMPLETED' %}ua-badge-green
+                    {% elif payment.status == 'PENDING' %}ua-badge-amber
+                    {% else %}ua-badge-rose{% endif %}">
+                    {{ payment.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucun paiement enregistré</p>
+            {% endfor %}
+        </section>
+
+        <section class="ua-card ua-card-pad">
+            <h2 class="ua-section-title mb-4">Dernières présences</h2>
+            {% for attendance in attendances|slice:":5" %}
+            <div class="ua-list-row">
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold" style="color:#1e2044;">
+                        {{ attendance.enrollment.session.course.title }}
+                    </p>
+                    <p class="text-xs ua-muted">{{ attendance.date|date:"d/m/Y" }}</p>
+                </div>
+                <span class="ua-badge
+                    {% if attendance.status == 'PRESENT' %}ua-badge-green
+                    {% elif attendance.status == 'LATE' %}ua-badge-amber
+                    {% elif attendance.status == 'ABSENT' %}ua-badge-rose
+                    {% else %}ua-badge-slate{% endif %}">
+                    {{ attendance.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucune présence enregistrée</p>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Ressources récentes</h2>
+            <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Tout voir</a>
+        </div>
+        {% for resource in resources|slice:":6" %}
+        <div class="ua-list-row">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold">{{ resource.title }}</p>
+                <p class="text-xs ua-muted">{{ resource.course.title }} · {{ resource.get_kind_display }}</p>
+                {% if resource.due_date %}<p class="text-xs ua-muted">Échéance : {{ resource.due_date|date:"d/m/Y H:i" }}</p>{% endif %}
+            </div>
+            {% if resource.file %}
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">Télécharger</a>
+            {% elif resource.html_content %}
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune ressource publiée pour le moment.</p>
+        {% endfor %}
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Prochaines séances</h2>
+        {% for record in upcoming_records %}
+        <div class="ua-list-row">
+            <div>
+                <p class="text-sm font-semibold">{{ record.session.course.title }}</p>
+                <p class="text-xs ua-muted">{{ record.date|date:"d/m/Y" }}{% if record.planned_start %} · {{ record.planned_start|time:"H:i" }}{% endif %}{% if record.topic %} · {{ record.topic }}{% endif %}</p>
+            </div>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune séance planifiée.</p>
+        {% endfor %}
+        <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div><span class="text-xs ua-muted block">Net dû</span><strong>{{ total_due }} FCFA</strong></div>
+            <div><span class="text-xs ua-muted block">Total payé</span><strong>{{ total_paid }} FCFA</strong></div>
+        </div>
+    </section>
+</div>
+{% endblock %}

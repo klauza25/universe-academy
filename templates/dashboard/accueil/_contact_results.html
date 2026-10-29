@@ -1,0 +1,16 @@
+{% if contacts %}
+<table class="ua-table">
+    <thead><tr><th>Nom</th><th>Téléphone</th><th>Email</th></tr></thead>
+    <tbody>
+        {% for contact in contacts %}
+        <tr>
+            <td class="ua-cell-title">{{ contact.full_name }}</td>
+            <td>{{ contact.phone }}</td>
+            <td>{{ contact.email|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="text-sm ua-muted">Aucune fiche contact trouvée.</p>
+{% endif %}

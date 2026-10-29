@@ -1,0 +1,133 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Formateur — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Vos sessions de formation{% endblock %}
+{% block hero_text %}
+{{ sessions|length }} session{{ sessions|length|pluralize }} à animer et
+{{ student_count }} étudiant{{ student_count|pluralize }} inscrit{{ student_count|pluralize }}.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-light">
+    {% icon "book-open" %} Mes ressources
+</a>
+<a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">
+    {% icon "presentation" %} Séances
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Mes sessions" value=sessions|length icon="presentation" tone="indigo" hint="Planifiées ou en cours" %}
+    {% include "dashboard/_stat.html" with label="Étudiants suivis" value=student_count icon="graduation" tone="green" hint="Inscriptions actives" %}
+    {% include "dashboard/_stat.html" with label="Heures réalisées" value=hours_actual icon="clock" tone="sky" hint="Comptes rendus validés" %}
+    {% include "dashboard/_stat.html" with label="Heures restantes" value=hours_remaining icon="trending-up" tone="amber" hint="Sur les séances planifiées" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Planning du jour</h2>
+        {% for record in today_records %}
+        <div class="ua-list-row">
+            <div>
+                <a class="ua-cell-title" href="{% url 'core:dashboard:session-record-detail' record.id %}">{{ record.session.course.title }}</a>
+                <span class="ua-cell-sub block">{{ record.planned_start|time:"H:i"|default:"—" }} → {{ record.planned_end|time:"H:i"|default:"—" }}{% if record.topic %} · {{ record.topic }}{% endif %}</span>
+            </div>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:session-record-attendance' record.id %}">Présences</a>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune séance planifiée aujourd'hui.</p>
+        {% endfor %}
+        <h3 class="text-xs ua-muted mt-4 mb-2">Prochaines séances</h3>
+        {% for record in upcoming_records %}
+        <div class="ua-list-row">
+            <div>
+                <a class="ua-cell-title" href="{% url 'core:dashboard:session-record-detail' record.id %}">{{ record.session.course.title }}</a>
+                <span class="ua-cell-sub block">{{ record.date|date:"d/m/Y" }}{% if record.planned_start %} · {{ record.planned_start|time:"H:i" }}{% endif %}</span>
+            </div>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune séance à venir.</p>
+        {% endfor %}
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Absences récentes</h2>
+            <a href="{% url 'core:dashboard:attendance-history' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Historique</a>
+        </div>
+        {% for attendance in recent_absences %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ attendance.enrollment.student.get_full_name|default:attendance.enrollment.student.email }}</span>
+                <span class="ua-cell-sub block">{{ attendance.enrollment.session.course.title }} · {{ attendance.date|date:"d/m/Y" }}</span>
+            </div>
+            <span class="ua-badge {% if attendance.status == 'ABSENT' %}ua-badge-rose{% else %}ua-badge-amber{% endif %}">{{ attendance.get_status_display }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune absence récente.</p>
+        {% endfor %}
+    </section>
+</div>
+
+<h2 class="ua-section-title mb-3">Mes groupes</h2>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    {% for session in sessions %}
+    <article class="ua-card ua-card-pad">
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <span class="ua-badge {% if session.status == 'ACTIVE' %}ua-badge-green{% else %}ua-badge-indigo{% endif %}">
+                    {{ session.get_status_display }}
+                </span>
+                <h2 class="ua-section-title mt-3 truncate">{{ session.course.title }}</h2>
+                <p class="text-xs ua-muted mt-1">{{ session.course.domain }}</p>
+            </div>
+            <span class="ua-avatar-sm">{% icon "presentation" %}</span>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3 text-xs">
+            <div>
+                <p class="ua-muted">Période</p>
+                <p class="font-semibold mt-0.5" style="color:#1e2044;">
+                    {{ session.starts_at|date:"d/m/Y" }} → {{ session.ends_at|date:"d/m/Y" }}
+                </p>
+            </div>
+            <div>
+                <p class="ua-muted">Horaires</p>
+                <p class="font-semibold mt-0.5" style="color:#1e2044;">
+                    {{ session.schedule|default:"À définir" }}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="flex items-center justify-between text-xs mb-2">
+                <span class="ua-muted">{{ session.enrolled_count }} / {{ session.capacity }} inscrits</span>
+                <span class="ua-muted">{{ session.enrolled_count|floatformat:0 }} places prises</span>
+            </div>
+            <div class="ua-progress">
+                <span style="width: {% widthratio session.enrolled_count session.capacity 100 %}%;"></span>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mt-5">
+            <a href="{% url 'core:dashboard:session-record-create' session.id %}"
+               class="ua-btn ua-btn-light flex-1 justify-center">
+                {% icon "calendar" %} Planifier une séance
+            </a>
+            <a href="{% url 'core:dashboard:formateur-attendance' session.id %}"
+               class="ua-btn ua-btn-primary flex-1 justify-center">
+                {% icon "check-circle" %} Saisie rapide
+            </a>
+        </div>
+    </article>
+    {% empty %}
+    <div class="ua-card ua-empty lg:col-span-2">
+        Aucune session ne vous est attribuée pour le moment.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

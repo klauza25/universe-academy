@@ -1,0 +1,149 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Accueil — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Visiteurs, renseignements et prospects{% endblock %}
+{% block hero_text %}
+{{ visits_today_count }} visite{{ visits_today_count|pluralize }} aujourd'hui,
+{{ present_count }} personne{{ present_count|pluralize }} encore présente{{ present_count|pluralize }} et
+{{ open_prospects }} prospect{{ open_prospects|pluralize }} à suivre.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:visit-create' %}" class="ua-btn ua-btn-light">
+    {% icon "user-plus" %} Enregistrer une visite
+</a>
+<a href="{% url 'core:dashboard:prospect-create' %}" class="ua-btn ua-btn-ghost">
+    {% icon "users" %} Nouveau prospect
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Visites aujourd'hui" value=visits_today_count icon="door-open" tone="green" hint="Passages enregistrés" %}
+    {% include "dashboard/_stat.html" with label="Personnes présentes" value=present_count icon="users" tone="sky" hint="Sans départ enregistré" %}
+    {% include "dashboard/_stat.html" with label="Prospects à suivre" value=open_prospects icon="user-plus" tone="indigo" hint="Dossiers ouverts" %}
+    {% include "dashboard/_stat.html" with label="Entrées / sorties" value=entries_today icon="logout" tone="amber" hint="Contrôle des accès" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <section class="ua-card xl:col-span-2 overflow-hidden">
+        <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+            <div>
+                <h2 class="ua-section-title">Visites du jour</h2>
+                <p class="text-xs ua-muted mt-1">Personnes reçues à l'accueil aujourd'hui</p>
+            </div>
+            <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Tout voir</a>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Référence</th><th>Visiteur</th><th>Motif</th><th>Arrivée</th><th>Statut</th></tr></thead>
+                <tbody>
+                    {% for visit in visits_today %}
+                    <tr>
+                        <td><a class="ua-cell-title" href="{% url 'core:dashboard:visit-detail' visit.id %}">{{ visit.reference }}</a></td>
+                        <td>{{ visit.contact.full_name }}<span class="ua-cell-sub block">{{ visit.contact.phone }}</span></td>
+                        <td>{{ visit.reason|default:"—" }}</td>
+                        <td>{{ visit.arrival_at|date:"H:i" }}</td>
+                        <td><span class="ua-badge ua-badge-indigo">{{ visit.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucune visite aujourd'hui.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Relances à effectuer</h2>
+            <a href="{% url 'core:dashboard:prospect-list' %}?due=overdue" class="ua-btn ua-btn-ghost ua-btn-sm">Voir</a>
+        </div>
+        {% for prospect in follow_ups_today %}
+        <div class="ua-list-row">
+            <div>
+                <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-cell-title">{{ prospect.contact.full_name }}</a>
+                <span class="ua-cell-sub block">{{ prospect.contact.phone }} · {{ prospect.next_follow_up|date:"d/m/Y" }}</span>
+            </div>
+            <span class="ua-badge ua-badge-amber">{{ prospect.get_status_display }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune relance en attente.</p>
+        {% endfor %}
+    </section>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-6">
+    <section class="ua-card ua-card-pad" id="access-form">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="ua-stat-icon ua-tone-indigo">{% icon "door-open" %}</span>
+            <div>
+                <h2 class="ua-section-title">Nouveau passage</h2>
+                <p class="text-xs ua-muted">Contrôle d'accès rapide</p>
+            </div>
+        </div>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="ua-btn ua-btn-primary w-full mt-2">
+                {% icon "check-circle" %} Enregistrer
+            </button>
+        </form>
+    </section>
+
+    <section class="ua-card xl:col-span-2 overflow-hidden">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Derniers prospects</h2>
+            <p class="text-xs ua-muted mt-1">Suivi commercial récent</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Référence</th><th>Prospect</th><th>Formation</th><th>Relance</th><th>Statut</th></tr></thead>
+                <tbody>
+                    {% for prospect in recent_prospects %}
+                    <tr>
+                        <td><a class="ua-cell-title" href="{% url 'core:dashboard:prospect-detail' prospect.id %}">{{ prospect.reference }}</a></td>
+                        <td>{{ prospect.contact.full_name }}<span class="ua-cell-sub block">{{ prospect.contact.phone }}</span></td>
+                        <td>{{ prospect.course.title|default:"—" }}</td>
+                        <td>{{ prospect.next_follow_up|date:"d/m/Y"|default:"—" }}</td>
+                        <td><span class="ua-badge ua-badge-indigo">{{ prospect.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucun prospect enregistré.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="ua-card ua-card-pad mt-6">
+    <h2 class="ua-section-title mb-4">Événements d'accès récents</h2>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Heure</th><th>Personne</th><th>Type</th><th>Motif</th></tr></thead>
+            <tbody>
+                {% for event in recent_events %}
+                <tr>
+                    <td class="ua-muted whitespace-nowrap">{{ event.occurred_at|date:"d/m/Y H:i" }}</td>
+                    <td class="ua-cell-title">
+                        {% if event.person %}{{ event.person.get_full_name|default:event.person.email }}{% else %}{{ event.visitor_label }}{% endif %}
+                    </td>
+                    <td>
+                        <span class="ua-badge {% if event.event_type == 'ENTRY' %}ua-badge-green{% else %}ua-badge-amber{% endif %}">
+                            {{ event.get_event_type_display }}
+                        </span>
+                    </td>
+                    <td class="ua-muted">{{ event.reason|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="ua-empty">Aucun événement enregistré</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

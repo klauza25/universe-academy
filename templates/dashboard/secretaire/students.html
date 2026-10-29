@@ -1,0 +1,83 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Étudiants — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Étudiants</h1>
+        <p class="ua-page-sub">Dossiers administratifs et inscriptions.</p>
+    </div>
+    <a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-primary">
+        {% icon "user-plus" %} Nouvel étudiant
+    </a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Nom, email, identifiant…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Formation</label>
+            <select name="course" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for course in courses %}
+                <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Compte</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr><th>Identifiant</th><th>Étudiant</th><th>Contact</th><th>Formations</th><th>Compte</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for student in page %}
+                <tr>
+                    <td class="ua-cell-title">{{ student.internal_code|default:"—" }}</td>
+                    <td>
+                        <a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-cell-title">{{ student.get_full_name|default:student.email }}</a>
+                        <span class="ua-cell-sub block">{{ student.email }}</span>
+                    </td>
+                    <td>{{ student.phone|default:"—" }}</td>
+                    <td>
+                        {% for enrollment in student.enrollments.all %}
+                        <span class="ua-badge ua-badge-indigo">{{ enrollment.session.course.title }}</span>
+                        {% empty %}—{% endfor %}
+                    </td>
+                    <td>
+                        {% if student.account_status == 'ACTIVE' %}<span class="ua-badge ua-badge-green">{{ student.get_account_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-amber">{{ student.get_account_status_display }}</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">Ouvrir</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucun étudiant pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

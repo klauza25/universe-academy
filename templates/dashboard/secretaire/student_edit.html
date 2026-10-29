@@ -1,0 +1,28 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Modifier {{ student.get_full_name|default:student.email }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Modifier la fiche étudiant</h1>
+        <p class="ua-page-sub">{{ student.internal_code|default:"—" }} · {{ student.email }}</p>
+    </div>
+    <a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-btn ua-btn-ghost">Retour à la fiche</a>
+</div>
+
+<section class="ua-card ua-card-pad max-w-2xl">
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
+            <a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

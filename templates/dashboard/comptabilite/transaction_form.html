@@ -1,0 +1,28 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Nouvelle opération — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Nouvelle opération comptable</h1>
+        <p class="ua-page-sub">Entrée, sortie ou transfert entre deux caisses. La référence est générée automatiquement.</p>
+    </div>
+    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Retour au journal</a>
+</div>
+
+<section class="ua-card ua-card-pad max-w-3xl">
+    <form method="post" enctype="multipart/form-data" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer l'opération</button>
+            <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

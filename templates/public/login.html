@@ -1,0 +1,152 @@
+﻿{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Connexion — Univers Academy{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex items-center justify-center px-4 py-10 bg-slate-50">
+    <div class="w-full max-w-md">
+        <div class="mb-8 text-center">
+            <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-slate-200">
+                <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
+            </div>
+            <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
+            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
+            <div class="px-6 py-8 sm:px-8">
+                <div class="mb-6 text-center">
+                    <h2 class="text-xl font-semibold text-slate-900">Se connecter</h2>
+                    <p class="mt-1 text-sm text-slate-500">Accédez à votre espace de formation</p>
+                </div>
+
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="rounded-lg px-3 py-2 text-sm {% if message.tags == 'error' %}bg-rose-50 text-rose-700 ring-1 ring-rose-100{% else %}bg-sky-50 text-sky-700 ring-1 ring-sky-100{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if clerk_enabled %}
+                <div class="space-y-4">
+                    <div id="clerk-sign-in" class="flex justify-center"></div>
+                    <div id="clerk-loading" class="py-4 text-center text-sm text-slate-400">Chargement de la connexion sécurisée…</div>
+                    <div id="clerk-js-error" class="hidden rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100"></div>
+                </div>
+
+                <div class="mt-6 flex items-center gap-3">
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                    <span class="text-xs uppercase tracking-wide text-slate-400">ou</span>
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                </div>
+
+                <details class="group mt-6 rounded-xl border border-slate-200 bg-slate-50/60 open:bg-white">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-slate-900 [&::-webkit-details-marker]:hidden">
+                        <span>Compte existant <span class="font-normal text-slate-500">(email ou code interne)</span></span>
+                        <svg class="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </summary>
+                    <div class="border-t border-slate-200 px-4 pb-4 pt-4">
+                        <form method="post" class="space-y-4">
+                            {% csrf_token %}
+                            {% for field in form %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endfor %}
+                            <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                        </form>
+                    </div>
+                </details>
+
+                <form id="clerk-exchange" method="post" action="{% url 'core:clerk-session' %}" class="hidden">
+                    {% csrf_token %}
+                    <input type="hidden" name="token" id="clerk-token">
+                </form>
+                {% else %}
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-slate-500">
+            <a href="{% url 'core:home' %}" class="transition hover:text-slate-900">← Retour à l'accueil</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if clerk_enabled %}
+<script defer crossorigin="anonymous" src="{{ clerk_ui_url }}"></script>
+<script defer crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}" src="{{ clerk_js_url }}"></script>
+<script>
+(() => {
+    const params = new URLSearchParams(window.location.search);
+    const forceSignOut = params.has('clerk_error') || params.has('clerk_signed_out');
+    const isSignUp = params.get('mode') === 'sign-up';
+    const mountEl = document.getElementById('clerk-sign-in');
+    const loadingEl = document.getElementById('clerk-loading');
+    const errorEl = document.getElementById('clerk-js-error');
+    const form = document.getElementById('clerk-exchange');
+    const tokenInput = document.getElementById('clerk-token');
+    let exchanging = false;
+    function fail(message) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (errorEl) { errorEl.textContent = message; errorEl.classList.remove('hidden'); }
+    }
+    async function exchange(clerk) {
+        if (exchanging) return;
+        exchanging = true;
+        try {
+            const token = await clerk.session.getToken();
+            if (!token) throw new Error('empty token');
+            tokenInput.value = token;
+            form.submit();
+        } catch (err) {
+            exchanging = false;
+            fail("Impossible de finaliser la connexion. Rechargez la page.");
+        }
+    }
+    async function boot() {
+        if (!window.Clerk) return fail("Le service de connexion n'a pas pu être chargé.");
+        const clerk = window.Clerk;
+        const ClerkUI = window.__internal_ClerkUICtor;
+        if (!ClerkUI) return fail("Le module d'interface de connexion n'a pas pu être chargé.");
+        try {
+            const { frFR } = await import('https://cdn.jsdelivr.net/npm/@clerk/localizations@4.24.3/dist/fr-FR.mjs');
+            await clerk.load({ ui: { ClerkUI }, localization: frFR });
+        } catch (err) {
+            try { await clerk.load({ ui: { ClerkUI } }); } catch (err2) { return fail("Configuration Clerk invalide. Vérifiez vos clés API."); }
+        }
+        if (forceSignOut) { try { await clerk.signOut(); } catch (err) {} }
+        else if (clerk.session) { if (loadingEl) loadingEl.classList.add('hidden'); return exchange(clerk); }
+        if (loadingEl) loadingEl.classList.add('hidden');
+        const options = { appearance: { variables: { colorPrimary: '#0f172a', borderRadius: '0.5rem' } } };
+        if (isSignUp) {
+            clerk.mountSignUp(mountEl, { ...options, signInUrl: window.location.origin + '/login/' });
+        } else {
+            clerk.mountSignIn(mountEl, { ...options, signUpUrl: window.location.origin + '/login/?mode=sign-up' });
+        }
+        clerk.addListener(({ session }) => { if (session) exchange(clerk); });
+    }
+    function waitForClerk(attempt = 0) {
+        if (window.Clerk && window.__internal_ClerkUICtor) return boot();
+        if (attempt >= 120) return fail("Le service de connexion n'a pas pu être chargé.");
+        window.setTimeout(() => waitForClerk(attempt + 1), 100);
+    }
+    waitForClerk();
+})();
+</script>
+{% endif %}
+{% endblock %}

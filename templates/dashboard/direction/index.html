@@ -1,0 +1,175 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Direction — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:direction-dashboard' %}" class="ua-nav-link is-active">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:journal' %}" class="ua-nav-link">
+    {% icon "file-text" %}<span>Journal comptable</span>
+</a>
+<a href="{% url 'core:dashboard:accounts' %}" class="ua-nav-link">
+    {% icon "wallet" %}<span>Caisses & comptes</span>
+</a>
+<a href="{% url 'core:dashboard:student-list' %}" class="ua-nav-link">
+    {% icon "graduation" %}<span>Étudiants</span>
+</a>
+<a href="{% url 'core:dashboard:visit-list' %}" class="ua-nav-link">
+    {% icon "door-open" %}<span>Visites</span>
+</a>
+<a href="{% url 'core:dashboard:prospect-list' %}" class="ua-nav-link">
+    {% icon "users" %}<span>Prospects</span>
+</a>
+<a href="{% url 'core:dashboard:progression' %}" class="ua-nav-link">
+    {% icon "chart" %}<span>Progression</span>
+</a>
+{% endblock %}
+
+{% block hero_title %}Pilotage financier et académique{% endblock %}
+{% block hero_text %}
+{{ total_students }} étudiant{{ total_students|pluralize }} actif{{ total_students|pluralize }},
+{{ active_sessions }} session{{ active_sessions|pluralize }} en cours et
+{{ total_revenue|floatformat:0 }} FCFA de recettes encaissées.
+{% endblock %}
+{% block hero_aside %}
+<div class="ua-hero-card">
+    <p class="ua-hero-card-value">{{ total_revenue|floatformat:0 }}</p>
+    <p class="ua-hero-card-label">FCFA de recettes</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="text-xs ua-muted block mb-1">Période</label>
+            <select name="period" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="day" {% if period == 'day' %}selected{% endif %}>Jour</option>
+                <option value="week" {% if period == 'week' %}selected{% endif %}>7 derniers jours</option>
+                <option value="month" {% if period == 'month' %}selected{% endif %}>Mois en cours</option>
+                <option value="year" {% if period == 'year' %}selected{% endif %}>Année</option>
+                <option value="custom" {% if period == 'custom' %}selected{% endif %}>Période personnalisée</option>
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Au</label>
+            <input type="date" name="to" value="{{ date_to }}" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Recettes" value=total_revenue|floatformat:0 icon="wallet" tone="green" hint="Paiements effectués" %}
+    {% include "dashboard/_stat.html" with label="Dépenses" value=total_expenses|floatformat:0 icon="trending-up" tone="rose" hint="Opérations validées" %}
+    {% include "dashboard/_stat.html" with label="Étudiants actifs" value=total_students icon="graduation" tone="indigo" hint="Tous cursus" %}
+    {% include "dashboard/_stat.html" with label="Sessions actives" value=active_sessions icon="presentation" tone="sky" hint="Formations en cours" %}
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Nouvelles inscriptions" value=new_enrollments icon="user-plus" tone="green" hint="Mois en cours" %}
+    {% include "dashboard/_stat.html" with label="Visites" value=visits_count icon="door-open" tone="violet" hint="Mois en cours" %}
+    {% include "dashboard/_stat.html" with label="Prospects convertis" value=converted_count icon="user-check" tone="indigo" hint="Prospects en base" %}
+    {% include "dashboard/_stat.html" with label="Absences" value=attendance_stats.absents icon="close" tone="amber" hint="Mois en cours" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Soldes des caisses</h2>
+        {% for row in cash_rows %}
+        <div class="ua-list-row">
+            <div>
+                <p class="text-sm font-semibold">{{ row.account.name }}</p>
+                <p class="text-xs ua-muted">{{ row.account.get_kind_display }}</p>
+            </div>
+            <span class="text-sm font-bold">{{ row.balance }} FCFA</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune caisse active.</p>
+        {% endfor %}
+    </section>
+
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">Effectifs par session active</h2>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Formation</th><th>Début</th><th>Effectif</th></tr></thead>
+                <tbody>
+                    {% for session in students_by_session %}
+                    <tr>
+                        <td class="ua-cell-title">{{ session.course.title }}</td>
+                        <td>{{ session.starts_at|date:"d/m/Y" }}</td>
+                        <td>{{ session.effectif }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="ua-empty">Aucune session active.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+    <section class="ua-card overflow-hidden">
+        <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+            <div>
+                <h2 class="ua-section-title">Derniers paiements</h2>
+                <p class="text-xs ua-muted mt-1">Suivi des encaissements récents</p>
+            </div>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Étudiant</th><th>Référence</th><th>Date</th><th class="text-right">Montant</th></tr></thead>
+                <tbody>
+                    {% for payment in recent_payments %}
+                    <tr>
+                        <td>
+                            <p class="ua-cell-title">{{ payment.enrollment.student.get_full_name|default:payment.enrollment.student.email }}</p>
+                            <p class="ua-cell-sub">{{ payment.enrollment.session.course.title }}</p>
+                        </td>
+                        <td class="font-mono text-xs">{{ payment.reference }}</td>
+                        <td class="ua-muted whitespace-nowrap">{{ payment.paid_at|date:"d/m/Y" }}</td>
+                        <td class="text-right font-bold" style="color:#15803d;">{{ payment.amount|floatformat:0 }} FCFA</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="ua-empty">Aucun paiement enregistré</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="ua-card overflow-hidden">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Opérations récentes</h2>
+            <p class="text-xs ua-muted mt-1">Mouvements validés de la période</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Référence</th><th>Libellé</th><th>Caisse</th><th class="text-right">Montant</th></tr></thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td><a class="ua-cell-title" href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a></td>
+                        <td>{{ tx.label }}</td>
+                        <td>{{ tx.account.name }}</td>
+                        <td class="text-right font-semibold" {% if tx.tx_type == 'OUT' %}style="color:#be123c;"{% else %}style="color:#15803d;"{% endif %}>
+                            {% if tx.tx_type == 'OUT' %}−{% endif %}{{ tx.amount }} FCFA
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="ua-empty">Aucune opération sur la période.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

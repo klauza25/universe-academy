@@ -1,0 +1,64 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Caisses et comptes — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Caisses et comptes</h1>
+        <p class="ua-page-sub">Solde = ouverture + entrées validées − sorties validées. Les transferts sont neutres globalement.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 mb-5">
+    {% for row in rows %}
+    {% include "dashboard/_stat.html" with label=row.account.name value=row.balance icon="wallet" tone="indigo" hint=row.account.get_kind_display %}
+    {% empty %}
+    <section class="ua-card ua-card-pad"><p class="ua-empty">Aucune caisse active.</p></section>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Nouvelle caisse / compte</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "wallet" %} Créer</button>
+        </form>
+    </section>
+
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Caisse / compte</th><th>Type</th><th>Devise</th><th>Solde d'ouverture</th><th>Solde calculé</th></tr></thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td class="ua-cell-title">{{ row.account.name }}</td>
+                        <td>{{ row.account.get_kind_display }}</td>
+                        <td>{{ row.account.currency }}</td>
+                        <td>{{ row.account.opening_balance }} FCFA</td>
+                        <td><strong>{{ row.balance }} FCFA</strong></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucune caisse active.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if closed_accounts %}
+        <div class="ua-card-pad">
+            <h3 class="text-xs ua-muted mb-2">Comptes désactivés</h3>
+            {% for account in closed_accounts %}
+            <p class="text-sm">{{ account.name }} — {{ account.get_kind_display }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

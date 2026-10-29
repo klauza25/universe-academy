@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Créer un compte — Univers Academy{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50 px-4 py-10">
+    <div class="mx-auto w-full max-w-lg">
+        <div class="mb-8 text-center">
+            <a href="{% url 'core:home' %}" class="inline-block">
+                <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center overflow-hidden rounded-full shadow-sm ring-1 ring-slate-200">
+                    <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
+                </div>
+            </a>
+            <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
+            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+        </div>
+
+        <div class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
+            <div class="px-6 py-8 sm:px-8">
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold text-slate-900">Créer un compte</h2>
+                    <p class="mt-1 text-sm text-slate-500">Votre demande sera examinée par l'administration avant activation.</p>
+                </div>
+
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                    <div class="rounded-lg px-3 py-2 text-sm {% if message.tags == 'error' %}bg-rose-50 text-rose-700 ring-1 ring-rose-100{% else %}bg-sky-50 text-sky-700 ring-1 ring-sky-100{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                <div class="mb-6 space-y-2">
+                    {% for error in form.non_field_errors %}
+                    <div class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Prénom</label>
+                            {{ form.first_name }}
+                            {% for error in form.first_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Nom</label>
+                            {{ form.last_name }}
+                            {% for error in form.last_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.email.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Email</label>
+                        {{ form.email }}
+                        {% for error in form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="{{ form.password.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Mot de passe</label>
+                            {{ form.password }}
+                            {% for error in form.password.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ form.password_confirm.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Confirmer le mot de passe</label>
+                            {{ form.password_confirm }}
+                            {% for error in form.password_confirm.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">
+                        Envoyer ma demande
+                    </button>
+                </form>
+
+                <div class="mt-6 flex items-center gap-3">
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                    <span class="text-xs uppercase tracking-wide text-slate-400">ou</span>
+                    <div class="h-px flex-1 bg-slate-200"></div>
+                </div>
+
+                <details class="group mt-6 rounded-xl border border-slate-200 bg-slate-50/60 open:bg-white">
+                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-slate-900 [&::-webkit-details-marker]:hidden">
+                        <span>J'ai déjà un compte <span class="font-normal text-slate-500">(se connecter)</span></span>
+                        <svg class="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </summary>
+                    <div class="border-t border-slate-200 px-4 pb-4 pt-4">
+                        <form method="post" action="{% url 'core:login' %}" class="space-y-4">
+                            {% csrf_token %}
+                            {% for field in login_form %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{{ field.label }}</label>
+                                {{ field }}
+                            </div>
+                            {% endfor %}
+                            <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                        </form>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-slate-500">
+            <a href="{% url 'core:home' %}" class="transition hover:text-slate-900">← Retour à l'accueil</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

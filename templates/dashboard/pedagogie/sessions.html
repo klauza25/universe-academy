@@ -1,0 +1,87 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Séances — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Séances et comptes rendus</h1>
+        <p class="ua-page-sub">Séances planifiées, réalisées, annulées ou reportées.</p>
+    </div>
+    <a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-ghost">Ressources</a>
+</div>
+
+{% if sessions %}
+<section class="ua-card ua-card-pad mb-5">
+    <h2 class="ua-section-title mb-3">Planifier une séance</h2>
+    <div class="flex flex-wrap gap-2">
+        {% for session in sessions %}
+        <a href="{% url 'core:dashboard:session-record-create' session.id %}" class="ua-btn ua-btn-light ua-btn-sm">
+            {% icon "calendar" %} {{ session.course.title }} — {{ session.starts_at|date:"d/m/Y" }}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Sujet, formation, contenu…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Session</label>
+            <select name="session" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for session in sessions %}
+                <option value="{{ session.id }}" {% if session_filter == session.id|stringformat:'s' %}selected{% endif %}>{{ session.course.title }} — {{ session.starts_at|date:"d/m/Y" }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Date</th><th>Formation</th><th>Module / leçon</th><th>Sujet</th><th>Prévu</th><th>Réalisé</th><th>Statut</th></tr></thead>
+            <tbody>
+                {% for record in page %}
+                <tr>
+                    <td><a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-cell-title">{{ record.date|date:"d/m/Y" }}</a></td>
+                    <td>{{ record.session.course.title }}</td>
+                    <td>{{ record.module.title|default:"—" }}{% if record.lesson %}<span class="ua-cell-sub block">{{ record.lesson.title }}</span>{% endif %}</td>
+                    <td>{{ record.topic|default:"—" }}</td>
+                    <td>{{ record.planned_hours }} h</td>
+                    <td>{{ record.actual_hours }} h</td>
+                    <td>
+                        {% if record.status == 'COMPLETED' %}<span class="ua-badge ua-badge-green">{{ record.get_status_display }}</span>
+                        {% elif record.status == 'CANCELLED' %}<span class="ua-badge ua-badge-rose">{{ record.get_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-indigo">{{ record.get_status_display }}</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="ua-empty">Aucune séance pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

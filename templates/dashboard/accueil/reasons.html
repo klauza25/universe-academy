@@ -1,0 +1,58 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Motifs de visite — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Motifs de visite</h1>
+        <p class="ua-page-sub">La liste peut être enrichie et désactivée sans perdre l'historique.</p>
+    </div>
+    <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost">Retour aux visites</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Ajouter un motif</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "user-plus" %} Ajouter</button>
+        </form>
+    </section>
+
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Motif</th><th>Ordre</th><th>Statut</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for reason in reasons %}
+                    <tr>
+                        <td class="ua-cell-title">{{ reason.label }}</td>
+                        <td>{{ reason.order }}</td>
+                        <td>
+                            {% if reason.active %}<span class="ua-badge ua-badge-green">Actif</span>
+                            {% else %}<span class="ua-badge ua-badge-slate">Désactivé</span>{% endif %}
+                        </td>
+                        <td>
+                            <form method="post" action="{% url 'core:dashboard:visit-reason-toggle' reason.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="ua-btn ua-btn-ghost ua-btn-sm">
+                                    {% if reason.active %}Désactiver{% else %}Activer{% endif %}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="ua-empty">Aucun motif.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

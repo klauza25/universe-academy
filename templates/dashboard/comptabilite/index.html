@@ -1,0 +1,141 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Comptabilité — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Santé financière du mois{% endblock %}
+{% block hero_text %}
+{{ total_revenue_month|floatformat:0 }} FCFA de recettes pour
+{{ total_expenses_month|floatformat:0 }} FCFA de dépenses enregistrées.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-light">
+    {% icon "credit-card" %} Encaisser un paiement
+</a>
+<a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-ghost">
+    {% icon "wallet" %} Nouvelle opération
+</a>
+{% endblock %}
+{% block hero_aside %}
+<div class="ua-hero-card">
+    <p class="ua-hero-card-value">{{ total_balance|floatformat:0 }}</p>
+    <p class="ua-hero-card-label">FCFA de solde des caisses</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Entrées du jour" value=today_in icon="trending-up" tone="green" hint="FCFA validés" %}
+    {% include "dashboard/_stat.html" with label="Sorties du jour" value=today_out icon="wallet" tone="rose" hint="FCFA validés" %}
+    {% include "dashboard/_stat.html" with label="Solde des caisses" value=total_balance icon="chart" tone="indigo" hint="Toutes caisses actives" %}
+    {% include "dashboard/_stat.html" with label="En attente" value=pending_transactions icon="clock" tone="amber" hint="Opérations non validées" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-5">
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Caisses</h2>
+            <a href="{% url 'core:dashboard:accounts' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Gérer</a>
+        </div>
+        {% for row in cash_rows %}
+        <div class="ua-list-row">
+            <div>
+                <p class="text-sm font-semibold">{{ row.account.name }}</p>
+                <p class="text-xs ua-muted">{{ row.account.get_kind_display }}</p>
+            </div>
+            <span class="text-sm font-bold">{{ row.balance }} FCFA</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune caisse active.</p>
+        {% endfor %}
+        <div class="mt-4 text-xs ua-muted">Clôtures aujourd'hui : {{ closure_today }}</div>
+        <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-light w-full justify-center mt-3">{% icon "check-circle" %} Clôturer une caisse</a>
+    </section>
+
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+            <div>
+                <h2 class="ua-section-title">Opérations récentes</h2>
+                <p class="text-xs ua-muted mt-1">Derniers mouvements enregistrés</p>
+            </div>
+            <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Journal</a>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Référence</th><th>Libellé</th><th>Caisse</th><th>Date</th><th class="text-right">Montant</th></tr></thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td><a class="ua-cell-title" href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a></td>
+                        <td>{{ tx.label }}<span class="ua-cell-sub block">{{ tx.category.name|default:"—" }}</span></td>
+                        <td>{{ tx.account.name }}</td>
+                        <td>{{ tx.occurred_at|date:"d/m/Y H:i" }}</td>
+                        <td class="text-right font-bold" {% if tx.tx_type == 'OUT' %}style="color:#be123c;"{% else %}style="color:#15803d;"{% endif %}>
+                            {% if tx.tx_type == 'OUT' %}−{% endif %}{{ tx.amount }} FCFA
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucune opération enregistrée.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<section class="ua-card overflow-hidden">
+    <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+        <div>
+            <h2 class="ua-section-title">Paiements étudiants récents</h2>
+            <p class="text-xs ua-muted mt-1">Les 10 derniers encaissements</p>
+        </div>
+        <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+            {% icon "credit-card" %} Nouveau
+        </a>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Référence</th>
+                    <th>Méthode</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th class="text-right">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in recent_payments %}
+                <tr>
+                    <td>
+                        <p class="ua-cell-title">
+                            {{ payment.enrollment.student.get_full_name|default:payment.enrollment.student.email }}
+                        </p>
+                        <p class="ua-cell-sub">{{ payment.enrollment.session.course.title }}</p>
+                    </td>
+                    <td class="font-mono text-xs">{{ payment.reference }}</td>
+                    <td class="ua-muted">{{ payment.get_method_display }}</td>
+                    <td>
+                        <span class="ua-badge
+                            {% if payment.status == 'COMPLETED' %}ua-badge-green
+                            {% elif payment.status == 'PENDING' %}ua-badge-amber
+                            {% else %}ua-badge-rose{% endif %}">
+                            {{ payment.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="ua-muted whitespace-nowrap">{{ payment.paid_at|date:"d/m/Y" }}</td>
+                    <td class="text-right font-bold" style="color:#15803d;">
+                        {{ payment.amount|floatformat:0 }} FCFA
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucun paiement enregistré</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

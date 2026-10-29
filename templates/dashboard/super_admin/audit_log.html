@@ -1,0 +1,82 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Journal d'audit — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Demandes d'accès</span>
+</a>
+<a href="{% url 'core:dashboard:scholarship-review-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Candidatures bourse</span>
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Journal d'audit</span>
+</a>
+{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Journal d'audit</h1>
+        <p class="ua-page-sub">{{ page.paginator.count }} événement{{ page.paginator.count|pluralize }} enregistré{{ page.paginator.count|pluralize }}</p>
+    </div>
+    <span class="ua-chip">{% icon "shield" %} Traçabilité complète</span>
+</div>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Acteur</th>
+                    <th>Action</th>
+                    <th>Entité</th>
+                    <th>ID</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in page %}
+                <tr>
+                    <td class="ua-muted whitespace-nowrap">{{ entry.created_at|date:"d/m/Y H:i:s" }}</td>
+                    <td class="ua-cell-title whitespace-nowrap">{{ entry.actor.get_full_name|default:"Système" }}</td>
+                    <td><span class="ua-badge ua-badge-indigo">{{ entry.action }}</span></td>
+                    <td class="ua-muted">{{ entry.entity_type|default:"—" }}</td>
+                    <td class="font-mono text-xs ua-muted">{{ entry.entity_id|default:"—" }}</td>
+                    <td class="ua-muted text-xs">{{ entry.ip_address|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucun événement enregistré</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% if page.has_other_pages %}
+<div class="flex items-center justify-center gap-2 mt-5">
+    {% if page.has_previous %}
+    <a href="?page={{ page.previous_page_number }}" class="ua-btn ua-btn-ghost ua-btn-sm">Précédent</a>
+    {% endif %}
+    <span class="ua-badge ua-badge-indigo">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}
+    <a href="?page={{ page.next_page_number }}" class="ua-btn ua-btn-ghost ua-btn-sm">Suivant</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

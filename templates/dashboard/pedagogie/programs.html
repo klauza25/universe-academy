@@ -1,0 +1,59 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Programmes — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Programmes pédagogiques</h1>
+        <p class="ua-page-sub">Modules et leçons par formation.</p>
+    </div>
+    {% if can_manage %}
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:module-create' %}" class="ua-btn ua-btn-primary">{% icon "book-open" %} Nouveau module</a>
+        <a href="{% url 'core:dashboard:lesson-create' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} Nouvelle leçon</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="space-y-5">
+    {% for course in courses %}
+    <section class="ua-card ua-card-pad">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+                <h2 class="ua-section-title">{{ course.title }}</h2>
+                <p class="text-xs ua-muted">{{ course.domain }} · {{ course.duration_months }} mois · {{ course.fee_amount }} FCFA</p>
+            </div>
+            {% if can_manage %}
+            <a href="{% url 'core:dashboard:module-create' %}?course={{ course.id }}" class="ua-btn ua-btn-ghost ua-btn-sm">Ajouter un module</a>
+            {% endif %}
+        </div>
+        {% for module in course.modules.all %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">Module {{ module.order }} · {{ module.title }}</span>
+                <span class="ua-cell-sub block">{{ module.planned_hours }} h prévues · {{ module.lessons.all|length }} leçon(s)</span>
+                {% for lesson in module.lessons.all %}
+                <span class="ua-cell-sub block">— {{ lesson.order }}. {{ lesson.title }} ({{ lesson.planned_hours }} h)</span>
+                {% endfor %}
+            </div>
+            {% if can_manage %}
+            <div class="flex gap-2">
+                <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:module-edit' module.id %}">Module</a>
+                <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:lesson-create' %}?module={{ module.id }}">Leçon</a>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun module pour cette formation.</p>
+        {% endfor %}
+    </section>
+    {% empty %}
+    <section class="ua-card ua-card-pad"><p class="ua-empty">Aucune formation accessible.</p></section>
+    {% endfor %}
+</div>
+{% endblock %}

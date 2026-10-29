@@ -1,0 +1,100 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Présences — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-nav-link">
+    {% icon "grid" %}<span>Mes sessions</span>
+</a>
+<a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-nav-link is-active">
+    {% icon "check-circle" %}<span>Présences</span>
+</a>
+{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Présences</h1>
+        <p class="ua-page-sub">{{ session.course.title }}</p>
+    </div>
+    <a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-btn ua-btn-ghost">
+        Retour aux sessions
+    </a>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+
+    <section class="ua-card ua-card-pad mb-5 max-w-xs">
+        <label for="attendance-date" class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">
+            Date de la séance
+        </label>
+        <input type="date" name="date" id="attendance-date" required
+               class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+    </section>
+
+    <section class="ua-card overflow-hidden mb-5">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Feuille de présence</h2>
+            <p class="text-xs ua-muted mt-1">{{ enrollments|length }} étudiant{{ enrollments|length|pluralize }} inscrit{{ enrollments|length|pluralize }}</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>Étudiant</th>
+                        <th class="text-center">Présent</th>
+                        <th class="text-center">Absent</th>
+                        <th class="text-center">En retard</th>
+                        <th class="text-center">Excusé</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in enrollments %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <span class="ua-avatar-sm">
+                                    {{ enrollment.student.first_name|slice:":1" }}{{ enrollment.student.last_name|slice:":1" }}
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="ua-cell-title truncate">
+                                        {{ enrollment.student.get_full_name|default:enrollment.student.email }}
+                                    </p>
+                                    <p class="ua-cell-sub truncate">{{ enrollment.student.internal_code|default:"—" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <input type="radio" name="status_{{ enrollment.id }}" value="PRESENT" required
+                                   class="w-4 h-4 accent-[#5b5bf6]">
+                        </td>
+                        <td class="text-center">
+                            <input type="radio" name="status_{{ enrollment.id }}" value="ABSENT"
+                                   class="w-4 h-4 accent-[#5b5bf6]">
+                        </td>
+                        <td class="text-center">
+                            <input type="radio" name="status_{{ enrollment.id }}" value="LATE"
+                                   class="w-4 h-4 accent-[#5b5bf6]">
+                        </td>
+                        <td class="text-center">
+                            <input type="radio" name="status_{{ enrollment.id }}" value="EXCUSED"
+                                   class="w-4 h-4 accent-[#5b5bf6]">
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucun étudiant inscrit à cette session</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <button type="submit" class="ua-btn ua-btn-primary">
+        {% icon "check-circle" %} Enregistrer les présences
+    </button>
+</form>
+{% endblock %}

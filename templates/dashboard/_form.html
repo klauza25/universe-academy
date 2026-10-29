@@ -1,0 +1,15 @@
+{% if form.non_field_errors %}
+<div class="ua-card ua-card-pad text-sm font-semibold text-rose-600 mb-4">
+    {{ form.non_field_errors }}
+</div>
+{% endif %}
+{% for field in form %}
+<div class="mb-4">
+    <label for="{{ field.id_for_label }}">
+        {{ field.label }}{% if field.field.required %} <span style="color:#e11d48;">*</span>{% endif %}
+    </label>
+    {{ field }}
+    {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+    {{ field.errors }}
+</div>
+{% endfor %}

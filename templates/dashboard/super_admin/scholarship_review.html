@@ -1,0 +1,186 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Candidatures bourse — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Demandes d'accès</span>
+</a>
+<a href="{% url 'core:dashboard:scholarship-review-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Candidatures bourse</span>
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Journal d'audit</span>
+</a>
+{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+{% if detail and app %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ app.first_name }} {{ app.last_name }}</h1>
+        <p class="ua-page-sub">Dossier {{ app.reference }} · {{ app.destination.name }}</p>
+    </div>
+    <a href="{% url 'core:dashboard:scholarship-review-list' %}" class="ua-btn ua-btn-ghost">
+        Retour à la liste
+    </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <div class="flex items-center justify-between gap-3 mb-5">
+            <h2 class="ua-section-title">Informations du candidat</h2>
+            <span class="ua-badge
+                {% if app.status == 'APPROVED' %}ua-badge-green
+                {% elif app.status == 'REJECTED' %}ua-badge-rose
+                {% elif app.status == 'SUBMITTED' %}ua-badge-indigo
+                {% else %}ua-badge-amber{% endif %}">
+                {{ app.get_status_display }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <p class="ua-stat-label">Email</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ app.email }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Téléphone</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ app.phone }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Destination</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ app.destination.name }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Programme</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ app.program }} — {{ app.study_domain }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Soumise le</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ app.submitted_at|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="ua-divider my-5"></div>
+
+        <h3 class="ua-section-title mb-3">Documents</h3>
+        <div class="space-y-2">
+            {% for doc in documents %}
+            <div class="flex items-center justify-between gap-3 rounded-xl border border-[#eef0fb] bg-[#fbfbff] px-4 py-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="ua-avatar-sm">{% icon "file-text" %}</span>
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold truncate" style="color:#1e2044;">
+                            {{ doc.get_document_type_display }}
+                        </p>
+                        <p class="text-xs ua-muted truncate">{{ doc.original_name }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'core:serve-private-file' doc.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                    {% icon "arrow-up-right" %} Ouvrir
+                </a>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucun document</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="ua-card ua-card-pad h-fit">
+        <h2 class="ua-section-title mb-4">Décision</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            <p>
+                <label for="id_status">Changer le statut</label>
+                <select name="status" id="id_status">
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </p>
+            <p>
+                <label for="id_review_note">Note interne</label>
+                <textarea name="review_note" id="id_review_note" rows="4">{{ app.review_note }}</textarea>
+            </p>
+            <button type="submit" class="ua-btn ua-btn-primary w-full mt-2">
+                {% icon "check-circle" %} Enregistrer
+            </button>
+        </form>
+    </section>
+</div>
+{% else %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Candidatures bourse</h1>
+        <p class="ua-page-sub">{{ page.paginator.count }} candidature{{ page.paginator.count|pluralize }} reçue{{ page.paginator.count|pluralize }}</p>
+    </div>
+</div>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Candidat</th>
+                    <th>Destination</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in page %}
+                <tr>
+                    <td class="font-mono text-xs">{{ a.reference }}</td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <span class="ua-avatar-sm" style="background:#f2e9fe;color:#7c3aed;">
+                                {% icon "graduation" %}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="ua-cell-title truncate">{{ a.first_name }} {{ a.last_name }}</p>
+                                <p class="ua-cell-sub truncate">{{ a.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ a.destination.name }}</td>
+                    <td>
+                        <span class="ua-badge
+                            {% if a.status == 'APPROVED' %}ua-badge-green
+                            {% elif a.status == 'REJECTED' or a.status == 'WITHDRAWN' %}ua-badge-rose
+                            {% elif a.status == 'SUBMITTED' %}ua-badge-indigo
+                            {% else %}ua-badge-amber{% endif %}">
+                            {{ a.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="ua-muted whitespace-nowrap">{{ a.submitted_at|date:"d/m/Y" }}</td>
+                    <td class="text-right">
+                        <a href="{% url 'core:dashboard:scholarship-review-detail' a.id %}"
+                           class="ua-btn ua-btn-ghost ua-btn-sm">Examiner</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">Aucune candidature</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

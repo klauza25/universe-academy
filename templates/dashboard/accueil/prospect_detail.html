@@ -1,0 +1,97 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}{{ prospect.reference }} — Prospect{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ prospect.reference }}</h1>
+        <p class="ua-page-sub">{{ prospect.contact.full_name }} · {{ prospect.contact.phone }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if can_convert and not prospect.converted_student %}
+        <a href="{% url 'core:dashboard:student-create' %}?prospect={{ prospect.id }}" class="ua-btn ua-btn-primary">
+            {% icon "graduation" %} Convertir en étudiant
+        </a>
+        {% endif %}
+        {% if prospect.converted_student %}
+        <a href="{% url 'core:dashboard:student-detail' prospect.converted_student.id %}" class="ua-btn ua-btn-light">
+            {% icon "user-check" %} Dossier étudiant
+        </a>
+        {% endif %}
+        <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">Informations du prospect</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            {% include "dashboard/_form.html" with form=form %}
+            <div class="flex flex-wrap gap-3 mt-4">
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
+                <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Synthèse</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Statut</dt><dd><span class="ua-badge ua-badge-indigo">{{ prospect.get_status_display }}</span></dd></div>
+            <div><dt class="text-xs ua-muted">Source</dt><dd>{{ prospect.get_source_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">Formation recherchée</dt><dd>{{ prospect.course.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Domaine</dt><dd>{{ prospect.domain|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Niveau</dt><dd>{{ prospect.level|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Contact préféré</dt><dd>{{ prospect.get_preferred_contact_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">Premier contact</dt><dd>{{ prospect.first_contact_at|date:"d/m/Y" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Prochaine relance</dt><dd>{{ prospect.next_follow_up|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Agent</dt><dd>{{ prospect.agent.display_label|default:"—" }}</dd></div>
+            {% if prospect.visit %}
+            <div><dt class="text-xs ua-muted">Visite d'origine</dt>
+                <dd><a class="ua-cell-title" href="{% url 'core:dashboard:visit-detail' prospect.visit.id %}">{{ prospect.visit.reference }}</a></dd>
+            </div>
+            {% endif %}
+            {% if prospect.converted_student %}
+            <div><dt class="text-xs ua-muted">Converti le</dt><dd>{{ prospect.converted_at|date:"d/m/Y H:i" }}</dd></div>
+            {% endif %}
+        </dl>
+    </section>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-1">Nouveau suivi</h2>
+        <p class="text-xs ua-muted mb-4">Un compte rendu d'appel n'envoie aucun message : il documente uniquement l'échange.</p>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="follow_up">
+            {% include "dashboard/_form.html" with form=follow_form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} Enregistrer le suivi</button>
+        </form>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Historique des suivis</h2>
+        {% for follow in follow_ups %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ follow.get_contact_type_display }} · {{ follow.occurred_at|date:"d/m/Y H:i" }}</span>
+                <span class="ua-cell-sub block">{{ follow.summary|truncatechars:120 }}</span>
+                {% if follow.next_action %}<span class="ua-cell-sub block">Prochaine action : {{ follow.next_action }}</span>{% endif %}
+                {% if follow.next_follow_up %}<span class="ua-cell-sub block">Relance : {{ follow.next_follow_up|date:"d/m/Y" }}</span>{% endif %}
+                <span class="ua-cell-sub block">{{ follow.agent.display_label|default:"—" }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun suivi enregistré pour ce prospect.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

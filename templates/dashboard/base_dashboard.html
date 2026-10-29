@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static ui %}
+
+{% block body %}
+<div class="ua-shell">
+    <aside class="ua-sidebar" id="ua-sidebar" aria-label="Navigation principale">
+        <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-brand">
+            <span class="ua-brand-mark"><img src="{% static 'img/logo-univers.jpg' %}" alt="" class="h-full w-full p-2 object-contain"></span>
+            <span class="min-w-0">
+                <span class="ua-brand-name block">Univers Academy</span>
+                <span class="ua-brand-sub block truncate">{{ user_primary_role_label|default:"Mon espace" }}</span>
+            </span>
+        </a>
+
+        <nav class="ua-nav">
+            <p class="ua-nav-label">Navigation</p>
+            {% block sidebar_nav %}{% endblock %}
+        </nav>
+
+        <div class="ua-side-bottom">
+            <div class="ua-user-mini">
+                {% if user_avatar_url %}
+                <img src="{{ user_avatar_url }}" alt="" class="ua-avatar object-cover">
+                {% else %}
+                <span class="ua-avatar">{{ user_initials }}</span>
+                {% endif %}
+                <span class="min-w-0">
+                    <span class="ua-user-mini-name block truncate">{{ user_display_name|default:request.user.email }}</span>
+                    <span class="ua-user-mini-role block truncate">{{ request.user.internal_code|default:user_primary_role_label }}</span>
+                </span>
+            </div>
+            <a href="{% url 'core:dashboard:profile' %}" class="ua-nav-link">
+                {% icon "settings" %}<span>Mon profil</span>
+            </a>
+            <form method="post" action="{% url 'core:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="ua-nav-link w-full text-left">
+                    {% icon "logout" %}<span>Déconnexion</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <div class="ua-backdrop" id="ua-backdrop" onclick="uaToggleSidebar(false)"></div>
+
+    <div class="ua-main">
+        <header class="ua-topbar">
+            <button class="ua-icon-btn ua-burger" type="button" onclick="uaToggleSidebar()" aria-label="Ouvrir le menu">
+                {% icon "menu" %}
+            </button>
+
+            {% if can_manage_users %}
+            <form class="ua-search" method="get" action="{% url 'core:dashboard:user-list' %}" role="search">
+                {% icon "search" %}
+                <input type="search" name="q" placeholder="Rechercher un utilisateur…"
+                       value="{{ request.GET.q|default:'' }}" aria-label="Rechercher un utilisateur">
+            </form>
+            {% else %}
+            <div class="hidden sm:flex items-center gap-2 text-sm font-semibold" style="color:#4b4f7d;">
+                {% icon "sparkles" %}<span>{{ user_primary_role_label }}</span>
+            </div>
+            {% endif %}
+
+            <div class="ua-topbar-right">
+                <span class="ua-chip">{% icon "calendar" %} {% now "D d M Y" %}</span>
+                <a href="{% url 'core:home' %}" class="ua-icon-btn" title="Site public" aria-label="Site public">
+                    {% icon "home" %}
+                </a>
+                <div class="ua-profile">
+                    <a href="{% url 'core:dashboard:profile' %}" class="flex items-center gap-3 min-w-0" title="Mon profil">
+                        {% if user_avatar_url %}
+                        <img src="{{ user_avatar_url }}" alt="" class="ua-avatar ua-avatar-lg object-cover">
+                        {% else %}
+                        <span class="ua-avatar ua-avatar-lg">{{ user_initials }}</span>
+                        {% endif %}
+                        <span class="ua-profile-meta min-w-0">
+                            <span class="ua-profile-name block">{{ user_display_name|default:request.user.email }}</span>
+                            <span class="ua-profile-role block">{{ user_primary_role_label }}</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="ua-content">
+            {% if messages %}
+            <div class="space-y-2 mb-5">
+                {% for message in messages %}
+                <div class="ua-card ua-card-pad text-sm font-semibold flex items-center gap-3
+                    {% if message.tags == 'error' %}text-rose-600
+                    {% elif message.tags == 'success' %}text-emerald-600
+                    {% else %}text-indigo-600{% endif %}">
+                    {% if message.tags == 'error' %}{% icon "info" %}
+                    {% elif message.tags == 'success' %}{% icon "check-circle" %}
+                    {% else %}{% icon "info" %}{% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block hero %}
+            <section class="ua-hero">
+                <div class="ua-hero-content">
+                    <p class="ua-hero-eyebrow">
+                        {{ greeting }}{% if request.user.first_name %}, {{ request.user.first_name }}{% endif %}
+                    </p>
+                    <h1 class="ua-hero-title">{% block hero_title %}Bienvenue sur votre espace{% endblock %}</h1>
+                    <p class="ua-hero-text">
+                        {% block hero_text %}Voici l'essentiel de votre activité aujourd'hui.{% endblock %}
+                    </p>
+                    <div class="ua-hero-actions">
+                        {% block hero_actions %}{% endblock %}
+                    </div>
+                </div>
+                {% block hero_aside %}{% endblock %}
+            </section>
+            {% endblock %}
+
+            {% block dashboard_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script>
+function uaToggleSidebar(force) {
+    const sidebar = document.getElementById('ua-sidebar');
+    const backdrop = document.getElementById('ua-backdrop');
+    if (!sidebar) return;
+    const open = typeof force === 'boolean'
+        ? force
+        : !sidebar.classList.contains('is-open');
+    sidebar.classList.toggle('is-open', open);
+    if (backdrop) backdrop.classList.toggle('is-open', open);
+}
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') uaToggleSidebar(false);
+});
+</script>
+{% endblock %}

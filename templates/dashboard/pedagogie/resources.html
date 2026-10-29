@@ -1,0 +1,80 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Ressources pédagogiques — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Ressources pédagogiques</h1>
+        <p class="ua-page-sub">Cours, exercices et devoirs publiés aux groupes.</p>
+    </div>
+    <a href="{% url 'core:dashboard:resource-create' %}" class="ua-btn ua-btn-primary">{% icon "book-open" %} Nouvelle ressource</a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div>
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Type</label>
+            <select name="kind" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in kind_choices %}
+                <option value="{{ value }}" {% if kind_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>Titre</th><th>Type</th><th>Formation</th><th>Groupe</th><th>Publication</th><th>Échéance</th><th>Statut</th><th></th></tr></thead>
+            <tbody>
+                {% for resource in page %}
+                <tr>
+                    <td class="ua-cell-title">{{ resource.title }}</td>
+                    <td>{{ resource.get_kind_display }}</td>
+                    <td>{{ resource.course.title }}</td>
+                    <td>{{ resource.session|default:"Tous" }}</td>
+                    <td>{{ resource.published_at|date:"d/m/Y"|default:"—" }}</td>
+                    <td>{{ resource.due_date|date:"d/m/Y H:i"|default:"—" }}</td>
+                    <td>
+                        {% if resource.status == 'PUBLISHED' %}<span class="ua-badge ua-badge-green">{{ resource.get_status_display }}</span>
+                        {% elif resource.status == 'DRAFT' %}<span class="ua-badge ua-badge-amber">{{ resource.get_status_display }}</span>
+                        {% else %}<span class="ua-badge ua-badge-slate">{{ resource.get_status_display }}</span>{% endif %}
+                    </td>
+                    <td>
+                        <div class="flex gap-2">
+                            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-edit' resource.id %}">Modifier</a>
+                            {% if resource.file %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">Fichier</a>{% endif %}
+                            {% if resource.html_content %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>{% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="ua-empty">Aucune ressource pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Présences — {{ record.session.course.title }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Présences du {{ record.date|date:"d/m/Y" }}</h1>
+        <p class="ua-page-sub">{{ record.session.course.title }} · {{ record.session }}{% if record.topic %} · {{ record.topic }}{% endif %}</p>
+    </div>
+    <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Retour à la séance</a>
+</div>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
+    {% include "dashboard/_stat.html" with label="Inscrits" value=summary.inscrits icon="users" tone="indigo" hint="groupe" %}
+    {% include "dashboard/_stat.html" with label="Présents" value=summary.presents icon="user-check" tone="green" hint="validés" %}
+    {% include "dashboard/_stat.html" with label="Absents" value=summary.absents icon="close" tone="rose" hint="sans justification" %}
+    {% include "dashboard/_stat.html" with label="Retards" value=summary.retards icon="clock" tone="amber" hint="arrivées tardives" %}
+    {% include "dashboard/_stat.html" with label="Excusés" value=summary.excuses icon="info" tone="sky" hint="justifiés" %}
+</div>
+
+<section class="ua-card ua-card-pad">
+    <form method="post">
+        {% csrf_token %}
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>Étudiant</th><th>Statut</th><th>Heure d'arrivée</th><th>Motif d'absence</th><th>Observation</th></tr></thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr>
+                        <td>
+                            <span class="ua-cell-title">{{ row.student.get_full_name|default:row.student.email }}</span>
+                            <span class="ua-cell-sub block">{{ row.student.internal_code|default:"—" }}</span>
+                        </td>
+                        <td>
+                            <select name="status_{{ row.enrollment.id }}" class="px-2 py-1 rounded-lg border" style="border-color:#e6e7f5;" {% if not can_edit %}disabled{% endif %}>
+                                <option value="">—</option>
+                                {% for value, label in attendance_choices %}
+                                <option value="{{ value }}" {% if row.attendance and row.attendance.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="time" name="arrival_{{ row.enrollment.id }}" value="{{ row.attendance.arrival_time|time:'H:i' }}"
+                                   class="px-2 py-1 rounded-lg border" style="border-color:#e6e7f5;width:110px;" {% if not can_edit %}disabled{% endif %}>
+                        </td>
+                        <td>
+                            <input type="text" name="reason_{{ row.enrollment.id }}" value="{{ row.attendance.absence_reason }}"
+                                   class="px-2 py-1 rounded-lg border" style="border-color:#e6e7f5;width:150px;" {% if not can_edit %}disabled{% endif %}>
+                        </td>
+                        <td>
+                            <input type="text" name="note_{{ row.enrollment.id }}" value="{{ row.attendance.note }}"
+                                   class="px-2 py-1 rounded-lg border" style="border-color:#e6e7f5;width:150px;" {% if not can_edit %}disabled{% endif %}>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">Aucun étudiant inscrit à ce groupe.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if can_edit %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer les présences</button>
+            <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+        {% endif %}
+    </form>
+</section>
+{% endblock %}

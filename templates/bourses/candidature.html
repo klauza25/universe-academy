@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Candidater à une bourse — Univers Academy{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-slate-50">
+    <header class="border-b border-slate-200 bg-white">
+        <div class="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
+            <a href="{% url 'core:home' %}" class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-1 ring-slate-200">
+                    <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-10 w-10 object-cover">
+                </div>
+                <div class="leading-tight">
+                    <p class="text-sm font-semibold text-slate-900">Univers Academy</p>
+                    <p class="text-xs text-slate-500">Centre de Formation en Langues</p>
+                </div>
+            </a>
+            <a href="{% url 'core:home' %}" class="text-sm text-slate-500 transition hover:text-slate-900">Retour à l'accueil</a>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+        <div class="mb-8">
+            <h1 class="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Candidater à une bourse d'études</h1>
+            <p class="mt-2 text-sm text-slate-500">Remplissez le formulaire ci-dessous et joignez les documents demandés. Les champs marqués d'un astérisque sont obligatoires.</p>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="rounded-lg px-3 py-2 text-sm {% if message.tags == 'error' %}bg-rose-50 text-rose-700 ring-1 ring-rose-100{% else %}bg-sky-50 text-sky-700 ring-1 ring-sky-100{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if app_form.non_field_errors or doc_form.non_field_errors %}
+        <div class="mb-6 space-y-2">
+            {% for error in app_form.non_field_errors %}
+            <div class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100">{{ error }}</div>
+            {% endfor %}
+            {% for error in doc_form.non_field_errors %}
+            <div class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100">{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data"
+              class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
+            {% csrf_token %}
+            <div class="px-6 py-8 sm:px-8">
+
+                <section>
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Informations personnelles</h2>
+                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="{{ app_form.last_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Nom <span class="text-rose-500">*</span></label>
+                            {{ app_form.last_name }}
+                            {% for error in app_form.last_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ app_form.first_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Prénom <span class="text-rose-500">*</span></label>
+                            {{ app_form.first_name }}
+                            {% for error in app_form.first_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ app_form.email.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Email <span class="text-rose-500">*</span></label>
+                            {{ app_form.email }}
+                            {% for error in app_form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ app_form.phone.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Téléphone <span class="text-rose-500">*</span></label>
+                            {{ app_form.phone }}
+                            {% for error in app_form.phone.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <div class="my-8 h-px bg-slate-200"></div>
+
+                <section>
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Projet d'études</h2>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label for="{{ app_form.destination.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Destination <span class="text-rose-500">*</span></label>
+                            {{ app_form.destination }}
+                            {% for error in app_form.destination.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="{{ app_form.program.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Programme visé <span class="text-rose-500">*</span></label>
+                                {{ app_form.program }}
+                                {% for error in app_form.program.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                            </div>
+                            <div>
+                                <label for="{{ app_form.study_domain.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Domaine d'études <span class="text-rose-500">*</span></label>
+                                {{ app_form.study_domain }}
+                                {% for error in app_form.study_domain.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="my-8 h-px bg-slate-200"></div>
+
+                <section>
+                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Documents à fournir</h2>
+                    <p class="mt-1 text-xs text-slate-500">PDF, JPG ou PNG — 10 Mo maximum par fichier.</p>
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label for="{{ doc_form.identity_doc.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Pièce d'identité <span class="text-rose-500">*</span></label>
+                            {{ doc_form.identity_doc }}
+                            {% for error in doc_form.identity_doc.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ doc_form.diplomas.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Diplômes <span class="text-slate-400">(facultatif)</span></label>
+                            {{ doc_form.diplomas }}
+                            {% for error in doc_form.diplomas.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ doc_form.transcripts.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Relevés de notes <span class="text-slate-400">(facultatif)</span></label>
+                            {{ doc_form.transcripts }}
+                            {% for error in doc_form.transcripts.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ doc_form.photo.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Photo d'identité <span class="text-rose-500">*</span></label>
+                            {{ doc_form.photo }}
+                            {% for error in doc_form.photo.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                        <div>
+                            <label for="{{ doc_form.motivation_letter.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Lettre de motivation <span class="text-rose-500">*</span></label>
+                            {{ doc_form.motivation_letter }}
+                            {% for error in doc_form.motivation_letter.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                <a href="{% url 'core:bourses:scholarship-tracking' %}" class="text-sm text-slate-500 transition hover:text-slate-900">Suivre une candidature</a>
+                <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">
+                    Soumettre ma candidature
+                </button>
+            </div>
+        </form>
+    </main>
+</div>
+{% endblock %}

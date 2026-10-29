@@ -1,0 +1,114 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Détail utilisateur — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Demandes d'accès</span>
+</a>
+{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ profile_user.get_full_name|default:profile_user.email }}</h1>
+        <p class="ua-page-sub">
+            {{ profile_user.internal_code|default:"Code non attribué" }} · {{ profile_user.email }}
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:user-edit' profile_user.id %}" class="ua-btn ua-btn-primary">
+            {% icon "settings" %} Modifier
+        </a>
+        <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <div class="flex items-center gap-4 mb-5">
+            <span class="ua-avatar ua-avatar-lg" style="width:56px;height:56px;font-size:1rem;">
+                {{ profile_user.first_name|slice:":1" }}{{ profile_user.last_name|slice:":1" }}
+            </span>
+            <div class="min-w-0">
+                <p class="ua-section-title truncate">{{ profile_user.get_full_name|default:profile_user.email }}</p>
+                <div class="flex flex-wrap gap-1.5 mt-1.5">
+                    {% for r in profile_user.roles.all %}
+                    <span class="ua-badge ua-badge-indigo">{{ r.label }}</span>
+                    {% empty %}
+                    <span class="ua-muted text-xs">Aucun rôle</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <span class="ua-badge ml-auto
+                {% if profile_user.account_status == 'ACTIVE' %}ua-badge-green
+                {% elif profile_user.account_status == 'PENDING_APPROVAL' %}ua-badge-amber
+                {% else %}ua-badge-rose{% endif %}">
+                {{ profile_user.get_account_status_display }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <p class="ua-stat-label">Email</p>
+                <p class="text-sm font-semibold mt-1 break-all" style="color:#1e2044;">{{ profile_user.email }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Téléphone</p>
+                <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ profile_user.phone|default:"—" }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Code interne</p>
+                <p class="text-sm font-semibold font-mono mt-1" style="color:#1e2044;">{{ profile_user.internal_code|default:"—" }}</p>
+            </div>
+            <div>
+                <p class="ua-stat-label">Compte Clerk</p>
+                {% if profile_user.clerk_user_id %}
+                <p class="text-sm font-semibold font-mono mt-1 break-all" style="color:#1e2044;">{{ profile_user.clerk_user_id }}</p>
+                {% else %}
+                <p class="text-xs ua-muted mt-1">Non lié — liaison automatique à la première connexion</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section class="ua-card overflow-hidden">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Historique d'audit</h2>
+            <p class="text-xs ua-muted mt-1">20 derniers événements</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in audit_entries %}
+                    <tr>
+                        <td class="ua-muted whitespace-nowrap">{{ entry.created_at|date:"d/m/Y H:i" }}</td>
+                        <td><span class="ua-badge ua-badge-indigo">{{ entry.action }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="2" class="ua-empty">Aucun historique</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

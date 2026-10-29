@@ -1,0 +1,19 @@
+{% load ui %}
+<a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-nav-link">
+    {% icon "grid" %}<span>Mon tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:session-records' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'session-records' or request.resolver_match.url_name == 'session-record-detail' or request.resolver_match.url_name == 'session-record-attendance' %}is-active{% endif %}">
+    {% icon "presentation" %}<span>Séances</span>
+</a>
+<a href="{% url 'core:dashboard:attendance-history' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'attendance-history' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Présences</span>
+</a>
+<a href="{% url 'core:dashboard:resources' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'resources' or request.resolver_match.url_name == 'resource-create' or request.resolver_match.url_name == 'resource-edit' %}is-active{% endif %}">
+    {% icon "book-open" %}<span>Ressources</span>
+</a>
+<a href="{% url 'core:dashboard:progression' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'progression' %}is-active{% endif %}">
+    {% icon "chart" %}<span>Progression</span>
+</a>
+<a href="{% url 'core:dashboard:programs' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'programs' or request.resolver_match.url_name == 'module-create' or request.resolver_match.url_name == 'lesson-create' %}is-active{% endif %}">
+    {% icon "book-open" %}<span>Programmes</span>
+</a>

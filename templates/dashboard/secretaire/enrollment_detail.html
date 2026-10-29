@@ -1,0 +1,76 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Inscription — {{ enrollment.student.get_full_name }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ enrollment.session.course.title }}</h1>
+        <p class="ua-page-sub">{{ enrollment.student.get_full_name|default:enrollment.student.email }} · {{ enrollment.session.starts_at|date:"d/m/Y" }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:student-detail' enrollment.student.id %}" class="ua-btn ua-btn-light">{% icon "graduation" %} Fiche étudiant</a>
+        <a href="{% url 'core:dashboard:enrollment-edit' enrollment.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier</a>
+        <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
+    {% include "dashboard/_stat.html" with label="Tarif" value=enrollment.tariff_amount icon="wallet" tone="indigo" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Remise" value=enrollment.discount_amount icon="trending-up" tone="amber" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Net dû" value=enrollment.net_amount icon="credit-card" tone="sky" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label="Solde restant" value=enrollment.balance_due icon="chart" tone="rose" hint="FCFA" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Dossier</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Statut</dt><dd>{{ enrollment.get_status_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">Paiement</dt><dd>{{ enrollment.payment_state }}</dd></div>
+            <div><dt class="text-xs ua-muted">Date d'inscription</dt><dd>{{ enrollment.enrolled_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Date de début</dt><dd>{{ enrollment.start_date|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Modalités</dt><dd>{{ enrollment.payment_plan|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Enregistré par</dt><dd>{{ enrollment.registered_by.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Observations</dt><dd>{{ enrollment.notes|default:"—"|linebreaksbr }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Paiements</h2>
+            <a href="{% url 'core:dashboard:payment-create' %}?enrollment={{ enrollment.id }}" class="ua-btn ua-btn-primary ua-btn-sm">{% icon "credit-card" %} Encaisser</a>
+        </div>
+        {% for payment in payments %}
+        <div class="ua-list-row">
+            <div>
+                <span class="ua-cell-title">{{ payment.reference }} · {{ payment.amount }} FCFA</span>
+                <span class="ua-cell-sub block">{{ payment.get_method_display }} · {{ payment.paid_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">Reçu</a>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucun paiement. Les règlements sont enregistrés par la comptabilité.</p>
+        {% endfor %}
+    </section>
+</div>
+
+{% if documents %}
+<section class="ua-card ua-card-pad mt-5">
+    <h2 class="ua-section-title mb-4">Documents liés</h2>
+    {% for document in documents %}
+    <div class="ua-list-row">
+        <div>
+            <span class="ua-cell-title">{{ document.get_doc_type_display }}</span>
+            <span class="ua-cell-sub block">{{ document.original_name }}</span>
+        </div>
+        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:student-document-download' document.id %}">Télécharger</a>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

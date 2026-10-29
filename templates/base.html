@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Univers Academy - Plateforme de gestion académique{% endblock %}">
+    <title>{% block title %}Univers Academy{% endblock %}</title>
+    
+    {% load static %}
+    
+    <!-- Tailwind CSS compilé -->
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    
+    <!-- Polices modernes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Thème principal Univers Academy (bleu marine + or) */
+            --ua-primary: #1e3a5f;
+            --ua-primary-dark: #152a45;
+            --ua-secondary: #c8a45a;
+            --ua-secondary-dark: #a8893f;
+            --ua-bg: #f5f7fa;
+            
+            /* Thème Dashboard Hireism (violet/lavande) */
+            --ua-dashboard-bg: #E8E5FF;
+            --ua-dashboard-surface: #F8F7FF;
+            --ua-dashboard-accent: #4F46E5;
+        }
+
+        /* Police globale */
+        html {
+            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-feature-settings: 'cv11', 'ss01';
+        }
+
+        /* Scrollbar moderne */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Animations utilitaires */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.3s ease-out;
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Focus visible pour l'accessibilité */
+        *:focus-visible {
+            outline: 2px solid var(--ua-dashboard-accent);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Empêcher le flash de contenu non stylé */
+        .no-flash {
+            opacity: 1 !important;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    {% block body %}{% endblock %}
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

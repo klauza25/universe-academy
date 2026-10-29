@@ -1,0 +1,19 @@
+{% load ui %}
+<a href="{% url 'core:dashboard:accueil-dashboard' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'accueil-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:visit-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-list' %}is-active{% endif %}">
+    {% icon "door-open" %}<span>Visites</span>
+</a>
+<a href="{% url 'core:dashboard:visit-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-create' %}is-active{% endif %}">
+    {% icon "user-plus" %}<span>Nouvelle visite</span>
+</a>
+<a href="{% url 'core:dashboard:prospect-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Prospects</span>
+</a>
+<a href="{% url 'core:dashboard:prospect-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-create' %}is-active{% endif %}">
+    {% icon "user-plus" %}<span>Nouveau prospect</span>
+</a>
+<a href="{% url 'core:dashboard:visit-reasons' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-reasons' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Motifs de visite</span>
+</a>

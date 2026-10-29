@@ -1,0 +1,74 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}{{ visit.reference }} — Visite{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ visit.reference }}</h1>
+        <p class="ua-page-sub">{{ visit.contact.full_name }} · {{ visit.contact.phone }}</p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        {% if visit.is_present %}
+        <form method="post" action="{% url 'core:dashboard:visit-departure' visit.id %}">
+            {% csrf_token %}
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "door-open" %} Enregistrer le départ</button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'core:dashboard:visit-to-prospect' visit.id %}">
+            {% csrf_token %}
+            <button type="submit" class="ua-btn ua-btn-light">{% icon "user-plus" %} Créer un prospect</button>
+        </form>
+        <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">Fiche visite</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">Statut</dt><dd><span class="ua-badge ua-badge-indigo">{{ visit.get_status_display }}</span></dd></div>
+            <div><dt class="text-xs ua-muted">Type de visiteur</dt><dd>{{ visit.get_visitor_type_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">Motif</dt><dd>{{ visit.reason|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Arrivée</dt><dd>{{ visit.arrival_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Départ</dt><dd>{{ visit.departure_at|date:"d/m/Y H:i"|default:"Toujours présent" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Service / personne</dt><dd>{{ visit.host_service|default:"—" }}{% if visit.host_person %} · {{ visit.host_person }}{% endif %}</dd></div>
+            <div><dt class="text-xs ua-muted">Agent d'accueil</dt><dd>{{ visit.agent.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Email</dt><dd>{{ visit.contact.email|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">Demande</dt><dd>{{ visit.request_description|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">Observations</dt><dd>{{ visit.notes|default:"—"|linebreaksbr }}</dd></div>
+        </dl>
+    </section>
+
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">Modifier les informations autorisées</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <div class="flex flex-wrap gap-3 mt-4">
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
+                <a href="{% url 'core:dashboard:visit-detail' visit.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+{% if prospects %}
+<section class="ua-card ua-card-pad mt-5">
+    <h2 class="ua-section-title mb-4">Prospects liés</h2>
+    {% for prospect in prospects %}
+    <div class="ua-list-row">
+        <div>
+            <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-cell-title">{{ prospect.reference }}</a>
+            <span class="ua-cell-sub block">{{ prospect.get_status_display }}</span>
+        </div>
+        <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">Ouvrir</a>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

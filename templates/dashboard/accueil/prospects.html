@@ -1,0 +1,102 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Prospects — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Prospects</h1>
+        <p class="ua-page-sub">Personnes intéressées par une formation ou un service.</p>
+    </div>
+    <a href="{% url 'core:dashboard:prospect-create' %}" class="ua-btn ua-btn-primary">
+        {% icon "user-plus" %} Nouveau prospect
+    </a>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Nom, téléphone, référence…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Relance</label>
+            <select name="due" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                <option value="today" {% if due_filter == 'today' %}selected{% endif %}>Aujourd'hui</option>
+                <option value="overdue" {% if due_filter == 'overdue' %}selected{% endif %}>En retard</option>
+            </select>
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="ua-btn ua-btn-primary w-full justify-center">{% icon "search" %} Filtrer</button>
+        </div>
+    </form>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Référence</th>
+                    <th>Prospect</th>
+                    <th>Téléphone</th>
+                    <th>Formation</th>
+                    <th>Statut</th>
+                    <th>Dernier contact</th>
+                    <th>Relance</th>
+                    <th>Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prospect in page %}
+                <tr>
+                    <td><a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-cell-title">{{ prospect.reference }}</a></td>
+                    <td>
+                        <span class="ua-cell-title">{{ prospect.contact.full_name }}</span>
+                        {% if prospect.contact.email %}<span class="ua-cell-sub block">{{ prospect.contact.email }}</span>{% endif %}
+                    </td>
+                    <td>{{ prospect.contact.phone }}</td>
+                    <td>{{ prospect.course.title|default:prospect.domain|default:"—" }}</td>
+                    <td><span class="ua-badge ua-badge-indigo">{{ prospect.get_status_display }}</span></td>
+                    <td>
+                        {% with last=prospect.last_follow_up %}
+                        {{ last.occurred_at|date:"d/m/Y H:i"|default:"—" }}
+                        {% endwith %}
+                    </td>
+                    <td>
+                        {% if prospect.next_follow_up %}
+                            {% if prospect.next_follow_up < today %}
+                            <span class="ua-badge ua-badge-rose">{{ prospect.next_follow_up|date:"d/m/Y" }}</span>
+                            {% elif prospect.next_follow_up == today %}
+                            <span class="ua-badge ua-badge-amber">{{ prospect.next_follow_up|date:"d/m/Y" }}</span>
+                            {% else %}
+                            {{ prospect.next_follow_up|date:"d/m/Y" }}
+                            {% endif %}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ prospect.agent.display_label|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="ua-empty">Aucun prospect pour ces critères.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+</section>
+{% endblock %}

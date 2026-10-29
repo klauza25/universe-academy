@@ -1,0 +1,96 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Secrétaire — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+
+{% block hero_title %}Suivi des inscriptions{% endblock %}
+{% block hero_text %}
+{{ pending_enrollments }} inscription{{ pending_enrollments|pluralize }} en attente
+sur {{ total_enrollments }} dossier{{ total_enrollments|pluralize }} au total,
+{{ total_students }} étudiant{{ total_students|pluralize }} au fichier.
+{% endblock %}
+
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-light">{% icon "user-plus" %} Nouvel étudiant</a>
+<a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-btn ua-btn-ghost">{% icon "clipboard" %} Nouvelle inscription</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Inscriptions en attente" value=pending_enrollments icon="clock" tone="amber" hint="À confirmer" %}
+    {% include "dashboard/_stat.html" with label="Dossiers d'inscription" value=total_enrollments icon="clipboard" tone="indigo" hint="Toutes sessions" %}
+    {% include "dashboard/_stat.html" with label="Étudiants au fichier" value=total_students icon="graduation" tone="green" hint="Comptes étudiants" %}
+    {% include "dashboard/_stat.html" with label="Prospects convertis" value=converted_prospects icon="user-check" tone="sky" hint="Vers une inscription" %}
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="ua-section-title">Actions rapides</h2>
+            <p class="text-xs ua-muted mt-1">{{ awaiting_prospects }} prospect(s) à traiter · {{ documents_count }} document(s) au fichier</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Étudiants</a>
+            <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Prospects</a>
+            <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Visites</a>
+        </div>
+    </div>
+</section>
+
+<section class="ua-card overflow-hidden">
+    <div class="px-6 pt-6 pb-4">
+        <h2 class="ua-section-title">Inscriptions récentes</h2>
+        <p class="text-xs ua-muted mt-1">Les 10 derniers dossiers enregistrés</p>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Étudiant</th>
+                    <th>Formation</th>
+                    <th>Session</th>
+                    <th>Statut</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for enrollment in recent_enrollments %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <span class="ua-avatar-sm">
+                                {{ enrollment.student.first_name|slice:":1" }}{{ enrollment.student.last_name|slice:":1" }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="ua-cell-title truncate">
+                                    {{ enrollment.student.get_full_name|default:enrollment.student.email }}
+                                </p>
+                                <p class="ua-cell-sub truncate">{{ enrollment.student.internal_code|default:"—" }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ enrollment.session.course.title }}</td>
+                    <td class="ua-muted whitespace-nowrap">
+                        {{ enrollment.session.starts_at|date:"d/m/Y" }}
+                    </td>
+                    <td>
+                        <span class="ua-badge
+                            {% if enrollment.status == 'ACTIVE' %}ua-badge-green
+                            {% elif enrollment.status == 'PENDING' %}ua-badge-amber
+                            {% elif enrollment.status == 'COMPLETED' %}ua-badge-indigo
+                            {% else %}ua-badge-rose{% endif %}">
+                            {{ enrollment.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="ua-muted whitespace-nowrap">{{ enrollment.enrolled_at|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="ua-empty">Aucune inscription enregistrée</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

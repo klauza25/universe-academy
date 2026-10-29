@@ -1,0 +1,19 @@
+{% load ui %}
+<a href="{% url 'core:dashboard:secretaire-dashboard' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'secretaire-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:student-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-list' or request.resolver_match.url_name == 'student-detail' or request.resolver_match.url_name == 'student-edit' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Étudiants</span>
+</a>
+<a href="{% url 'core:dashboard:student-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-create' %}is-active{% endif %}">
+    {% icon "user-plus" %}<span>Nouvel étudiant</span>
+</a>
+<a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'enrollment-create' or request.resolver_match.url_name == 'enrollment-edit' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Nouvelle inscription</span>
+</a>
+<a href="{% url 'core:dashboard:prospect-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Prospects</span>
+</a>
+<a href="{% url 'core:dashboard:visit-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-list' %}is-active{% endif %}">
+    {% icon "door-open" %}<span>Visites</span>
+</a>

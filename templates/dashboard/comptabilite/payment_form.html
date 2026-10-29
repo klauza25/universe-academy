@@ -1,0 +1,31 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Paiement étudiant — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Encaisser un paiement étudiant</h1>
+        <p class="ua-page-sub">Le paiement crée automatiquement une opération de caisse et un reçu.</p>
+    </div>
+    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Journal comptable</a>
+</div>
+
+<section class="ua-card ua-card-pad max-w-2xl">
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "credit-card" %} Enregistrer le paiement</button>
+            <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+    </form>
+    <p class="text-xs ua-muted mt-4">
+        Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé après chaque règlement.
+    </p>
+</section>
+{% endblock %}

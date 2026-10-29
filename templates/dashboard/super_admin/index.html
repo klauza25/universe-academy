@@ -1,0 +1,160 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}Super Admin — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Demandes d'accès</span>
+    {% if pending_requests %}<span class="ua-nav-count">{{ pending_requests }}</span>{% endif %}
+</a>
+<a href="{% url 'core:dashboard:scholarship-review-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Candidatures bourse</span>
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Journal d'audit</span>
+</a>
+{% endblock %}
+
+{% block hero_title %}Vue d'ensemble de la plateforme{% endblock %}
+{% block hero_text %}
+{{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès et
+{{ scholarship_pending }} candidature{{ scholarship_pending|pluralize }} bourse
+attendent votre validation.
+{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:access-requests' %}" class="ua-btn ua-btn-light">
+    {% icon "clipboard" %} Traiter les demandes
+</a>
+<a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">
+    {% icon "users" %} Gérer les utilisateurs
+</a>
+{% endblock %}
+{% block hero_aside %}
+<div class="ua-hero-card">
+    <p class="ua-hero-card-value">{{ total_users }}</p>
+    <p class="ua-hero-card-label">Comptes au total</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Total utilisateurs" value=total_users icon="users" tone="indigo" hint="Tous rôles confondus" %}
+    {% include "dashboard/_stat.html" with label="Demandes en attente" value=pending_requests icon="clipboard" tone="amber" hint="À valider par vos soins" %}
+    {% include "dashboard/_stat.html" with label="Étudiants actifs" value=active_students icon="graduation" tone="green" hint="Comptes étudiants ouverts" %}
+    {% include "dashboard/_stat.html" with label="Bourses en attente" value=scholarship_pending icon="file-text" tone="violet" hint="Candidatures à instruire" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <section class="ua-card xl:col-span-2 overflow-hidden">
+        <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+            <div>
+                <h2 class="ua-section-title">Activité récente</h2>
+                <p class="text-xs ua-muted mt-1">Les 10 dernières actions enregistrées</p>
+            </div>
+            <a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                Tout voir {% icon "arrow-right" %}
+            </a>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Acteur</th>
+                        <th>Action</th>
+                        <th>Entité</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_audit %}
+                    <tr>
+                        <td class="whitespace-nowrap">{{ entry.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="ua-cell-title">
+                                {{ entry.actor.get_full_name|default:"Système" }}
+                            </span>
+                        </td>
+                        <td><span class="ua-badge ua-badge-indigo">{{ entry.action }}</span></td>
+                        <td class="ua-muted">{{ entry.entity_type|default:"—" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="ua-empty">Aucune activité récente</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="space-y-6">
+        <section class="ua-card ua-card-pad">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h2 class="ua-section-title">Demandes d'accès</h2>
+                <a href="{% url 'core:dashboard:access-requests' %}" class="text-xs font-semibold" style="color:#5b5bf6;">
+                    Tout voir
+                </a>
+            </div>
+            {% for item in recent_access_requests %}
+            <div class="ua-list-row">
+                <span class="ua-avatar-sm">
+                    {{ item.user.first_name|slice:":1" }}{{ item.user.last_name|slice:":1" }}
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold truncate" style="color:#1e2044;">
+                        {{ item.user.get_full_name|default:item.user.email }}
+                    </p>
+                    <p class="text-xs ua-muted truncate">{{ item.user.email }}</p>
+                </div>
+                <span class="ua-badge ua-badge-amber">En attente</span>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucune demande en attente</p>
+            {% endfor %}
+        </section>
+
+        <section class="ua-card ua-card-pad">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <h2 class="ua-section-title">Candidatures bourse</h2>
+                <a href="{% url 'core:dashboard:scholarship-review-list' %}" class="text-xs font-semibold" style="color:#5b5bf6;">
+                    Tout voir
+                </a>
+            </div>
+            {% for app in recent_scholarships %}
+            <div class="ua-list-row">
+                <span class="ua-avatar-sm" style="background:#f2e9fe;color:#7c3aed;">
+                    {% icon "graduation" %}
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold truncate" style="color:#1e2044;">
+                        {{ app.first_name }} {{ app.last_name }}
+                    </p>
+                    <p class="text-xs ua-muted truncate">{{ app.reference }} · {{ app.destination }}</p>
+                </div>
+                <span class="ua-badge
+                    {% if app.status == 'APPROVED' %}ua-badge-green
+                    {% elif app.status == 'REJECTED' %}ua-badge-rose
+                    {% elif app.status == 'SUBMITTED' %}ua-badge-indigo
+                    {% else %}ua-badge-slate{% endif %}">
+                    {{ app.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucune candidature reçue</p>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

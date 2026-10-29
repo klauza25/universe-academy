@@ -1,0 +1,32 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui %}
+
+{% block title %}{% if creating %}Nouvelle inscription{% else %}Modifier l'inscription{% endif %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% if creating %}Nouvelle inscription{% else %}Modifier l'inscription{% endif %}</h1>
+        <p class="ua-page-sub">Le montant net est calculé à partir du tarif et de la remise.</p>
+    </div>
+    {% if not creating %}
+    <a href="{% url 'core:dashboard:enrollment-detail' enrollment.id %}" class="ua-btn ua-btn-ghost">Retour</a>
+    {% else %}
+    <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+    {% endif %}
+</div>
+
+<section class="ua-card ua-card-pad max-w-2xl">
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
+            <a href="{% if not creating %}{% url 'core:dashboard:enrollment-detail' enrollment.id %}{% else %}{% url 'core:dashboard:student-list' %}{% endif %}" class="ua-btn ua-btn-ghost">Annuler</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
