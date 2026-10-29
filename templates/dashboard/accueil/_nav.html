@@ -5,15 +5,19 @@
 <a href="{% url 'core:dashboard:visit-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-list' %}is-active{% endif %}">
     {% icon "door-open" %}<span>Visites</span>
 </a>
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:visit-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-create' %}is-active{% endif %}">
     {% icon "user-plus" %}<span>Nouvelle visite</span>
 </a>
+{% endif %}
 <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-list' %}is-active{% endif %}">
     {% icon "users" %}<span>Prospects</span>
 </a>
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:prospect-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-create' %}is-active{% endif %}">
     {% icon "user-plus" %}<span>Nouveau prospect</span>
 </a>
+{% endif %}
 <a href="{% url 'core:dashboard:visit-reasons' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'visit-reasons' %}is-active{% endif %}">
     {% icon "clipboard" %}<span>Motifs de visite</span>
 </a>

@@ -83,4 +83,6 @@
         </table>
     </div>
 </section>
+
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de la séance" audit_subtitle="Création du compte rendu et pointage des présences." audit_empty="Aucun événement d'audit pour cette séance." %}
 {% endblock %}

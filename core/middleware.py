@@ -6,6 +6,7 @@ PUBLIC_PATHS = [
     '/login/',
     '/logout/',
     '/register/',
+    '/demande-acces/',
     '/bourses/',
     '/bourses/candidature/',
     '/bourses/suivi/',

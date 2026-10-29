@@ -29,6 +29,10 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad xl:col-span-2">
+        {% if is_elevated %}
+        <h2 class="ua-section-title mb-4">Consultation</h2>
+        <p class="ua-empty">Consultation seule : la modification d'un prospect relève du rôle accueil.</p>
+        {% else %}
         <h2 class="ua-section-title mb-4">Informations du prospect</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
@@ -39,6 +43,7 @@
                 <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
             </div>
         </form>
+        {% endif %}
     </section>
 
     <section class="ua-card ua-card-pad">
@@ -69,12 +74,16 @@
     <section class="ua-card ua-card-pad">
         <h2 class="ua-section-title mb-1">Nouveau suivi</h2>
         <p class="text-xs ua-muted mb-4">Un compte rendu d'appel n'envoie aucun message : il documente uniquement l'échange.</p>
+        {% if is_elevated %}
+        <p class="ua-empty">Consultation seule : l'ajout d'un suivi relève du rôle accueil.</p>
+        {% else %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="follow_up">
             {% include "dashboard/_form.html" with form=follow_form %}
             <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} Enregistrer le suivi</button>
         </form>
+        {% endif %}
     </section>
 
     <section class="ua-card ua-card-pad">
@@ -94,4 +103,6 @@
         {% endfor %}
     </section>
 </div>
+
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique du prospect" audit_subtitle="Création, mises à jour, relances et conversion." audit_empty="Aucun événement d'audit pour ce prospect." %}
 {% endblock %}

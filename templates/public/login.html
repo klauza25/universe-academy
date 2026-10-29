@@ -32,11 +32,17 @@
                 {% endif %}
 
                 {% if clerk_enabled %}
-                <div class="space-y-4">
-                    <div id="clerk-sign-in" class="flex justify-center"></div>
-                    <div id="clerk-loading" class="py-4 text-center text-sm text-slate-400">Chargement de la connexion sécurisée…</div>
-                    <div id="clerk-js-error" class="hidden rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100"></div>
-                </div>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <p class="text-center text-xs text-slate-500">Connexion avec votre e-mail ou votre code interne Univers Academy.</p>
+                    {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                </form>
 
                 <div class="mt-6 flex items-center gap-3">
                     <div class="h-px flex-1 bg-slate-200"></div>
@@ -44,26 +50,11 @@
                     <div class="h-px flex-1 bg-slate-200"></div>
                 </div>
 
-                <details class="group mt-6 rounded-xl border border-slate-200 bg-slate-50/60 open:bg-white">
-                    <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-slate-900 [&::-webkit-details-marker]:hidden">
-                        <span>Compte existant <span class="font-normal text-slate-500">(email ou code interne)</span></span>
-                        <svg class="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="m6 9 6 6 6-6"/>
-                        </svg>
-                    </summary>
-                    <div class="border-t border-slate-200 px-4 pb-4 pt-4">
-                        <form method="post" class="space-y-4">
-                            {% csrf_token %}
-                            {% for field in form %}
-                            <div>
-                                <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{{ field.label }}</label>
-                                {{ field }}
-                            </div>
-                            {% endfor %}
-                            <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
-                        </form>
-                    </div>
-                </details>
+                <div class="mt-6 space-y-4">
+                    <div id="clerk-sign-in" class="flex justify-center"></div>
+                    <div id="clerk-loading" class="py-4 text-center text-sm text-slate-400">Chargement de la connexion sécurisée…</div>
+                    <div id="clerk-js-error" class="hidden rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100"></div>
+                </div>
 
                 <form id="clerk-exchange" method="post" action="{% url 'core:clerk-session' %}" class="hidden">
                     {% csrf_token %}

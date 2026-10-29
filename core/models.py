@@ -42,6 +42,22 @@ ROLE_DASHBOARD_ROUTES = {
 
 PRIVILEGED_ROLES = {'SUPER_ADMIN', 'ADMIN', 'DIRECTION'}
 
+# Rôles disposant d'un accès transversal en lecture à l'ensemble des modules.
+# Les opérations les plus sensibles (création de comptes, attribution de rôles,
+# validation des demandes d'accès) restent réservées au SUPER_ADMIN.
+ELEVATED_ROLES = ('SUPER_ADMIN', 'ADMIN')
+
+# Rôles qu'un demandeur peut solliciter et qu'un SUPER_ADMIN peut attribuer
+# lors de l'approbation d'une demande d'accès. Les rôles d'administration
+# (SUPER_ADMIN, ADMIN) et la direction restent attribués depuis l'écran
+# « Utilisateurs » par un SUPER_ADMIN, jamais par un formulaire public.
+REQUESTABLE_ROLES = (
+    'ETUDIANT', 'FORMATEUR', 'SECRETAIRE', 'COMPTABLE', 'RESP_PEDA', 'ACCUEIL',
+)
+REQUESTABLE_ROLE_CHOICES = [
+    (key, RoleKey(key).label) for key in REQUESTABLE_ROLES
+]
+
 INTERNAL_CODE_PREFIXES = {
     'SUPER_ADMIN': 'UA-ADM',
     'ADMIN': 'UA-ADM',
@@ -180,6 +196,26 @@ class User(AbstractUser):
             key=perm_key
         ).exists()
 
+    @property
+    def is_elevated(self):
+        """Vrai pour les rôles à accès transversal (super admin, admin)."""
+        return self.roles.filter(key__in=ELEVATED_ROLES).exists()
+
+    @property
+    def pending_access_request(self):
+        """Dernière demande d'accès encore en attente, s'il y en a une."""
+        return self.access_requests.filter(
+            status=AccessRequest.Status.PENDING
+        ).order_by('-created_at').first()
+
+    @property
+    def needs_access_request(self):
+        """Compte en attente qui doit encore choisir son rôle demandé."""
+        if self.account_status != AccountStatus.PENDING_APPROVAL:
+            return False
+        pending = self.pending_access_request
+        return pending is None or not pending.requested_role
+
     def generate_internal_code(self, role_key=None):
         if self.internal_code:
             return self.internal_code
@@ -257,6 +293,10 @@ class AccessRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='access_requests')
     requested_role = models.CharField(max_length=20, choices=RoleKey.choices, blank=True)
+    assigned_role = models.CharField(
+        max_length=20, choices=RoleKey.choices, blank=True,
+        help_text="Rôle effectif attribué lors de l'approbation",
+    )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PENDING
     )
@@ -1233,27 +1273,36 @@ class CashAccount(models.Model):
     def __str__(self):
         return self.name
 
-    def totals(self):
-        from django.db.models import Q, Sum
-
+    def movement_totals(self, start=None, end=None):
+        """Entrées et sorties validées de cette caisse, bornes incluses."""
         base = CashTransaction.objects.filter(
             status=CashTransaction.Status.VALIDATED
         )
+        if start:
+            base = base.filter(occurred_at__date__gte=start)
+        if end:
+            base = base.filter(occurred_at__date__lte=end)
         incoming = base.filter(
-            Q(tx_type=CashTransaction.Type.IN) |
-            Q(tx_type=CashTransaction.Type.TRANSFER,
-              destination_account=self)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+            models.Q(tx_type=CashTransaction.Type.IN, account=self) |
+            models.Q(tx_type=CashTransaction.Type.TRANSFER,
+                     destination_account=self)
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
         outgoing = base.filter(
-            Q(tx_type=CashTransaction.Type.OUT) |
-            Q(tx_type=CashTransaction.Type.TRANSFER, account=self)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+            models.Q(tx_type=CashTransaction.Type.OUT, account=self) |
+            models.Q(tx_type=CashTransaction.Type.TRANSFER, account=self)
+        ).aggregate(total=models.Sum('amount'))['total'] or 0
         return incoming, outgoing
+
+    def balance_at(self, until_date=None):
+        incoming, outgoing = self.movement_totals(end=until_date)
+        return self.opening_balance + incoming - outgoing
+
+    def totals(self):
+        return self.movement_totals()
 
     @property
     def balance(self):
-        incoming, outgoing = self.totals()
-        return self.opening_balance + incoming - outgoing
+        return self.balance_at()
 
 
 class TransactionCategory(models.Model):

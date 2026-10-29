@@ -3,28 +3,7 @@
 
 {% block title %}Demandes d'accès — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-<a href="{% url 'core:dashboard:access-requests' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Demandes d'accès</span>
-</a>
-<a href="{% url 'core:dashboard:scholarship-review-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
-    {% icon "graduation" %}<span>Candidatures bourse</span>
-</a>
-<a href="{% url 'core:dashboard:audit-log' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Journal d'audit</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
@@ -33,12 +12,19 @@
     <div>
         <h1 class="ua-page-title">Demandes d'accès</h1>
         <p class="ua-page-sub">
-            {{ requests|length }} demande{{ requests|length|pluralize }} en attente de validation
+            {{ pending_count }} en attente · {{ total_count }} demande{{ total_count|pluralize }} au total
         </p>
     </div>
     <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">
         {% icon "users" %} Voir les utilisateurs
     </a>
+</div>
+
+<div class="flex flex-wrap gap-2 mb-5">
+    <a href="?statut=all" class="ua-btn ua-btn-sm {% if status_filter == 'all' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Toutes</a>
+    <a href="?statut=PENDING" class="ua-btn ua-btn-sm {% if status_filter == 'PENDING' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">En attente</a>
+    <a href="?statut=APPROVED" class="ua-btn ua-btn-sm {% if status_filter == 'APPROVED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Approuvées</a>
+    <a href="?statut=REJECTED" class="ua-btn ua-btn-sm {% if status_filter == 'REJECTED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Refusées</a>
 </div>
 
 <section class="ua-card overflow-hidden">
@@ -49,6 +35,8 @@
                     <th>Demandeur</th>
                     <th>Email</th>
                     <th>Date</th>
+                    <th>Rôle</th>
+                    <th>Statut</th>
                     <th>Décision</th>
                 </tr>
             </thead>
@@ -64,35 +52,76 @@
                                 <p class="ua-cell-title truncate">
                                     {{ ar.user.get_full_name|default:ar.user.email }}
                                 </p>
-                                <p class="ua-cell-sub">{{ ar.get_requested_role_display|default:"Rôle à définir" }}</p>
+                                {% if ar.user.phone %}<p class="ua-cell-sub">{{ ar.user.phone }}</p>{% endif %}
+                                {% if ar.user.clerk_user_id %}
+                                <p class="ua-cell-sub font-mono text-xs">Clerk : {{ ar.user.clerk_user_id }}</p>
+                                {% endif %}
                             </div>
                         </div>
                     </td>
                     <td class="ua-muted">{{ ar.user.email }}</td>
                     <td class="ua-muted whitespace-nowrap">{{ ar.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <form method="post" action="{% url 'core:dashboard:access-request-review' ar.id %}"
-                              class="flex flex-wrap gap-2 items-center">
-                            {% csrf_token %}
-                            <select name="role_key"
-                                    class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
-                                {% for val, label in role_choices %}
-                                <option value="{{ val }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                            <button name="decision" value="approve"
-                                    class="ua-btn ua-btn-sm" style="background:#e6f8ef;color:#15803d;">
-                                {% icon "check-circle" %} Approuver
-                            </button>
-                            <button name="decision" value="reject"
-                                    class="ua-btn ua-btn-sm" style="background:#fde9ee;color:#be123c;">
-                                {% icon "close" %} Refuser
-                            </button>
-                        </form>
+                        <p class="ua-cell-title">
+                            {{ ar.get_requested_role_display|default:"Rôle à définir" }}
+                        </p>
+                        {% if ar.assigned_role %}
+                        <p class="ua-cell-sub">
+                            Attribué : {{ ar.get_assigned_role_display }}
+                        </p>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ar.status == 'PENDING' %}
+                        <span class="ua-badge ua-badge-amber">{{ ar.get_status_display }}</span>
+                        {% elif ar.status == 'APPROVED' %}
+                        <span class="ua-badge ua-badge-green">{{ ar.get_status_display }}</span>
+                        {% else %}
+                        <span class="ua-badge ua-badge-rose">{{ ar.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ar.status == 'PENDING' %}
+                            {% if 'SUPER_ADMIN' in user_roles %}
+                            <form method="post" action="{% url 'core:dashboard:access-request-review' ar.id %}"
+                                  class="flex flex-wrap gap-2 items-center">
+                                {% csrf_token %}
+                                <input type="text" name="note" placeholder="Motif (facultatif)"
+                                       class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                                <select name="role_key"
+                                        class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                                    <option value="">-- Rôle à attribuer --</option>
+                                    {% for val, label in role_choices %}
+                                    <option value="{{ val }}" {% if ar.requested_role == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button name="decision" value="approve"
+                                        class="ua-btn ua-btn-sm" style="background:#e6f8ef;color:#15803d;">
+                                    {% icon "check-circle" %} Approuver
+                                </button>
+                                <button name="decision" value="reject"
+                                        class="ua-btn ua-btn-sm" style="background:#fde9ee;color:#be123c;">
+                                    {% icon "close" %} Refuser
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="ua-muted text-xs">Validation réservée au super administrateur</span>
+                            {% endif %}
+                        {% else %}
+                            <p class="ua-cell-sub">
+                                {% if ar.reviewed_by %}
+                                par {{ ar.reviewed_by.get_full_name|default:ar.reviewed_by.email }}
+                                {% endif %}
+                                {% if ar.reviewed_at %}le {{ ar.reviewed_at|date:"d/m/Y H:i" }}{% endif %}
+                            </p>
+                            {% if ar.decision_note %}
+                            <p class="ua-cell-sub">{{ ar.decision_note }}</p>
+                            {% endif %}
+                        {% endif %}
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="ua-empty">Aucune demande en attente</td></tr>
+                <tr><td colspan="6" class="ua-empty">Aucune demande d'accès</td></tr>
                 {% endfor %}
             </tbody>
         </table>

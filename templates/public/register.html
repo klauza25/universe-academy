@@ -63,6 +63,13 @@
                         {% for error in form.email.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                     </div>
 
+                    <div>
+                        <label for="{{ form.requested_role.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Rôle demandé</label>
+                        {{ form.requested_role }}
+                        {% for error in form.requested_role.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
+                        <p class="mt-1 text-xs text-slate-500">{{ form.requested_role.help_text }}</p>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="{{ form.password.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Mot de passe</label>

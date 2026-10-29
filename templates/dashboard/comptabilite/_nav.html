@@ -5,12 +5,14 @@
 <a href="{% url 'core:dashboard:journal' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'journal' or request.resolver_match.url_name == 'transaction-detail' %}is-active{% endif %}">
     {% icon "file-text" %}<span>Journal comptable</span>
 </a>
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'transaction-create' %}is-active{% endif %}">
     {% icon "wallet" %}<span>Nouvelle opération</span>
 </a>
 <a href="{% url 'core:dashboard:payment-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'payment-create' %}is-active{% endif %}">
     {% icon "credit-card" %}<span>Paiement étudiant</span>
 </a>
+{% endif %}
 <a href="{% url 'core:dashboard:accounts' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'accounts' %}is-active{% endif %}">
     {% icon "wallet" %}<span>Caisses & comptes</span>
 </a>

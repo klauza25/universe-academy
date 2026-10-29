@@ -13,7 +13,9 @@
         <p class="ua-page-sub">Toutes les opérations financières, validées ou en attente.</p>
     </div>
     <div class="flex flex-wrap gap-2">
+        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-primary">{% icon "wallet" %} Nouvelle opération</a>
+        {% endif %}
         <a href="?{% query_replace export='csv' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} Export CSV</a>
     </div>
 </div>

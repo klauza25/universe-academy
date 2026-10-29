@@ -3,29 +3,7 @@
 
 {% block title %}Super Admin — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-<a href="{% url 'core:dashboard:access-requests' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Demandes d'accès</span>
-    {% if pending_requests %}<span class="ua-nav-count">{{ pending_requests }}</span>{% endif %}
-</a>
-<a href="{% url 'core:dashboard:scholarship-review-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
-    {% icon "graduation" %}<span>Candidatures bourse</span>
-</a>
-<a href="{% url 'core:dashboard:audit-log' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Journal d'audit</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero_title %}Vue d'ensemble de la plateforme{% endblock %}
 {% block hero_text %}
@@ -54,6 +32,123 @@ attendent votre validation.
     {% include "dashboard/_stat.html" with label="Demandes en attente" value=pending_requests icon="clipboard" tone="amber" hint="À valider par vos soins" %}
     {% include "dashboard/_stat.html" with label="Étudiants actifs" value=active_students icon="graduation" tone="green" hint="Comptes étudiants ouverts" %}
     {% include "dashboard/_stat.html" with label="Bourses en attente" value=scholarship_pending icon="file-text" tone="violet" hint="Candidatures à instruire" %}
+</div>
+
+<div class="flex items-center justify-between gap-3 mb-3 mt-2">
+    <h2 class="ua-section-title">Contrôle financier — {{ month_start|date:"F Y" }}</h2>
+    <a href="{% url 'core:dashboard:finance-supervision' %}?from={{ month_start|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}"
+       class="ua-btn ua-btn-ghost ua-btn-sm">
+        Supervision financière {% icon "arrow-right" %}
+    </a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    <a href="{% url 'core:dashboard:finance-supervision' %}?from={{ month_start|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}&type=IN" class="block">
+        {% include "dashboard/_stat.html" with label="Entrées du mois" value=month_income|floatformat:0 icon="trending-up" tone="green" hint="FCFA validés" %}
+    </a>
+    <a href="{% url 'core:dashboard:finance-supervision' %}?from={{ month_start|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}&type=OUT" class="block">
+        {% include "dashboard/_stat.html" with label="Sorties du mois" value=month_expense|floatformat:0 icon="wallet" tone="rose" hint="FCFA validés" %}
+    </a>
+    <a href="{% url 'core:dashboard:finance-supervision' %}?from={{ month_start|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}&q=Paiement+étudiant" class="block">
+        {% include "dashboard/_stat.html" with label="Paiements étudiants" value=month_payment_total|floatformat:0 icon="credit-card" tone="sky" hint="FCFA encaissés ce mois" %}
+    </a>
+    <a href="{% url 'core:dashboard:finance-supervision' %}?from={{ month_start|date:'Y-m-d' }}&to={{ today|date:'Y-m-d' }}&q=Salaires&type=OUT" class="block">
+        {% include "dashboard/_stat.html" with label="Salaires & formateurs" value=month_salaries|floatformat:0 icon="users" tone="amber" hint="FCFA versés ce mois" %}
+    </a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+            <div>
+                <h2 class="ua-section-title">Transactions récentes</h2>
+                <p class="text-xs ua-muted mt-1">
+                    {{ month_transaction_count }} opération{{ month_transaction_count|pluralize }} validée{{ month_transaction_count|pluralize }} ce mois ·
+                    toutes origines confondues
+                </p>
+            </div>
+            <a href="{% url 'core:dashboard:finance-supervision' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                Tout voir {% icon "arrow-right" %}
+            </a>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>Référence</th>
+                        <th>Date</th>
+                        <th>Libellé</th>
+                        <th>Montant</th>
+                        <th>Saisie par</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td><a class="ua-cell-title" href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a></td>
+                        <td class="whitespace-nowrap ua-muted">{{ tx.occurred_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <p class="ua-cell-title">{{ tx.label }}</p>
+                            <p class="ua-cell-sub">{{ tx.category.name|default:"Non catégorisé" }}{% if tx.counterparty %} · {{ tx.counterparty }}{% endif %}</p>
+                        </td>
+                        <td class="whitespace-nowrap font-semibold {% if tx.tx_type == 'IN' %}text-emerald-700{% elif tx.tx_type == 'OUT' %}text-rose-700{% endif %}">
+                            {% if tx.tx_type == 'IN' %}+{% elif tx.tx_type == 'OUT' %}−{% endif %}{{ tx.amount }} {{ tx.currency }}
+                        </td>
+                        <td>{{ tx.created_by.display_label|default:"—" }}</td>
+                        <td>
+                            {% if tx.status == 'VALIDATED' %}<span class="ua-badge ua-badge-green">{{ tx.get_status_display }}</span>
+                            {% elif tx.status == 'DRAFT' %}<span class="ua-badge ua-badge-amber">{{ tx.get_status_display }}</span>
+                            {% else %}<span class="ua-badge ua-badge-rose">{{ tx.get_status_display }}</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="ua-empty">Aucune transaction enregistrée</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="ua-section-title">Caisses &amp; points de contrôle</h2>
+            <a href="{% url 'core:dashboard:accounts' %}" class="text-xs font-semibold" style="color:#5b5bf6;">Gérer</a>
+        </div>
+        {% for row in cash_rows %}
+        <div class="ua-list-row">
+            <div>
+                <p class="text-sm font-semibold">{{ row.account.name }}</p>
+                <p class="text-xs ua-muted">{{ row.account.get_kind_display }}</p>
+            </div>
+            <span class="text-sm font-bold {% if row.balance < 0 %}text-rose-700{% endif %}">{{ row.balance }} {{ row.account.currency }}</span>
+        </div>
+        {% empty %}
+        <p class="ua-empty">Aucune caisse active.</p>
+        {% endfor %}
+        <div class="mt-3 flex items-center justify-between text-sm">
+            <span class="ua-muted">Solde total</span>
+            <span class="font-bold">{{ cash_total }} FCFA</span>
+        </div>
+
+        <div class="mt-4 pt-4 space-y-2 border-t" style="border-color:#ececf8;">
+            <a class="ua-list-row" href="{% url 'core:dashboard:finance-supervision' %}?status=DRAFT">
+                <span class="text-xs ua-muted">Opérations en attente</span>
+                <span class="ua-badge {% if pending_transactions %}ua-badge-amber{% else %}ua-badge-slate{% endif %}">{{ pending_transactions }}</span>
+            </a>
+            <a class="ua-list-row" href="{% url 'core:dashboard:student-list' %}">
+                <span class="text-xs ua-muted">Paiements incomplets</span>
+                <span class="ua-badge {% if incomplete_enrollments %}ua-badge-amber{% else %}ua-badge-slate{% endif %}">{{ incomplete_enrollments }} dossier{{ incomplete_enrollments|pluralize }}</span>
+            </a>
+            <div class="ua-list-row">
+                <span class="text-xs ua-muted">Reste à recouvrer</span>
+                <span class="text-sm font-semibold">{{ outstanding_amount|floatformat:0 }} FCFA</span>
+            </div>
+            <a class="ua-list-row" href="{% url 'core:dashboard:closures' %}">
+                <span class="text-xs ua-muted">Écarts de caisse constatés</span>
+                <span class="ua-badge {% if closure_gap_count %}ua-badge-rose{% else %}ua-badge-slate{% endif %}">{{ closure_gap_count }}</span>
+            </a>
+        </div>
+    </section>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">

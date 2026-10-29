@@ -114,6 +114,7 @@
         </div>
 
         <div class="flex flex-wrap gap-2 mt-5">
+            {% if not is_elevated %}
             <a href="{% url 'core:dashboard:session-record-create' session.id %}"
                class="ua-btn ua-btn-light flex-1 justify-center">
                 {% icon "calendar" %} Planifier une séance
@@ -122,6 +123,7 @@
                class="ua-btn ua-btn-primary flex-1 justify-center">
                 {% icon "check-circle" %} Saisie rapide
             </a>
+            {% endif %}
         </div>
     </article>
     {% empty %}

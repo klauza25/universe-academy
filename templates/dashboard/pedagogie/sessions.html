@@ -15,7 +15,7 @@
     <a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-ghost">Ressources</a>
 </div>
 
-{% if sessions %}
+{% if sessions and not is_elevated %}
 <section class="ua-card ua-card-pad mb-5">
     <h2 class="ua-section-title mb-3">Planifier une séance</h2>
     <div class="flex flex-wrap gap-2">

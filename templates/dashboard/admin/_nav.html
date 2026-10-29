@@ -1,0 +1,73 @@
+{% load ui %}
+{% if 'SUPER_ADMIN' in user_roles %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+{% else %}
+<a href="{% url 'core:dashboard:admin-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'admin-dashboard' %}is-active{% endif %}">
+    {% icon "grid" %}<span>Tableau de bord</span>
+</a>
+{% endif %}
+<a href="{% url 'core:dashboard:user-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' or request.resolver_match.url_name == 'user-detail' or request.resolver_match.url_name == 'user-edit' %}is-active{% endif %}">
+    {% icon "users" %}<span>Utilisateurs</span>
+</a>
+
+<p class="ua-nav-label">Modules</p>
+<a href="{% url 'core:dashboard:accueil-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'accueil-dashboard' %}is-active{% endif %}">
+    {% icon "door-open" %}<span>Accueil &amp; visites</span>
+</a>
+<a href="{% url 'core:dashboard:secretaire-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'secretaire-dashboard' %}is-active{% endif %}">
+    {% icon "clipboard" %}<span>Secrétariat</span>
+</a>
+<a href="{% url 'core:dashboard:student-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'student-list' or request.resolver_match.url_name == 'student-detail' or request.resolver_match.url_name == 'student-edit' or request.resolver_match.url_name == 'enrollment-detail' or request.resolver_match.url_name == 'enrollment-edit' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Étudiants</span>
+</a>
+<a href="{% url 'core:dashboard:programs' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'programs' or request.resolver_match.url_name == 'module-create' or request.resolver_match.url_name == 'module-edit' or request.resolver_match.url_name == 'lesson-create' or request.resolver_match.url_name == 'lesson-edit' %}is-active{% endif %}">
+    {% icon "book-open" %}<span>Pédagogie</span>
+</a>
+<a href="{% url 'core:dashboard:session-records' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'session-records' or request.resolver_match.url_name == 'session-record-detail' or request.resolver_match.url_name == 'session-record-attendance' %}is-active{% endif %}">
+    {% icon "presentation" %}<span>Séances</span>
+</a>
+<a href="{% url 'core:dashboard:comptabilite-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'comptabilite-dashboard' %}is-active{% endif %}">
+    {% icon "wallet" %}<span>Comptabilité</span>
+</a>
+<a href="{% url 'core:dashboard:journal' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'journal' or request.resolver_match.url_name == 'transaction-detail' or request.resolver_match.url_name == 'payment-receipt' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>Journal comptable</span>
+</a>
+<a href="{% url 'core:dashboard:accounts' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'accounts' %}is-active{% endif %}">
+    {% icon "credit-card" %}<span>Caisses &amp; comptes</span>
+</a>
+<a href="{% url 'core:dashboard:direction-dashboard' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'direction-dashboard' %}is-active{% endif %}">
+    {% icon "chart" %}<span>Vue direction</span>
+</a>
+
+<p class="ua-nav-label">Supervision</p>
+<a href="{% url 'core:dashboard:finance-supervision' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'finance-supervision' %}is-active{% endif %}">
+    {% icon "wallet" %}<span>Supervision financière</span>
+</a>
+<a href="{% url 'core:dashboard:access-requests' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' or request.resolver_match.url_name == 'access-request-review' %}is-active{% endif %}">
+    {% icon "user-check" %}<span>Demandes d'accès</span>
+    {% if pending_requests %}<span class="ua-nav-count">{{ pending_requests }}</span>{% endif %}
+</a>
+<a href="{% url 'core:dashboard:scholarship-review-list' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' or request.resolver_match.url_name == 'scholarship-review-detail' %}is-active{% endif %}">
+    {% icon "mail" %}<span>Bourses</span>
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
+    {% icon "shield" %}<span>Journal d'audit</span>
+</a>

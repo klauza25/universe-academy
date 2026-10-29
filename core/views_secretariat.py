@@ -9,14 +9,14 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .decorators import role_required
+from .decorators import business_write_required, role_required
 from .forms import (
     EnrollmentForm, NewEnrollmentForm, StudentDocumentForm, StudentEditForm,
     StudentForm,
 )
 from .models import (
     Course, CourseSession, Enrollment, Payment, Role, StudentDocument, User,
-    UserRole, AccountStatus, Prospect, RoleKey,
+    UserRole, AccountStatus, Prospect, RoleKey, AuditLog,
 )
 from .utils import log_audit
 
@@ -57,7 +57,7 @@ def student_list(request):
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@business_write_required(*SECRETARIAT_ROLES)
 def student_create(request):
     prospect = None
     prospect_id = request.GET.get('prospect')
@@ -182,10 +182,13 @@ def student_detail(request, student_id):
         'total_paid': total_paid,
         'balance': max(total_due - total_paid, 0),
         'doc_form': StudentDocumentForm(),
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='User', entity_id=str(student.id),
+        ).select_related('actor').order_by('-created_at')[:20],
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@business_write_required(*SECRETARIAT_ROLES)
 def student_edit(request, student_id):
     student = get_object_or_404(User, id=student_id)
     form = StudentEditForm(instance=student)
@@ -212,7 +215,7 @@ def student_edit(request, student_id):
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@business_write_required(*SECRETARIAT_ROLES)
 def enrollment_create(request):
     initial = {}
     student_id = request.GET.get('student')
@@ -239,7 +242,7 @@ def enrollment_create(request):
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@business_write_required(*SECRETARIAT_ROLES)
 def enrollment_edit(request, enrollment_id):
     enrollment = get_object_or_404(Enrollment, id=enrollment_id)
     form = EnrollmentForm(instance=enrollment)
@@ -281,10 +284,13 @@ def enrollment_detail(request, enrollment_id):
         'enrollment': enrollment,
         'payments': payments,
         'documents': enrollment.documents.all(),
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='Enrollment', entity_id=str(enrollment.id),
+        ).select_related('actor').order_by('-created_at')[:20],
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@business_write_required(*SECRETARIAT_ROLES)
 def student_document_upload(request, student_id):
     student = get_object_or_404(User, id=student_id)
     if request.method == 'POST':
@@ -328,7 +334,7 @@ def student_document_download(request, doc_id):
     user = request.user
     is_owner = document.student_id == user.id
     allowed = is_owner or user.has_any_role(
-        'SECRETAIRE', 'DIRECTION', 'COMPTABLE', 'SUPER_ADMIN'
+        'SECRETAIRE', 'DIRECTION', 'COMPTABLE', 'SUPER_ADMIN', 'ADMIN'
     )
     if not allowed:
         log_audit(request, 'UNAUTHORIZED_FILE_ACCESS', 'StudentDocument',

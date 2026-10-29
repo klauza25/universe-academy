@@ -1,6 +1,6 @@
 """Dashboard comptabilité : journal, opérations, caisses et clôtures."""
 import csv
-from datetime import datetime, time, timedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -10,39 +10,22 @@ from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .decorators import role_required
+from .decorators import business_write_required, role_required
 from .forms import (
     CashAccountForm, CashClosureForm, CashTransactionForm, StudentPaymentForm,
 )
 from .models import (
-    CashAccount, CashClosure, CashTransaction, Enrollment, Payment,
-    TransactionCategory, User,
+    AuditLog, CashAccount, CashClosure, CashTransaction, Enrollment,
+    Payment, TransactionCategory, User,
 )
 from .utils import log_audit
 
 FINANCE_ROLES = ('COMPTABLE', 'DIRECTION')
 
 
-def _validated():
-    return CashTransaction.objects.filter(
-        status=CashTransaction.Status.VALIDATED
-    )
-
-
 def account_balance(account, until_date=None):
     """Solde d'une caisse : ouverture + entrées validées − sorties validées."""
-    qs = _validated()
-    if until_date:
-        qs = qs.filter(occurred_at__date__lte=until_date)
-    incoming = qs.filter(
-        Q(tx_type=CashTransaction.Type.IN, account=account) |
-        Q(tx_type=CashTransaction.Type.TRANSFER, destination_account=account)
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    outgoing = qs.filter(
-        Q(tx_type=CashTransaction.Type.OUT, account=account) |
-        Q(tx_type=CashTransaction.Type.TRANSFER, account=account)
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    return account.opening_balance + incoming - outgoing
+    return account.balance_at(until_date)
 
 
 def accounts_with_balance():
@@ -153,7 +136,7 @@ def journal(request):
     })
 
 
-@role_required(*FINANCE_ROLES)
+@business_write_required(*FINANCE_ROLES)
 def transaction_create(request):
     tx_type = request.GET.get('type') or CashTransaction.Type.IN
     initial = {
@@ -197,6 +180,10 @@ def transaction_detail(request, tx_id):
         id=tx_id,
     )
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         action = request.POST.get('action')
         if action == 'cancel':
             reason = (request.POST.get('reason') or '').strip()
@@ -222,6 +209,10 @@ def transaction_detail(request, tx_id):
     return render(request, 'dashboard/comptabilite/transaction_detail.html', {
         'tx': tx,
         'student_payment': getattr(tx, 'student_payment', None),
+        'expense': getattr(tx, 'expense_record', None),
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='CashTransaction', entity_id=str(tx.id),
+        ).select_related('actor').order_by('-created_at')[:20],
     })
 
 
@@ -229,6 +220,10 @@ def transaction_detail(request, tx_id):
 def account_list(request):
     form = CashAccountForm()
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         form = CashAccountForm(request.POST)
         if form.is_valid():
             account = form.save()
@@ -262,7 +257,7 @@ def closure_list(request):
     })
 
 
-@role_required(*FINANCE_ROLES)
+@business_write_required(*FINANCE_ROLES)
 def closure_create(request):
     form = CashClosureForm(initial={'date': timezone.localdate()})
     if request.method == 'POST':
@@ -280,50 +275,12 @@ def closure_create(request):
                 if previous:
                     opening = previous.counted_amount
                 else:
-                    opening = account.opening_balance
-                    movements = _validated().filter(
-                        account=account, occurred_at__date__lt=day
-                    )
-                    incoming = movements.filter(
-                        tx_type=CashTransaction.Type.IN
-                    ).aggregate(total=Sum('amount'))['total'] or 0
-                    incoming += movements.filter(
-                        tx_type=CashTransaction.Type.TRANSFER,
-                        destination_account=account,
-                    ).aggregate(total=Sum('amount'))['total'] or 0
-                    outgoing = movements.filter(
-                        tx_type=CashTransaction.Type.OUT
-                    ).aggregate(total=Sum('amount'))['total'] or 0
-                    outgoing += movements.filter(
-                        tx_type=CashTransaction.Type.TRANSFER,
-                        account=account,
-                    ).aggregate(total=Sum('amount'))['total'] or 0
-                    opening += incoming - outgoing
+                    opening = account.balance_at(day - timedelta(days=1))
 
-                end_of_day = datetime.combine(day, time.max)
-                end_of_day = timezone.make_aware(end_of_day)
-                theoretical = opening
-                movements = _validated().filter(
-                    account=account,
-                    occurred_at__gte=timezone.make_aware(
-                        datetime.combine(day, time.min)),
-                    occurred_at__lte=end_of_day,
+                incoming, outgoing = account.movement_totals(
+                    start=day, end=day
                 )
-                incoming = movements.filter(
-                    tx_type=CashTransaction.Type.IN
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                incoming += movements.filter(
-                    tx_type=CashTransaction.Type.TRANSFER,
-                    destination_account=account,
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                outgoing = movements.filter(
-                    tx_type=CashTransaction.Type.OUT
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                outgoing += movements.filter(
-                    tx_type=CashTransaction.Type.TRANSFER,
-                    account=account,
-                ).aggregate(total=Sum('amount'))['total'] or 0
-                theoretical += incoming - outgoing
+                theoretical = opening + incoming - outgoing
 
                 closure = form.save(commit=False)
                 closure.opening_balance = opening
@@ -354,7 +311,7 @@ def closure_create(request):
 # Paiements étudiants
 # ---------------------------------------------------------------------------
 
-@role_required(*FINANCE_ROLES)
+@business_write_required(*FINANCE_ROLES)
 def student_payment_create(request):
     initial = {'paid_at': timezone.localtime().strftime('%Y-%m-%dT%H:%M')}
     enrollment_id = request.GET.get('enrollment')
@@ -451,7 +408,7 @@ def payment_receipt(request, payment_id):
     )
     user = request.user
     if not (
-        user.has_any_role('COMPTABLE', 'DIRECTION', 'SUPER_ADMIN',
+        user.has_any_role('COMPTABLE', 'DIRECTION', 'SUPER_ADMIN', 'ADMIN',
                           'SECRETAIRE') or
         payment.enrollment.student_id == user.id
     ):

@@ -3,16 +3,7 @@
 
 {% block title %}Administrateur — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero_title %}Pilotage de la vie académique{% endblock %}
 {% block hero_text %}
@@ -22,6 +13,9 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
 {% block hero_actions %}
 <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-light">
     {% icon "users" %} Consulter les utilisateurs
+</a>
+<a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost">
+    {% icon "shield" %} Journal d'audit
 </a>
 {% endblock %}
 {% block hero_aside %}
@@ -38,6 +32,102 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
     {% include "dashboard/_stat.html" with label="Formateurs" value=total_trainers icon="presentation" tone="indigo" hint="Encadrants actifs" %}
     {% include "dashboard/_stat.html" with label="Formations actives" value=active_courses icon="book-open" tone="sky" hint="Catalogue en cours" %}
 </div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
+    {% include "dashboard/_stat.html" with label="Entrées du mois" value=month_income|floatformat:0 icon="wallet" tone="green" hint="Opérations validées" %}
+    {% include "dashboard/_stat.html" with label="Sorties du mois" value=month_expense|floatformat:0 icon="trending-up" tone="rose" hint="Opérations validées" %}
+    {% include "dashboard/_stat.html" with label="Solde des caisses" value=cash_total|floatformat:0 icon="credit-card" tone="indigo" hint="Tous comptes actifs" %}
+    {% include "dashboard/_stat.html" with label="Reste à recouvrer" value=outstanding_amount|floatformat:0 icon="chart" tone="amber" hint="Inscriptions en cours" %}
+</div>
+
+<section class="ua-card overflow-hidden mb-6">
+    <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+        <div>
+            <h2 class="ua-section-title">Finances — soldes par caisse</h2>
+            <p class="text-xs ua-muted mt-1">{{ new_enrollments }} nouvelle{{ new_enrollments|pluralize }} inscription{{ new_enrollments|pluralize }} ce mois-ci</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                Journal comptable {% icon "arrow-right" %}
+            </a>
+            <a href="{% url 'core:dashboard:accounts' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+                Caisses &amp; comptes {% icon "arrow-right" %}
+            </a>
+        </div>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Caisse / compte</th>
+                    <th>Type</th>
+                    <th class="text-right">Solde</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in cash_rows %}
+                <tr>
+                    <td class="ua-cell-title">{{ row.account.name }}</td>
+                    <td class="ua-muted">{{ row.account.get_kind_display }}</td>
+                    <td class="text-right font-semibold">{{ row.balance|floatformat:0 }} {{ row.account.currency }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="ua-empty">Aucune caisse active</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="ua-card ua-card-pad mb-6">
+    <h2 class="ua-section-title">Tous les modules</h2>
+    <p class="text-xs ua-muted mt-1 mb-4">L'administrateur a un accès de lecture complet à chaque module
+        de l'établissement.</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <a href="{% url 'core:dashboard:student-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-green">{% icon "graduation" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Étudiants</span>
+                <span class="ua-cell-sub block">Dossiers, inscriptions, documents</span>
+            </span>
+        </a>
+        <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-amber">{% icon "wallet" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Finances</span>
+                <span class="ua-cell-sub block">Caisses, journal, clôtures</span>
+            </span>
+        </a>
+        <a href="{% url 'core:dashboard:programs' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-sky">{% icon "book-open" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Pédagogie</span>
+                <span class="ua-cell-sub block">Programmes, séances, présences</span>
+            </span>
+        </a>
+        <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-indigo">{% icon "users" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Visiteurs &amp; prospects</span>
+                <span class="ua-cell-sub block">Visites, relances, conversions</span>
+            </span>
+        </a>
+        <a href="{% url 'core:dashboard:scholarship-review-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-violet">{% icon "mail" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Bourses</span>
+                <span class="ua-cell-sub block">Candidatures à examiner</span>
+            </span>
+        </a>
+        <a href="{% url 'core:dashboard:audit-log' %}" class="ua-card ua-card-pad flex items-start gap-3">
+            <span class="ua-stat-icon ua-tone-rose">{% icon "shield" %}</span>
+            <span class="min-w-0">
+                <span class="ua-cell-title block">Audit</span>
+                <span class="ua-cell-sub block">Historique de toutes les actions</span>
+            </span>
+        </a>
+    </div>
+</section>
 
 <section class="ua-card overflow-hidden">
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">

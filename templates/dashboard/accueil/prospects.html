@@ -12,9 +12,11 @@
         <h1 class="ua-page-title">Prospects</h1>
         <p class="ua-page-sub">Personnes intéressées par une formation ou un service.</p>
     </div>
+    {% if not is_elevated %}
     <a href="{% url 'core:dashboard:prospect-create' %}" class="ua-btn ua-btn-primary">
         {% icon "user-plus" %} Nouveau prospect
     </a>
+    {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">

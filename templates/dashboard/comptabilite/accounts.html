@@ -24,12 +24,17 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad">
+        {% if is_elevated %}
+        <h2 class="ua-section-title mb-4">Consultation</h2>
+        <p class="ua-empty">Consultation seule : la création d'une caisse relève de la comptabilité.</p>
+        {% else %}
         <h2 class="ua-section-title mb-4">Nouvelle caisse / compte</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
             {% include "dashboard/_form.html" with form=form %}
             <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "wallet" %} Créer</button>
         </form>
+        {% endif %}
     </section>
 
     <section class="ua-card overflow-hidden xl:col-span-2">

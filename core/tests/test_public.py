@@ -1,4 +1,5 @@
 """Tests des pages publiques, de la connexion locale et de l'inscription."""
+from django.test import override_settings
 from django.urls import reverse
 
 from core.models import (
@@ -13,12 +14,28 @@ class PublicPagesTests(BusinessTestBase):
         response = self.client.get(reverse('core:home'))
         self.assertEqual(response.status_code, 200)
 
-    def test_login_page_contains_clerk_and_local_forms(self):
+    def test_login_page_contains_local_form(self):
         response = self.client.get(reverse('core:login'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Compte existant')
         self.assertContains(response, 'name="identifier"')
         self.assertContains(response, 'name="password"')
+
+    @override_settings(
+        CLERK_ENABLED=True,
+        CLERK_PUBLISHABLE_KEY='pk_test_univers',
+        CLERK_SECRET_KEY='sk_test_univers',
+        CLERK_FRONTEND_API='univers.clerk.accounts.dev',
+        CLERK_JS_URL='https://univers.clerk.accounts.dev/clerk.browser.js',
+        CLERK_UI_URL='https://univers.clerk.accounts.dev/ui.browser.js',
+    )
+    def test_local_form_precedes_clerk_widget(self):
+        response = self.client.get(reverse('core:login'))
+        html = response.content.decode()
+        self.assertIn('id="clerk-sign-in"', html)
+        self.assertIn('name="identifier"', html)
+        self.assertLess(
+            html.index('name="identifier"'), html.index('id="clerk-sign-in"'),
+        )
 
     def test_register_page_contains_local_login_link(self):
         response = self.client.get(reverse('core:register'))
@@ -47,7 +64,7 @@ class LocalLoginTests(BusinessTestBase):
             fetch_redirect_response=False,
         )
         self.assertEqual(
-            int(self.client.session['_auth_user_id']), self.secretaire.pk
+            self.client.session['_auth_user_id'], str(self.secretaire.pk)
         )
         self.assertTrue(AuditLog.objects.filter(
             action='LOGIN', actor=self.secretaire).exists())
@@ -59,7 +76,7 @@ class LocalLoginTests(BusinessTestBase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertEqual(
-            int(self.client.session['_auth_user_id']), self.etudiant.pk
+            self.client.session['_auth_user_id'], str(self.etudiant.pk)
         )
 
     def test_wrong_password_is_rejected(self):
@@ -103,6 +120,7 @@ class RegistrationTests(BusinessTestBase):
             'first_name': 'Nadia',
             'last_name': 'Moukoko',
             'email': 'nadia@test.local',
+            'requested_role': RoleKey.FORMATEUR,
             'password': 'NadiaPass123!',
             'password_confirm': 'NadiaPass123!',
         })
@@ -113,15 +131,32 @@ class RegistrationTests(BusinessTestBase):
         user = User.objects.get(email='nadia@test.local')
         self.assertEqual(user.account_status, AccountStatus.PENDING_APPROVAL)
         self.assertTrue(user.check_password('NadiaPass123!'))
-        self.assertTrue(AccessRequest.objects.filter(user=user).exists())
+        self.assertFalse(user.roles.exists())
+        access_request = AccessRequest.objects.get(user=user)
+        self.assertEqual(access_request.requested_role, RoleKey.FORMATEUR)
+        self.assertEqual(access_request.assigned_role, '')
+        self.assertEqual(access_request.status, AccessRequest.Status.PENDING)
         self.assertTrue(AuditLog.objects.filter(
             action='REGISTER', entity_id=str(user.id)).exists())
+
+    def test_register_rejects_super_admin_role_request(self):
+        response = self.client.post(reverse('core:register'), {
+            'first_name': 'Escalade',
+            'last_name': 'Test',
+            'email': 'escalade@test.local',
+            'requested_role': RoleKey.SUPER_ADMIN,
+            'password': 'EscaladePass123!',
+            'password_confirm': 'EscaladePass123!',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(User.objects.filter(email='escalade@test.local').exists())
 
     def test_register_rejects_mismatched_passwords(self):
         response = self.client.post(reverse('core:register'), {
             'first_name': 'Nadia',
             'last_name': 'Moukoko',
             'email': 'nadia2@test.local',
+            'requested_role': RoleKey.ETUDIANT,
             'password': 'NadiaPass123!',
             'password_confirm': 'AutrePass123!',
         })
@@ -133,6 +168,7 @@ class RegistrationTests(BusinessTestBase):
             'first_name': 'Doublon',
             'last_name': 'Test',
             'email': self.etudiant.email,
+            'requested_role': RoleKey.ETUDIANT,
             'password': 'DoublonPass123!',
             'password_confirm': 'DoublonPass123!',
         })

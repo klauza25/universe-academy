@@ -2,7 +2,7 @@ from django.urls import path, include
 
 from . import (
     views, views_accueil, views_comptabilite, views_pedagogie,
-    views_profile, views_secretariat,
+    views_profile, views_secretariat, views_supervision,
 )
 
 app_name = 'core'
@@ -13,6 +13,8 @@ public_urlpatterns = [
     path('clerk/session/', views.clerk_session, name='clerk-session'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
+    path('demande-acces/', views.complete_access_request,
+         name='complete-access-request'),
     path('pending-approval/', views.pending_approval, name='pending-approval'),
     path('access-denied/', views.access_denied, name='access-denied'),
 ]
@@ -41,6 +43,8 @@ dashboard_urlpatterns = [
     path('super-admin/access-requests/', views.access_requests_list, name='access-requests'),
     path('super-admin/access-requests/<uuid:request_id>/', views.access_request_review, name='access-request-review'),
     path('super-admin/audit/', views.audit_log_view, name='audit-log'),
+    path('super-admin/finances/', views_supervision.finance_supervision,
+         name='finance-supervision'),
     path('super-admin/scholarships/', views.scholarship_review_list, name='scholarship-review-list'),
     path('super-admin/scholarships/<uuid:app_id>/', views.scholarship_review_detail, name='scholarship-review-detail'),
     path('admin/', views.admin_dashboard, name='admin-dashboard'),

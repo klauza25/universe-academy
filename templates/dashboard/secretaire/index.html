@@ -13,8 +13,10 @@ sur {{ total_enrollments }} dossier{{ total_enrollments|pluralize }} au total,
 {% endblock %}
 
 {% block hero_actions %}
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-light">{% icon "user-plus" %} Nouvel étudiant</a>
 <a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-btn ua-btn-ghost">{% icon "clipboard" %} Nouvelle inscription</a>
+{% endif %}
 {% endblock %}
 
 {% block dashboard_content %}

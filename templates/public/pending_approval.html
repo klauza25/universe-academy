@@ -28,6 +28,18 @@
                 avant que vous puissiez accéder à la plateforme.
             </p>
 
+            {% if access_request %}
+            <div class="mt-5 rounded-xl bg-slate-50 px-4 py-3 text-left text-sm text-slate-600 ring-1 ring-slate-200">
+                <p>Rôle demandé :
+                    <strong class="text-slate-900">{{ access_request.get_requested_role_display|default:"à définir" }}</strong>
+                </p>
+                <p class="mt-1 text-xs text-slate-500">
+                    Demande envoyée le {{ access_request.created_at|date:"d/m/Y à H:i" }}.
+                    Aucun accès n'est accordé avant la décision du super administrateur.
+                </p>
+            </div>
+            {% endif %}
+
             <form method="post" action="{% url 'core:logout' %}" class="mt-6">
                 {% csrf_token %}
                 <button type="submit"

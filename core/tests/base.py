@@ -21,6 +21,9 @@ from core.models import (
 TEST_PASSWORD = 'TestPass123!'
 
 
+@override_settings(
+    PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'],
+)
 class BusinessTestBase(TestCase):
     """Jeu de données minimal partagé par les tests métier."""
 

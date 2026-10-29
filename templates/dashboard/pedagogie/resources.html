@@ -12,7 +12,9 @@
         <h1 class="ua-page-title">Ressources pédagogiques</h1>
         <p class="ua-page-sub">Cours, exercices et devoirs publiés aux groupes.</p>
     </div>
+    {% if not is_elevated %}
     <a href="{% url 'core:dashboard:resource-create' %}" class="ua-btn ua-btn-primary">{% icon "book-open" %} Nouvelle ressource</a>
+    {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
@@ -63,7 +65,7 @@
                     </td>
                     <td>
                         <div class="flex gap-2">
-                            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-edit' resource.id %}">Modifier</a>
+                            {% if not is_elevated %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-edit' resource.id %}">Modifier</a>{% endif %}
                             {% if resource.file %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">Fichier</a>{% endif %}
                             {% if resource.html_content %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>{% endif %}
                         </div>

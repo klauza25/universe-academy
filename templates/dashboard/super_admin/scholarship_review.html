@@ -3,28 +3,7 @@
 
 {% block title %}Candidatures bourse — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-<a href="{% url 'core:dashboard:access-requests' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Demandes d'accès</span>
-</a>
-<a href="{% url 'core:dashboard:scholarship-review-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
-    {% icon "graduation" %}<span>Candidatures bourse</span>
-</a>
-<a href="{% url 'core:dashboard:audit-log' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Journal d'audit</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
@@ -103,6 +82,7 @@
 
     <section class="ua-card ua-card-pad h-fit">
         <h2 class="ua-section-title mb-4">Décision</h2>
+        {% if 'SUPER_ADMIN' in user_roles %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             <p>
@@ -121,6 +101,9 @@
                 {% icon "check-circle" %} Enregistrer
             </button>
         </form>
+        {% else %}
+        <p class="ua-empty">Consultation seule : la décision de bourse est réservée au super administrateur.</p>
+        {% endif %}
     </section>
 </div>
 {% else %}

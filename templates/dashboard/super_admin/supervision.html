@@ -1,0 +1,236 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui core_tags %}
+
+{% block title %}Supervision financière — Univers Academy{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">Supervision financière</h1>
+        <p class="ua-page-sub">
+            Toutes les opérations enregistrées sur la plateforme, tous modules confondus.
+            Consultation seule : aucune donnée n'est modifiée depuis cet écran.
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="?{% query_replace export='csv' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} Export CSV</a>
+        <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Journal comptable</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-4">
+    {% include "dashboard/_stat.html" with label="Entrées validées" value=totals.incoming|default:0 icon="trending-up" tone="green" hint="FCFA — selon filtres" %}
+    {% include "dashboard/_stat.html" with label="Sorties validées" value=totals.outgoing|default:0 icon="wallet" tone="rose" hint="FCFA — selon filtres" %}
+    {% include "dashboard/_stat.html" with label="Solde net (filtre)" value=net_total icon="chart" tone="indigo" hint="Entrées − sorties validées" %}
+    {% include "dashboard/_stat.html" with label="Opérations affichées" value=page.paginator.count icon="file-text" tone="sky" hint="Toutes origines confondues" %}
+</div>
+
+<div class="flex flex-wrap items-center gap-2 mb-5 text-xs">
+    <a href="?{% query_replace status='DRAFT' page=None %}" class="ua-chip">
+        {% icon "clock" %} En attente : {{ pending_count }}
+    </a>
+    <a href="?{% query_replace status='CANCELLED' page=None %}" class="ua-chip">
+        {% icon "close" %} Annulées : {{ cancelled_count }}
+    </a>
+    <span class="ua-muted">Le solde des caisses ci-contre porte sur toutes les périodes.</span>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Référence, libellé, payeur, bénéficiaire, note…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Type</label>
+            <select name="type" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in type_choices %}
+                <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Catégorie</label>
+            <select name="category" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:'s' %}selected{% endif %}>{{ category.name }} ({{ category.get_direction_display }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Caisse / compte</label>
+            <select name="account" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if account_filter == account.id|stringformat:'s' %}selected{% endif %}>{{ account.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Moyen de paiement</label>
+            <select name="method" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for value, label in method_choices %}
+                <option value="{{ value }}" {% if method_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Enregistrée par</label>
+            <select name="user" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for u in users %}
+                <option value="{{ u.id }}" {% if user_filter == u.id|stringformat:'s' %}selected{% endif %}>{{ u.display_label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Au</label>
+            <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="ua-btn ua-btn-primary justify-center flex-1">{% icon "search" %} Filtrer</button>
+            <a href="{% url 'core:dashboard:finance-supervision' %}" class="ua-btn ua-btn-ghost">Réinitialiser</a>
+        </div>
+    </form>
+</section>
+
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-5">
+    <section class="ua-card overflow-hidden xl:col-span-3">
+        <div class="px-6 pt-6 pb-4">
+            <h2 class="ua-section-title">Toutes les transactions</h2>
+            <p class="text-xs ua-muted mt-1">{{ page.paginator.count }} opération{{ page.paginator.count|pluralize }} correspondant aux critères</p>
+        </div>
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>Référence</th>
+                        <th>Date effective</th>
+                        <th>Type</th>
+                        <th>Catégorie</th>
+                        <th>Libellé / tiers</th>
+                        <th>Montant</th>
+                        <th>Moyen</th>
+                        <th>Caisse</th>
+                        <th>Auteur</th>
+                        <th>Saisie</th>
+                        <th>Statut</th>
+                        <th>Justif.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in page %}
+                    <tr>
+                        <td>
+                            <a class="ua-cell-title" href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a>
+                            {% if tx.student_payment %}
+                            <p class="ua-cell-sub">Reçu {{ tx.student_payment.reference }}</p>
+                            {% elif tx.expense_record %}
+                            <p class="ua-cell-sub">Dépense liée</p>
+                            {% endif %}
+                        </td>
+                        <td class="whitespace-nowrap">{{ tx.occurred_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="ua-badge {% if tx.tx_type == 'IN' %}ua-badge-green{% elif tx.tx_type == 'OUT' %}ua-badge-rose{% else %}ua-badge-indigo{% endif %}">
+                                {{ tx.get_tx_type_display }}
+                            </span>
+                        </td>
+                        <td>{{ tx.category.name|default:"Non catégorisé" }}</td>
+                        <td>
+                            <p class="ua-cell-title">{{ tx.label }}</p>
+                            {% if tx.counterparty %}<p class="ua-cell-sub">{{ tx.counterparty }}</p>{% endif %}
+                        </td>
+                        <td class="whitespace-nowrap font-semibold
+                            {% if tx.tx_type == 'IN' %}text-emerald-700{% elif tx.tx_type == 'OUT' %}text-rose-700{% endif %}">
+                            {{ tx.amount }} {{ tx.currency }}
+                        </td>
+                        <td>{{ tx.get_method_display }}</td>
+                        <td>
+                            {{ tx.account.name }}
+                            {% if tx.destination_account %}<p class="ua-cell-sub">→ {{ tx.destination_account.name }}</p>{% endif %}
+                        </td>
+                        <td>{{ tx.created_by.display_label|default:"—" }}</td>
+                        <td class="whitespace-nowrap ua-muted">{{ tx.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            {% if tx.status == 'VALIDATED' %}<span class="ua-badge ua-badge-green">{{ tx.get_status_display }}</span>
+                            {% elif tx.status == 'DRAFT' %}<span class="ua-badge ua-badge-amber">{{ tx.get_status_display }}</span>
+                            {% else %}<span class="ua-badge ua-badge-rose">{{ tx.get_status_display }}</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if tx.receipt %}
+                            <a href="{{ tx.receipt.url }}" target="_blank" rel="noopener" class="ua-badge ua-badge-indigo">{% icon "file-text" %}</a>
+                            {% else %}<span class="ua-muted">—</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="12" class="ua-empty">Aucune opération pour ces critères.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
+    </section>
+
+    <div class="space-y-5">
+        <section class="ua-card ua-card-pad">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="ua-section-title">Soldes des caisses</h2>
+                <a href="{% url 'core:dashboard:accounts' %}" class="text-xs font-semibold" style="color:#5b5bf6;">Détail</a>
+            </div>
+            {% for row in balances %}
+            <div class="ua-list-row">
+                <div>
+                    <p class="text-sm font-semibold">{{ row.account.name }}</p>
+                    <p class="text-xs ua-muted">{{ row.account.get_kind_display }}</p>
+                </div>
+                <span class="text-sm font-bold {% if row.balance < 0 %}text-rose-700{% endif %}">{{ row.balance }} {{ row.account.currency }}</span>
+            </div>
+            {% empty %}
+            <p class="ua-empty">Aucune caisse active.</p>
+            {% endfor %}
+            <div class="mt-4 flex items-center justify-between text-sm">
+                <span class="ua-muted">Total</span>
+                <span class="font-bold">{{ balance_total }} FCFA</span>
+            </div>
+        </section>
+
+        <section class="ua-card ua-card-pad">
+            <h2 class="ua-section-title mb-3">Sorties par catégorie</h2>
+            <p class="text-xs ua-muted mb-3">Transactions validées, selon les filtres du haut.</p>
+            {% for row in out_by_category %}
+            <a class="ua-list-row"
+               href="?{% query_replace type='OUT' category=row.category_id page=None %}">
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold truncate">{{ row.category__name|default:"Non catégorisé" }}</p>
+                    <p class="text-xs ua-muted">{{ row.rows }} opération{{ row.rows|pluralize }}</p>
+                </div>
+                <span class="text-sm font-semibold text-rose-700">{{ row.total|floatformat:0 }} FCFA</span>
+            </a>
+            {% empty %}
+            <p class="ua-empty">Aucune sortie validée pour ces critères.</p>
+            {% endfor %}
+        </section>
+    </div>
+</div>
+{% endblock %}

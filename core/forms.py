@@ -5,6 +5,7 @@ from .models import (
     User, ScholarshipApplication, ScholarshipDocument,
     Destination, Course, CourseSession, Enrollment,
     Payment, Attendance, AccessEvent, AccountStatus, RoleKey,
+    REQUESTABLE_ROLE_CHOICES,
     Contact, Visit, VisitReason, Prospect, ProspectFollowUp,
     Module, Lesson, SessionRecord, Resource, StudentDocument,
     CashAccount, CashTransaction, CashClosure, TransactionCategory,
@@ -25,12 +26,6 @@ FILE_CLASS = (
 
 
 class LoginForm(forms.Form):
-    profile = forms.ChoiceField(
-        choices=[('', '-- Sélectionnez votre profil --')] + list(RoleKey.choices),
-        required=False,
-        label="Profil",
-        widget=forms.Select(attrs={'class': INPUT_CLASS})
-    )
     identifier = forms.CharField(
         label="Identifiant",
         widget=forms.TextInput(attrs={
@@ -59,6 +54,12 @@ class RegisterForm(forms.ModelForm):
             'placeholder': '••••••••'
         })
     )
+    requested_role = forms.ChoiceField(
+        label="Rôle demandé",
+        choices=[('', '-- Choisir un rôle --')] + REQUESTABLE_ROLE_CHOICES,
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+        help_text="Votre demande sera examinée : aucun accès n'est accordé avant validation.",
+    )
 
     class Meta:
         model = User
@@ -83,7 +84,17 @@ class RegisterForm(forms.ModelForm):
 
 
 class UserCreateForm(forms.ModelForm):
-    role = forms.ChoiceField(choices=RoleKey.choices, label="Rôle")
+    role = forms.ChoiceField(
+        choices=[('', '-- Choisir un rôle --')] + [
+            (key, label) for key, label in RoleKey.choices
+            if key not in ('SUPER_ADMIN', 'ADMIN')
+        ],
+        label="Rôle",
+        help_text=(
+            "Les rôles SUPER_ADMIN et ADMIN s'attribuent ensuite depuis la "
+            "fiche utilisateur, par un super administrateur."
+        ),
+    )
     password = forms.CharField(
         required=False,
         widget=forms.PasswordInput(attrs={'class': 'w-full p-2 border rounded'}),
@@ -195,22 +206,6 @@ class ScholarshipDocumentForm(forms.Form):
     )
 
 
-class PaymentForm(forms.ModelForm):
-    class Meta:
-        model = Payment
-        fields = ['enrollment', 'amount', 'method', 'note']
-        widgets = {
-            'enrollment': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
-            'amount': forms.NumberInput(attrs={
-                'class': 'w-full p-2 border rounded', 'min': '1'
-            }),
-            'method': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
-            'note': forms.Textarea(attrs={
-                'class': 'w-full p-2 border rounded', 'rows': 2
-            }),
-        }
-
-
 class AttendanceForm(forms.Form):
     date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'p-2 border rounded'})
@@ -269,6 +264,32 @@ class AvatarForm(forms.Form):
         if image.size > 2 * 1024 * 1024:
             raise forms.ValidationError("L'image ne doit pas dépasser 2 Mo.")
         return image
+
+
+class AccessRequestCompletionForm(forms.ModelForm):
+    """Complète le profil et le rôle demandé d'un compte en attente (Clerk)."""
+
+    requested_role = forms.ChoiceField(
+        label="Rôle demandé",
+        choices=[('', '-- Choisir un rôle --')] + REQUESTABLE_ROLE_CHOICES,
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+        help_text="Votre demande sera examinée : aucun accès n'est accordé avant validation.",
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone']
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': INPUT_CLASS, 'placeholder': 'Prénom'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': INPUT_CLASS, 'placeholder': 'Nom'
+            }),
+            'phone': forms.TextInput(attrs={
+                'class': INPUT_CLASS, 'placeholder': '+242 06 XXX XX XX'
+            }),
+        }
 
 
 class EmailChangeForm(forms.Form):

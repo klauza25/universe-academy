@@ -3,20 +3,7 @@
 
 {% block title %}Détail utilisateur — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-<a href="{% url 'core:dashboard:access-requests' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Demandes d'accès</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
@@ -29,9 +16,11 @@
         </p>
     </div>
     <div class="flex flex-wrap gap-2">
+        {% if 'SUPER_ADMIN' in user_roles %}
         <a href="{% url 'core:dashboard:user-edit' profile_user.id %}" class="ua-btn ua-btn-primary">
             {% icon "settings" %} Modifier
         </a>
+        {% endif %}
         <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
     </div>
 </div>

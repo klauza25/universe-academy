@@ -6,7 +6,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseForbidden, FileResponse, Http404
-from django.db.models import Q, Sum, Count
+from django.db.models import (
+    Q, Sum, Count, F, Case, When, IntegerField, OuterRef, Subquery,
+)
+from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -14,19 +17,24 @@ from django.views.decorators.http import require_POST
 from .models import (
     User, Role, UserRole, AccessRequest, AccountStatus,
     ScholarshipApplication, ScholarshipDocument, Destination,
-    Course, CourseSession, Enrollment, Attendance, Payment, Expense,
+    Course, CourseSession, Enrollment, Attendance, Payment,
     AccessEvent, Notification, AuditLog, Certificate,
     ROLE_DASHBOARD_ROUTES, PRIVILEGED_ROLES, RoleKey,
+    REQUESTABLE_ROLES, REQUESTABLE_ROLE_CHOICES,
     Visit, Prospect, ProspectFollowUp, Contact,
     Module, Lesson, SessionRecord, Resource, StudentDocument,
     CashAccount, CashTransaction, CashClosure, TransactionCategory,
 )
 from .forms import (
     LoginForm, RegisterForm, UserCreateForm, UserEditForm,
+    AccessRequestCompletionForm,
     ScholarshipApplicationForm, ScholarshipDocumentForm,
-    PaymentForm, AccessEventForm
+    AccessEventForm
 )
-from .decorators import active_account_required, role_required, permission_required
+from .decorators import (
+    active_account_required, business_write_required, permission_required,
+    role_required, super_admin_required,
+)
 from .utils import log_audit
 from .clerk import ClerkError, sync_clerk_user, verify_clerk_token
 
@@ -61,6 +69,8 @@ def login_view(request):
                 log_audit(request, 'LOGIN', 'User', str(user.id))
 
                 if user.account_status == AccountStatus.PENDING_APPROVAL:
+                    if user.needs_access_request:
+                        return redirect('core:complete-access-request')
                     return redirect('core:pending-approval')
                 elif user.account_status != AccountStatus.ACTIVE:
                     logout(request)
@@ -116,6 +126,8 @@ def clerk_session(request):
     )
 
     if user.account_status == AccountStatus.PENDING_APPROVAL:
+        if user.needs_access_request:
+            return redirect('core:complete-access-request')
         return redirect('core:pending-approval')
 
     if user.account_status != AccountStatus.ACTIVE:
@@ -150,9 +162,16 @@ def register_view(request):
             user.set_password(form.cleaned_data['password'])
             user.save()
 
-            AccessRequest.objects.create(user=user)
+            # Le rôle choisi est une demande, jamais un rôle effectif.
+            AccessRequest.objects.create(
+                user=user,
+                requested_role=form.cleaned_data['requested_role'],
+            )
 
-            log_audit(request, 'REGISTER', 'User', str(user.id))
+            log_audit(
+                request, 'REGISTER', 'User', str(user.id),
+                after={'requested_role': form.cleaned_data['requested_role']},
+            )
             login(request, user)
             return redirect('core:pending-approval')
 
@@ -162,8 +181,58 @@ def register_view(request):
     })
 
 
+@login_required
 def pending_approval(request):
-    return render(request, 'public/pending_approval.html')
+    user = request.user
+    if user.account_status != AccountStatus.PENDING_APPROVAL:
+        if user.account_status == AccountStatus.ACTIVE:
+            return redirect(user.dashboard_route)
+        return redirect('core:access-denied')
+    if user.needs_access_request:
+        return redirect('core:complete-access-request')
+    return render(request, 'public/pending_approval.html', {
+        'access_request': user.pending_access_request,
+    })
+
+
+@login_required
+def complete_access_request(request):
+    """Complète la demande d'accès d'un compte en attente (notamment Clerk).
+
+    Aucun rôle n'est attribué ici : le choix reste une demande soumise à la
+    décision du super administrateur.
+    """
+    user = request.user
+    if user.account_status != AccountStatus.PENDING_APPROVAL:
+        if user.account_status == AccountStatus.ACTIVE:
+            return redirect(user.dashboard_route)
+        return redirect('core:access-denied')
+
+    pending = user.pending_access_request
+    form = AccessRequestCompletionForm(
+        instance=user,
+        initial={'requested_role': pending.requested_role if pending else ''},
+    )
+    if request.method == 'POST':
+        form = AccessRequestCompletionForm(request.POST, instance=user)
+        if form.is_valid():
+            user = form.save()
+            access_request = pending or AccessRequest.objects.create(user=user)
+            access_request.requested_role = form.cleaned_data['requested_role']
+            access_request.status = AccessRequest.Status.PENDING
+            access_request.save(update_fields=['requested_role', 'status'])
+            log_audit(
+                request, 'ACCESS_REQUEST_SUBMIT', 'AccessRequest',
+                str(access_request.id),
+                after={
+                    'user': str(user.id),
+                    'requested_role': access_request.requested_role,
+                },
+            )
+            messages.success(request, "Votre demande d'accès a été enregistrée.")
+            return redirect('core:pending-approval')
+
+    return render(request, 'public/access_request.html', {'form': form})
 
 
 def access_denied(request):
@@ -250,6 +319,51 @@ def dashboard_router(request):
 
 @role_required('SUPER_ADMIN')
 def super_admin_dashboard(request):
+    from .views_comptabilite import accounts_with_balance
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_transactions = CashTransaction.objects.filter(
+        status=CashTransaction.Status.VALIDATED,
+        occurred_at__date__gte=month_start,
+        occurred_at__date__lte=today,
+    )
+    salaries_categories = (
+        'Salaires', 'Paiements des formateurs', 'Avances sur salaire',
+    )
+    month_income = month_transactions.filter(
+        tx_type=CashTransaction.Type.IN
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    month_expense = month_transactions.filter(
+        tx_type=CashTransaction.Type.OUT
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    month_salaries = month_transactions.filter(
+        tx_type=CashTransaction.Type.OUT,
+        category__name__in=salaries_categories,
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    total_due = Enrollment.objects.filter(
+        status=Enrollment.Status.ACTIVE
+    ).aggregate(total=Sum('net_amount'))['total'] or 0
+    total_paid = Payment.objects.filter(
+        status=Payment.Status.COMPLETED,
+        enrollment__status=Enrollment.Status.ACTIVE,
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    paid_per_enrollment = Payment.objects.filter(
+        enrollment=OuterRef('pk'),
+        status=Payment.Status.COMPLETED,
+    ).values('enrollment').annotate(total=Sum('amount')).values('total')
+    incomplete_enrollments = Enrollment.objects.filter(
+        status=Enrollment.Status.ACTIVE
+    ).annotate(
+        paid_total=Coalesce(
+            Subquery(paid_per_enrollment, output_field=IntegerField()), 0
+        )
+    ).filter(net_amount__gt=F('paid_total')).count()
+
+    cash_rows = accounts_with_balance()
+
     context = {
         'total_users': User.objects.count(),
         'pending_requests': AccessRequest.objects.filter(
@@ -268,6 +382,31 @@ def super_admin_dashboard(request):
         'recent_scholarships': ScholarshipApplication.objects.select_related(
             'destination'
         ).order_by('-submitted_at')[:5],
+        # Contrôle financier global.
+        'today': today,
+        'month_start': month_start,
+        'month_income': month_income,
+        'month_expense': month_expense,
+        'month_salaries': month_salaries,
+        'month_payment_total': Payment.objects.filter(
+            status=Payment.Status.COMPLETED,
+            paid_at__date__gte=month_start,
+            paid_at__date__lte=today,
+        ).aggregate(total=Sum('amount'))['total'] or 0,
+        'month_transaction_count': month_transactions.count(),
+        'pending_transactions': CashTransaction.objects.filter(
+            status=CashTransaction.Status.DRAFT
+        ).count(),
+        'cash_rows': cash_rows,
+        'cash_total': sum(row['balance'] for row in cash_rows),
+        'outstanding_amount': max(total_due - total_paid, 0),
+        'incomplete_enrollments': incomplete_enrollments,
+        'closure_gap_count': CashClosure.objects.exclude(
+            difference=0
+        ).count(),
+        'recent_transactions': CashTransaction.objects.select_related(
+            'account', 'category', 'created_by'
+        ).order_by('-occurred_at', '-created_at')[:8],
     }
     return render(request, 'dashboard/super_admin/index.html', context)
 
@@ -305,7 +444,7 @@ def user_list(request):
     })
 
 
-@role_required('SUPER_ADMIN')
+@super_admin_required
 def user_create(request):
     form = UserCreateForm()
     if request.method == 'POST':
@@ -356,7 +495,7 @@ def user_detail(request, user_id):
     })
 
 
-@role_required('SUPER_ADMIN')
+@super_admin_required
 def user_edit(request, user_id):
     user = get_object_or_404(User, id=user_id)
     before = {
@@ -393,10 +532,14 @@ def user_edit(request, user_id):
     })
 
 
-@role_required('SUPER_ADMIN')
+@super_admin_required
 def user_role_assign(request, user_id):
     if request.method == 'POST':
         user = get_object_or_404(User, id=user_id)
+        if user.id == request.user.id:
+            return HttpResponseForbidden(
+                "Vous ne pouvez pas modifier vos propres rôles."
+            )
         role_key = request.POST.get('role_key')
         action = request.POST.get('action', 'add')
 
@@ -426,85 +569,192 @@ def user_role_assign(request, user_id):
 
 @role_required('SUPER_ADMIN')
 def access_requests_list(request):
-    requests_list = AccessRequest.objects.filter(
-        status=AccessRequest.Status.PENDING
-    ).select_related('user')
+    status_filter = request.GET.get('statut', 'all')
+    if status_filter not in {'all', 'PENDING', 'APPROVED', 'REJECTED'}:
+        status_filter = 'all'
+
+    requests_qs = AccessRequest.objects.select_related('user', 'reviewed_by')
+    if status_filter != 'all':
+        requests_qs = requests_qs.filter(status=status_filter)
+    requests_qs = requests_qs.annotate(
+        pending_first=Case(
+            When(status=AccessRequest.Status.PENDING, then=0),
+            default=1,
+            output_field=IntegerField(),
+        )
+    ).order_by('pending_first', '-created_at')
+
     return render(request, 'dashboard/super_admin/access_requests.html', {
-        'requests': requests_list,
-        'role_choices': RoleKey.choices,
+        'requests': requests_qs,
+        'role_choices': REQUESTABLE_ROLE_CHOICES,
+        'status_filter': status_filter,
+        'pending_count': AccessRequest.objects.filter(
+            status=AccessRequest.Status.PENDING
+        ).count(),
+        'total_count': AccessRequest.objects.count(),
     })
 
 
-@role_required('SUPER_ADMIN')
+@super_admin_required
 def access_request_review(request, request_id):
-    ar = get_object_or_404(AccessRequest, id=request_id)
+    ar = get_object_or_404(
+        AccessRequest.objects.select_related('user'), id=request_id
+    )
 
-    if request.method == 'POST':
-        decision = request.POST.get('decision')
-        role_key = request.POST.get('role_key', 'ETUDIANT')
-        note = request.POST.get('note', '')
-
-        ar.reviewed_by = request.user
-        ar.reviewed_at = timezone.now()
-        ar.decision_note = note
-
-        if decision == 'approve':
-            ar.status = AccessRequest.Status.APPROVED
-            ar.user.account_status = AccountStatus.ACTIVE
-            ar.user.generate_internal_code(role_key)
-            ar.user.save()
-
-            role = Role.objects.get(key=role_key)
-            UserRole.objects.get_or_create(
-                user=ar.user, role=role, defaults={'assigned_by': request.user}
-            )
-
-            Notification.objects.create(
-                user=ar.user,
-                title="Compte approuvé",
-                message=f"Votre compte a été approuvé. Votre code : {ar.user.internal_code}",
-                notification_type=Notification.Type.ACCOUNT_APPROVED,
-            )
-
-            log_audit(
-                request, 'ACCESS_APPROVE', 'AccessRequest', str(ar.id),
-                after={'user': str(ar.user.id), 'role': role_key}
-            )
-            messages.success(request, f"Compte de {ar.user.get_full_name()} approuvé.")
-
-        elif decision == 'reject':
-            ar.status = AccessRequest.Status.REJECTED
-            ar.user.account_status = AccountStatus.REJECTED
-            ar.user.save()
-
-            Notification.objects.create(
-                user=ar.user,
-                title="Demande refusée",
-                message="Votre demande d'accès a été refusée.",
-                notification_type=Notification.Type.ACCOUNT_REJECTED,
-            )
-
-            log_audit(
-                request, 'ACCESS_REJECT', 'AccessRequest', str(ar.id),
-                after={'user': str(ar.user.id)}
-            )
-            messages.info(request, "Demande refusée.")
-
-        ar.save()
+    if request.method != 'POST':
         return redirect('core:dashboard:access-requests')
 
-    return render(request, 'dashboard/super_admin/access_requests.html', {
-        'review_request': ar,
-        'role_choices': RoleKey.choices,
-    })
+    decision = request.POST.get('decision')
+    role_key = (request.POST.get('role_key') or '').strip()
+    note = (request.POST.get('note') or '').strip()
+
+    if ar.status != AccessRequest.Status.PENDING:
+        messages.error(request, "Cette demande a déjà été traitée.")
+        return redirect('core:dashboard:access-requests')
+
+    if ar.user_id == request.user.id:
+        return HttpResponseForbidden(
+            "Vous ne pouvez pas traiter votre propre demande d'accès."
+        )
+
+    before = {
+        'request_status': ar.status,
+        'assigned_role': ar.assigned_role,
+        'account_status': ar.user.account_status,
+    }
+    ar.reviewed_by = request.user
+    ar.reviewed_at = timezone.now()
+    ar.decision_note = note
+
+    if decision == 'approve':
+        # Seuls les rôles demandables sont attribuables ici. Les rôles
+        # d'administration passent par l'écran « Utilisateurs ».
+        if role_key not in REQUESTABLE_ROLES:
+            messages.error(
+                request,
+                "Rôle invalide : choisissez le rôle à attribuer dans la liste.",
+            )
+            return redirect('core:dashboard:access-requests')
+
+        role = get_object_or_404(Role, key=role_key)
+        ar.status = AccessRequest.Status.APPROVED
+        ar.assigned_role = role_key
+        ar.user.account_status = AccountStatus.ACTIVE
+        ar.user.generate_internal_code(role_key)
+        ar.user.save()
+        UserRole.objects.get_or_create(
+            user=ar.user, role=role, defaults={'assigned_by': request.user}
+        )
+
+        Notification.objects.create(
+            user=ar.user,
+            title="Compte approuvé",
+            message=(
+                f"Votre compte a été approuvé avec le rôle "
+                f"{role.label}. Votre code : {ar.user.internal_code}"
+            ),
+            notification_type=Notification.Type.ACCOUNT_APPROVED,
+        )
+
+        log_audit(
+            request, 'ACCESS_APPROVE', 'AccessRequest', str(ar.id),
+            before=before,
+            after={
+                'request_status': ar.status,
+                'requested_role': ar.requested_role,
+                'assigned_role': role_key,
+                'account_status': ar.user.account_status,
+                'reviewed_by': str(request.user.id),
+            },
+        )
+        messages.success(request, f"Compte de {ar.user.get_full_name()} approuvé.")
+
+    elif decision == 'reject':
+        ar.status = AccessRequest.Status.REJECTED
+        ar.assigned_role = ''
+        ar.user.account_status = AccountStatus.REJECTED
+        ar.user.save()
+
+        Notification.objects.create(
+            user=ar.user,
+            title="Demande refusée",
+            message="Votre demande d'accès a été refusée.",
+            notification_type=Notification.Type.ACCOUNT_REJECTED,
+        )
+
+        log_audit(
+            request, 'ACCESS_REJECT', 'AccessRequest', str(ar.id),
+            before=before,
+            after={
+                'request_status': ar.status,
+                'assigned_role': '',
+                'account_status': ar.user.account_status,
+                'reviewed_by': str(request.user.id),
+                'note': note,
+            },
+        )
+        messages.info(request, "Demande refusée.")
+
+    else:
+        messages.error(request, "Décision invalide.")
+        return redirect('core:dashboard:access-requests')
+
+    ar.save()
+    return redirect('core:dashboard:access-requests')
 
 
 @role_required('SUPER_ADMIN')
 def audit_log_view(request):
-    entries = AuditLog.objects.select_related('actor').all()
+    entries = AuditLog.objects.select_related('actor').prefetch_related(
+        'actor__roles'
+    )
+    query = (request.GET.get('q') or '').strip()
+    action_filter = request.GET.get('action') or ''
+    entity_filter = request.GET.get('entity') or ''
+    actor_filter = request.GET.get('actor') or ''
+    date_from = request.GET.get('from') or ''
+    date_to = request.GET.get('to') or ''
+
+    if query:
+        entries = entries.filter(
+            Q(action__icontains=query) |
+            Q(entity_type__icontains=query) |
+            Q(entity_id__icontains=query) |
+            Q(actor__email__icontains=query) |
+            Q(actor__first_name__icontains=query) |
+            Q(actor__last_name__icontains=query)
+        )
+    if action_filter:
+        entries = entries.filter(action=action_filter)
+    if entity_filter:
+        entries = entries.filter(entity_type=entity_filter)
+    if actor_filter:
+        entries = entries.filter(actor_id=actor_filter)
+    if date_from:
+        entries = entries.filter(created_at__date__gte=date_from)
+    if date_to:
+        entries = entries.filter(created_at__date__lte=date_to)
+
     paginator = Paginator(entries, 50)
     page = paginator.get_page(request.GET.get('page', 1))
-    return render(request, 'dashboard/super_admin/audit_log.html', {'page': page})
+    return render(request, 'dashboard/super_admin/audit_log.html', {
+        'page': page,
+        'query': query,
+        'action_filter': action_filter,
+        'entity_filter': entity_filter,
+        'actor_filter': actor_filter,
+        'date_from': date_from,
+        'date_to': date_to,
+        'actions': AuditLog.objects.values_list(
+            'action', flat=True
+        ).distinct().order_by('action'),
+        'entities': AuditLog.objects.values_list(
+            'entity_type', flat=True
+        ).distinct().order_by('entity_type'),
+        'actors': User.objects.filter(
+            audit_actions__isnull=False
+        ).distinct().order_by('last_name', 'first_name'),
+    })
 
 
 @role_required('SUPER_ADMIN', 'ADMIN')
@@ -530,6 +780,10 @@ def scholarship_review_detail(request, app_id):
     documents = app.documents.all()
 
     if request.method == 'POST':
+        if not request.user.has_role('SUPER_ADMIN'):
+            return HttpResponseForbidden(
+                "La décision de bourse est réservée au super administrateur."
+            )
         new_status = request.POST.get('status')
         note = request.POST.get('review_note', '')
 
@@ -557,6 +811,24 @@ def scholarship_review_detail(request, app_id):
 
 @role_required('ADMIN')
 def admin_dashboard(request):
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    from .views_comptabilite import accounts_with_balance
+
+    month_transactions = CashTransaction.objects.filter(
+        status=CashTransaction.Status.VALIDATED,
+        occurred_at__date__gte=month_start,
+    )
+    cash_rows = accounts_with_balance()
+
+    total_due = Enrollment.objects.filter(
+        status=Enrollment.Status.ACTIVE
+    ).aggregate(total=Sum('net_amount'))['total'] or 0
+    total_paid = Payment.objects.filter(
+        status=Payment.Status.COMPLETED,
+        enrollment__status=Enrollment.Status.ACTIVE,
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
     context = {
         'active_students': User.objects.filter(
             roles__key='ETUDIANT', account_status=AccountStatus.ACTIVE
@@ -571,6 +843,18 @@ def admin_dashboard(request):
         'recent_users': User.objects.prefetch_related('roles').order_by(
             '-date_joined'
         )[:6],
+        'month_income': month_transactions.filter(
+            tx_type=CashTransaction.Type.IN
+        ).aggregate(total=Sum('amount'))['total'] or 0,
+        'month_expense': month_transactions.filter(
+            tx_type=CashTransaction.Type.OUT
+        ).aggregate(total=Sum('amount'))['total'] or 0,
+        'cash_rows': cash_rows,
+        'cash_total': sum(row['balance'] for row in cash_rows),
+        'outstanding_amount': max(total_due - total_paid, 0),
+        'new_enrollments': Enrollment.objects.filter(
+            enrolled_at__date__gte=month_start
+        ).count(),
     }
     return render(request, 'dashboard/admin/index.html', context)
 
@@ -615,7 +899,9 @@ def direction_dashboard(request):
         'period': period,
         'date_from': date_from,
         'date_to': date_to,
-        'total_revenue': payments.aggregate(total=Sum('amount'))['total'] or 0,
+        'total_revenue': transactions.filter(
+            tx_type=CashTransaction.Type.IN
+        ).aggregate(total=Sum('amount'))['total'] or 0,
         'total_students': User.objects.filter(
             roles__key='ETUDIANT', account_status=AccountStatus.ACTIVE
         ).count(),
@@ -625,7 +911,7 @@ def direction_dashboard(request):
         'new_enrollments': Enrollment.objects.filter(
             enrolled_at__date__gte=month_start
         ).count(),
-        'recent_payments': Payment.objects.select_related(
+        'recent_payments': payments.select_related(
             'enrollment__student'
         ).order_by('-paid_at')[:8],
         'visits_count': Visit.objects.filter(
@@ -658,9 +944,6 @@ def direction_dashboard(request):
             total=Count('id'),
             completed=Count('id', filter=Q(status='COMPLETED')),
         ),
-        'unpaid_enrollments': Enrollment.objects.filter(
-            status=Enrollment.Status.ACTIVE
-        ).count(),
     }
     return render(request, 'dashboard/direction/index.html', context)
 
@@ -704,18 +987,19 @@ def comptabilite_dashboard(request):
     validated = CashTransaction.objects.filter(
         status=CashTransaction.Status.VALIDATED
     )
+    month_transactions = validated.filter(
+        occurred_at__month=today.month,
+        occurred_at__year=today.year,
+    )
     context = {
-        'total_revenue_month': Payment.objects.filter(
-            status=Payment.Status.COMPLETED,
-            paid_at__month=today.month,
-            paid_at__year=today.year,
+        'total_revenue_month': month_transactions.filter(
+            tx_type=CashTransaction.Type.IN,
         ).aggregate(total=Sum('amount'))['total'] or 0,
         'recent_payments': Payment.objects.select_related(
             'enrollment__student', 'recorded_by'
         ).order_by('-paid_at')[:10],
-        'total_expenses_month': Expense.objects.filter(
-            occurred_at__month=today.month,
-            occurred_at__year=today.year,
+        'total_expenses_month': month_transactions.filter(
+            tx_type=CashTransaction.Type.OUT,
         ).aggregate(total=Sum('amount'))['total'] or 0,
         'today_in': validated.filter(
             tx_type=CashTransaction.Type.IN,
@@ -835,7 +1119,7 @@ def formateur_dashboard(request):
     })
 
 
-@role_required('FORMATEUR')
+@business_write_required('FORMATEUR')
 def formateur_attendance(request, session_id):
     session = get_object_or_404(CourseSession, id=session_id)
     if not session.formateurs.filter(id=request.user.id).exists():
@@ -931,6 +1215,10 @@ def etudiant_dashboard(request):
 def accueil_dashboard(request):
     form = AccessEventForm()
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         form = AccessEventForm(request.POST)
         if form.is_valid():
             event = form.save(commit=False)
@@ -986,28 +1274,6 @@ def accueil_dashboard(request):
             'contact', 'course', 'agent'
         )[:8],
     })
-
-
-@role_required('COMPTABLE', 'SUPER_ADMIN')
-def payment_create(request):
-    form = PaymentForm()
-    if request.method == 'POST':
-        form = PaymentForm(request.POST)
-        if form.is_valid():
-            payment = form.save(commit=False)
-            payment.recorded_by = request.user
-            payment.save()
-            log_audit(
-                request, 'PAYMENT_CREATE', 'Payment', str(payment.id),
-                after={
-                    'amount': payment.amount,
-                    'reference': payment.reference,
-                    'enrollment': str(payment.enrollment_id),
-                }
-            )
-            messages.success(request, f"Paiement {payment.reference} enregistré.")
-            return redirect('core:dashboard:comptabilite-dashboard')
-    return render(request, 'dashboard/comptabilite/payment_form.html', {'form': form})
 
 
 @login_required

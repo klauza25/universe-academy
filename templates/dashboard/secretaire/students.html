@@ -12,9 +12,11 @@
         <h1 class="ua-page-title">Étudiants</h1>
         <p class="ua-page-sub">Dossiers administratifs et inscriptions.</p>
     </div>
+    {% if not is_elevated %}
     <a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-primary">
         {% icon "user-plus" %} Nouvel étudiant
     </a>
+    {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">

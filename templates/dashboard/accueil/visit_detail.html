@@ -13,6 +13,7 @@
         <p class="ua-page-sub">{{ visit.contact.full_name }} · {{ visit.contact.phone }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
+        {% if not is_elevated %}
         {% if visit.is_present %}
         <form method="post" action="{% url 'core:dashboard:visit-departure' visit.id %}">
             {% csrf_token %}
@@ -23,6 +24,7 @@
             {% csrf_token %}
             <button type="submit" class="ua-btn ua-btn-light">{% icon "user-plus" %} Créer un prospect</button>
         </form>
+        {% endif %}
         <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
     </div>
 </div>
@@ -45,6 +47,10 @@
     </section>
 
     <section class="ua-card ua-card-pad xl:col-span-2">
+        {% if is_elevated %}
+        <h2 class="ua-section-title mb-4">Consultation</h2>
+        <p class="ua-empty">Consultation seule : la modification d'une visite relève du rôle accueil.</p>
+        {% else %}
         <h2 class="ua-section-title mb-4">Modifier les informations autorisées</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
@@ -54,6 +60,7 @@
                 <a href="{% url 'core:dashboard:visit-detail' visit.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
             </div>
         </form>
+        {% endif %}
     </section>
 </div>
 
@@ -71,4 +78,6 @@
     {% endfor %}
 </section>
 {% endif %}
+
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de la visite" audit_subtitle="Enregistrement, mise à jour et conversion en prospect." audit_empty="Aucun événement d'audit pour cette visite." %}
 {% endblock %}

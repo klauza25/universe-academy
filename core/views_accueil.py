@@ -2,13 +2,14 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .decorators import role_required
+from .decorators import business_write_required, role_required
 from .forms import ProspectFollowUpForm, ProspectForm, VisitForm, VisitReasonForm
 from .models import (
-    Contact, Prospect, ProspectFollowUp, Visit, VisitReason, RoleKey,
+    AuditLog, Contact, Prospect, ProspectFollowUp, Visit, VisitReason, RoleKey,
 )
 from .utils import log_audit
 
@@ -57,7 +58,7 @@ def visit_list(request):
     })
 
 
-@role_required(*ACCUEIL_ROLES)
+@business_write_required(*ACCUEIL_ROLES)
 def visit_create(request):
     form = VisitForm()
     if request.method == 'POST':
@@ -88,6 +89,10 @@ def visit_detail(request, visit_id):
     )
     form = VisitForm(instance=visit)
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         before = {'status': visit.status, 'departure_at': str(visit.departure_at)}
         form = VisitForm(request.POST, instance=visit)
         if form.is_valid():
@@ -108,10 +113,13 @@ def visit_detail(request, visit_id):
         'form': form,
         'status_choices': Visit.Status.choices,
         'prospects': visit.prospects.all(),
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='Visit', entity_id=str(visit.id),
+        ).select_related('actor').order_by('-created_at')[:20],
     })
 
 
-@role_required(*ACCUEIL_ROLES)
+@business_write_required(*ACCUEIL_ROLES)
 def visit_departure(request, visit_id):
     if request.method != 'POST':
         return redirect('core:dashboard:visit-detail', visit_id=visit_id)
@@ -130,7 +138,7 @@ def visit_departure(request, visit_id):
     return redirect('core:dashboard:visit-detail', visit_id=visit.id)
 
 
-@role_required(*ACCUEIL_ROLES)
+@business_write_required(*ACCUEIL_ROLES)
 def visit_to_prospect(request, visit_id):
     visit = get_object_or_404(Visit.objects.select_related('contact'), id=visit_id)
     if request.method != 'POST':
@@ -198,7 +206,7 @@ def prospect_list(request):
     })
 
 
-@role_required(*ACCUEIL_ROLES)
+@business_write_required(*ACCUEIL_ROLES)
 def prospect_create(request):
     form = ProspectForm()
     if request.method == 'POST':
@@ -233,6 +241,10 @@ def prospect_detail(request, prospect_id):
     })
 
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         action = request.POST.get('action', 'edit')
         if action == 'follow_up':
             follow_form = ProspectFollowUpForm(request.POST)
@@ -277,11 +289,14 @@ def prospect_detail(request, prospect_id):
         'follow_form': follow_form,
         'follow_ups': prospect.follow_ups.select_related('agent', 'course'),
         'status_choices': Prospect.Status.choices,
-        'can_convert': request.user.has_any_role(
-            'SECRETAIRE', 'DIRECTION', 'SUPER_ADMIN', 'ACCUEIL'
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='Prospect', entity_id=str(prospect.id),
+        ).select_related('actor').order_by('-created_at')[:20],
+        'can_convert': not request.user.is_elevated and request.user.has_any_role(
+            'SECRETAIRE', 'DIRECTION', 'ACCUEIL'
         ),
-        'can_manage_students': request.user.has_any_role(
-            'SECRETAIRE', 'DIRECTION', 'SUPER_ADMIN'
+        'can_manage_students': not request.user.is_elevated and request.user.has_any_role(
+            'SECRETAIRE', 'DIRECTION'
         ),
     })
 
@@ -290,6 +305,10 @@ def prospect_detail(request, prospect_id):
 def visit_reason_list(request):
     form = VisitReasonForm()
     if request.method == 'POST':
+        if request.user.is_elevated:
+            return HttpResponseForbidden(
+                "Consultation seule : cette action relève du rôle métier."
+            )
         form = VisitReasonForm(request.POST)
         if form.is_valid():
             reason = form.save()
@@ -303,7 +322,7 @@ def visit_reason_list(request):
     })
 
 
-@role_required('ACCUEIL', 'SECRETAIRE', 'DIRECTION', 'SUPER_ADMIN')
+@business_write_required('ACCUEIL', 'SECRETAIRE', 'DIRECTION')
 def visit_reason_toggle(request, reason_id):
     if request.method != 'POST':
         return redirect('core:dashboard:visit-reasons')

@@ -1,3 +1,5 @@
+import os
+import secrets
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
@@ -11,11 +13,11 @@ from core.models import (
 
 
 DEMO_USERS = [
-    ('formateur@univers.academy', 'Formateur123!', 'Jean', 'Mbemba', RoleKey.FORMATEUR),
-    ('etudiant@univers.academy', 'Etudiant123!', 'Alice', 'Mabiala', RoleKey.ETUDIANT),
-    ('comptable@univers.academy', 'Comptable123!', 'Paul', 'Ondongo', RoleKey.COMPTABLE),
-    ('accueil@univers.academy', 'Accueil123!', 'Sarah', 'Bikindou', RoleKey.ACCUEIL),
-    ('peda@univers.academy', 'Peda12345!', 'Luc', 'Mavoungou', RoleKey.RESPONSABLE_PEDAGOGIQUE),
+    ('formateur@univers.academy', 'Jean', 'Mbemba', RoleKey.FORMATEUR),
+    ('etudiant@univers.academy', 'Alice', 'Mabiala', RoleKey.ETUDIANT),
+    ('comptable@univers.academy', 'Paul', 'Ondongo', RoleKey.COMPTABLE),
+    ('accueil@univers.academy', 'Sarah', 'Bikindou', RoleKey.ACCUEIL),
+    ('peda@univers.academy', 'Luc', 'Mavoungou', RoleKey.RESPONSABLE_PEDAGOGIQUE),
 ]
 
 DESTINATIONS = ['France', 'Canada', 'Belgique', 'Maroc', 'Chine']
@@ -41,7 +43,14 @@ class Command(BaseCommand):
             )
 
         users = {}
-        for email, password, first, last, role_key in DEMO_USERS:
+        generated_passwords = {}
+        # Aucun mot de passe n'est stocké dans le code. Par défaut, un mot de
+        # passe aléatoire est généré et affiché une seule fois ; DEMO_PASSWORD
+        # permet de le fixer pour un poste de démonstration.
+        fixed_password = os.environ.get('DEMO_PASSWORD')
+        for email, first, last, role_key in DEMO_USERS:
+            password = fixed_password or secrets.token_urlsafe(12)
+            generated_passwords[email] = password
             user = User.objects.filter(email=email).first()
             if not user:
                 user = User.objects.create_user(
@@ -154,4 +163,9 @@ class Command(BaseCommand):
         self.stdout.write('[OK] 1 evenement d\'acces')
 
         self.stdout.write(self.style.SUCCESS('[OK] Donnees de demonstration pretes'))
-        self.stdout.write('Comptes: formateur@ / etudiant@ / comptable@ / accueil@ / peda@univers.academy')
+        if fixed_password:
+            self.stdout.write('Mot de passe commun : celui fourni via DEMO_PASSWORD.')
+        else:
+            self.stdout.write('Mots de passe generes (affiches une seule fois, non stockes) :')
+            for email, password in generated_passwords.items():
+                self.stdout.write(f'  {email} : {password}')

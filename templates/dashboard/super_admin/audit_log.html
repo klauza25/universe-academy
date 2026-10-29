@@ -1,30 +1,9 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui core_tags %}
 
 {% block title %}Journal d'audit — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'core:dashboard:super-admin-dashboard' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'super-admin-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
-</a>
-<a href="{% url 'core:dashboard:user-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'user-list' %}is-active{% endif %}">
-    {% icon "users" %}<span>Utilisateurs</span>
-</a>
-<a href="{% url 'core:dashboard:access-requests' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Demandes d'accès</span>
-</a>
-<a href="{% url 'core:dashboard:scholarship-review-list' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' %}is-active{% endif %}">
-    {% icon "graduation" %}<span>Candidatures bourse</span>
-</a>
-<a href="{% url 'core:dashboard:audit-log' %}"
-   class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Journal d'audit</span>
-</a>
-{% endblock %}
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
@@ -32,10 +11,59 @@
 <div class="ua-page-head">
     <div>
         <h1 class="ua-page-title">Journal d'audit</h1>
-        <p class="ua-page-sub">{{ page.paginator.count }} événement{{ page.paginator.count|pluralize }} enregistré{{ page.paginator.count|pluralize }}</p>
+        <p class="ua-page-sub">{{ page.paginator.count }} événement{{ page.paginator.count|pluralize }} correspondant aux critères</p>
     </div>
     <span class="ua-chip">{% icon "shield" %} Traçabilité complète</span>
 </div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="text-xs ua-muted block mb-1">Recherche</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="Action, entité, identifiant, acteur…"
+                   class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Action</label>
+            <select name="action" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for action in actions %}
+                <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>{{ action }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Entité</label>
+            <select name="entity" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Toutes</option>
+                {% for entity in entities %}
+                <option value="{{ entity }}" {% if entity_filter == entity %}selected{% endif %}>{{ entity }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Acteur</label>
+            <select name="actor" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+                <option value="">Tous</option>
+                {% for u in actors %}
+                <option value="{{ u.id }}" {% if actor_filter == u.id|stringformat:'s' %}selected{% endif %}>{{ u.display_label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Du</label>
+            <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div>
+            <label class="text-xs ua-muted block mb-1">Au</label>
+            <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="ua-btn ua-btn-primary justify-center flex-1">{% icon "search" %} Filtrer</button>
+            <a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost">Réinitialiser</a>
+        </div>
+    </form>
+</section>
 
 <section class="ua-card overflow-hidden">
     <div class="ua-table-wrap">
@@ -46,7 +74,7 @@
                     <th>Acteur</th>
                     <th>Action</th>
                     <th>Entité</th>
-                    <th>ID</th>
+                    <th>Détails (avant / après)</th>
                     <th>IP</th>
                 </tr>
             </thead>
@@ -54,29 +82,56 @@
                 {% for entry in page %}
                 <tr>
                     <td class="ua-muted whitespace-nowrap">{{ entry.created_at|date:"d/m/Y H:i:s" }}</td>
-                    <td class="ua-cell-title whitespace-nowrap">{{ entry.actor.get_full_name|default:"Système" }}</td>
+                    <td>
+                        <p class="ua-cell-title">{{ entry.actor.display_label|default:"Système" }}</p>
+                        {% if entry.actor %}
+                        <p class="ua-cell-sub">{{ entry.actor.email }}</p>
+                        {% for role in entry.actor.roles.all %}
+                            {% if forloop.first %}<span class="ua-badge ua-badge-indigo">{{ role.label }}</span>{% endif %}
+                        {% endfor %}
+                        {% endif %}
+                    </td>
                     <td><span class="ua-badge ua-badge-indigo">{{ entry.action }}</span></td>
-                    <td class="ua-muted">{{ entry.entity_type|default:"—" }}</td>
-                    <td class="font-mono text-xs ua-muted">{{ entry.entity_id|default:"—" }}</td>
+                    <td>
+                        {% audit_entity_url entry.entity_type entry.entity_id as entity_url %}
+                        {% if entity_url %}
+                        <a class="ua-cell-title" href="{{ entity_url }}">{{ entry.entity_type }}</a>
+                        {% else %}
+                        <span class="ua-cell-title">{{ entry.entity_type|default:"—" }}</span>
+                        {% endif %}
+                        <p class="font-mono text-xs ua-muted">{{ entry.entity_id|default:"—" }}</p>
+                    </td>
+                    <td>
+                        {% if entry.before_summary or entry.after_summary %}
+                        <details>
+                            <summary class="cursor-pointer text-xs font-semibold" style="color:#5b5bf6;">Voir les valeurs</summary>
+                            <div class="mt-2 space-y-2">
+                                {% if entry.before_summary %}
+                                <div>
+                                    <p class="text-xs ua-muted mb-1">Avant</p>
+                                    <pre style="white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;background:#f8f8fd;padding:8px;border-radius:8px;max-height:220px;overflow:auto;margin:0;">{{ entry.before_summary|pretty_json }}</pre>
+                                </div>
+                                {% endif %}
+                                {% if entry.after_summary %}
+                                <div>
+                                    <p class="text-xs ua-muted mb-1">Après</p>
+                                    <pre style="white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;background:#f8f8fd;padding:8px;border-radius:8px;max-height:220px;overflow:auto;margin:0;">{{ entry.after_summary|pretty_json }}</pre>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </details>
+                        {% else %}
+                        <span class="ua-muted">—</span>
+                        {% endif %}
+                    </td>
                     <td class="ua-muted text-xs">{{ entry.ip_address|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="ua-empty">Aucun événement enregistré</td></tr>
+                <tr><td colspan="6" class="ua-empty">Aucun événement enregistré pour ces critères</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    <div class="px-4 pb-4">{% include "dashboard/_pagination.html" %}</div>
 </section>
-
-{% if page.has_other_pages %}
-<div class="flex items-center justify-center gap-2 mt-5">
-    {% if page.has_previous %}
-    <a href="?page={{ page.previous_page_number }}" class="ua-btn ua-btn-ghost ua-btn-sm">Précédent</a>
-    {% endif %}
-    <span class="ua-badge ua-badge-indigo">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
-    {% if page.has_next %}
-    <a href="?page={{ page.next_page_number }}" class="ua-btn ua-btn-ghost ua-btn-sm">Suivant</a>
-    {% endif %}
-</div>
-{% endif %}
 {% endblock %}

@@ -14,7 +14,9 @@
     </div>
     <div class="flex flex-wrap gap-2">
         <a href="{% url 'core:dashboard:student-detail' enrollment.student.id %}" class="ua-btn ua-btn-light">{% icon "graduation" %} Fiche étudiant</a>
+        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:enrollment-edit' enrollment.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier</a>
+        {% endif %}
         <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Retour</a>
     </div>
 </div>
@@ -43,7 +45,11 @@
     <section class="ua-card ua-card-pad">
         <div class="flex items-center justify-between mb-4">
             <h2 class="ua-section-title">Paiements</h2>
+            {% if not is_elevated %}
+            {% if 'COMPTABLE' in user_roles or 'DIRECTION' in user_roles %}
             <a href="{% url 'core:dashboard:payment-create' %}?enrollment={{ enrollment.id }}" class="ua-btn ua-btn-primary ua-btn-sm">{% icon "credit-card" %} Encaisser</a>
+            {% endif %}
+            {% endif %}
         </div>
         {% for payment in payments %}
         <div class="ua-list-row">
@@ -73,4 +79,6 @@
     {% endfor %}
 </section>
 {% endif %}
+
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de l'inscription" audit_subtitle="Création et modifications de l'inscription." audit_empty="Aucun événement d'audit pour cette inscription." %}
 {% endblock %}

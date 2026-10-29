@@ -3,7 +3,6 @@ from datetime import time as dt_time, timedelta
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from django.utils import timezone
 
 from core.forms import SessionRecordForm
 from core.models import (

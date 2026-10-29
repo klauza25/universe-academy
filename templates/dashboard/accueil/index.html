@@ -12,12 +12,14 @@
 {{ open_prospects }} prospect{{ open_prospects|pluralize }} à suivre.
 {% endblock %}
 {% block hero_actions %}
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:visit-create' %}" class="ua-btn ua-btn-light">
     {% icon "user-plus" %} Enregistrer une visite
 </a>
 <a href="{% url 'core:dashboard:prospect-create' %}" class="ua-btn ua-btn-ghost">
     {% icon "users" %} Nouveau prospect
 </a>
+{% endif %}
 {% endblock %}
 
 {% block dashboard_content %}
@@ -85,6 +87,9 @@
                 <p class="text-xs ua-muted">Contrôle d'accès rapide</p>
             </div>
         </div>
+        {% if is_elevated %}
+        <p class="ua-empty">Consultation seule : l'enregistrement des passages relève du rôle accueil.</p>
+        {% else %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             {{ form.as_p }}
@@ -92,6 +97,7 @@
                 {% icon "check-circle" %} Enregistrer
             </button>
         </form>
+        {% endif %}
     </section>
 
     <section class="ua-card xl:col-span-2 overflow-hidden">

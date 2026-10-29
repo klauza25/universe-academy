@@ -13,9 +13,11 @@
         <h1 class="ua-page-title">Visites au centre</h1>
         <p class="ua-page-sub">Personnes reçues à l'accueil, présentes ou déjà reparties.</p>
     </div>
+    {% if not is_elevated %}
     <a href="{% url 'core:dashboard:visit-create' %}" class="ua-btn ua-btn-primary">
         {% icon "user-plus" %} Enregistrer une visite
     </a>
+    {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">

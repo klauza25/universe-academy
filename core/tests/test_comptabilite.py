@@ -5,8 +5,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.models import (
-    CashAccount, CashClosure, CashTransaction, Enrollment, Payment,
-    RoleKey, TransactionCategory,
+    CashAccount, CashClosure, CashTransaction, Enrollment, Expense, Payment,
+    RoleKey,
 )
 from core.views_comptabilite import account_balance
 
@@ -417,3 +417,75 @@ class AccountingPermissionTests(AccountingTestBase):
         client = self.client_for(self.etudiant)
         response = client.get(reverse('core:dashboard:transaction-create'))
         self.assertEqual(response.status_code, 403)
+
+
+class SingleSourceOfTruthTests(AccountingTestBase):
+    """Les soldes et indicateurs ne doivent exister qu'en un seul calcul."""
+
+    def test_account_balance_property_matches_the_shared_helper(self):
+        self.make_tx(amount=10000, account=self.cash)
+        self.make_tx(amount=4000, account=self.mobile)
+        self.make_tx(
+            tx_type=CashTransaction.Type.OUT, amount=3000, account=self.cash)
+        self.make_tx(
+            tx_type=CashTransaction.Type.TRANSFER, amount=2000,
+            account=self.cash, destination=self.mobile)
+
+        self.assertEqual(self.cash.balance, 5000)
+        self.assertEqual(self.mobile.balance, 6000)
+        for account in (self.cash, self.mobile):
+            with self.subTest(account=account.name):
+                self.assertEqual(account.balance, account_balance(account))
+                self.assertEqual(
+                    account.totals(),
+                    account.movement_totals(),
+                )
+
+    def test_balance_at_ignores_movements_after_the_cutoff(self):
+        self.make_tx(
+            amount=10000, occurred_at=timezone.now() - timedelta(days=2))
+        self.make_tx(amount=5000)
+        cutoff = self.today - timedelta(days=1)
+
+        self.assertEqual(self.cash.balance_at(cutoff), 10000)
+        self.assertEqual(self.cash.balance_at(self.today), 15000)
+
+    def test_comptabilite_dashboard_ignores_unlinked_payment_and_expense(self):
+        self.make_tx(amount=10000)
+        self.make_tx(tx_type=CashTransaction.Type.OUT, amount=3000)
+        Payment.objects.create(
+            enrollment=self.enrollment,
+            amount=5000,
+            method=Payment.Method.CASH,
+            status=Payment.Status.COMPLETED,
+            recorded_by=self.comptable,
+        )
+        Expense.objects.create(
+            category='Fournitures',
+            amount=7000,
+            occurred_at=self.today,
+            description='Dépense hors caisse',
+            created_by=self.comptable,
+        )
+
+        response = self.client.get(
+            reverse('core:dashboard:comptabilite-dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_revenue_month'], 10000)
+        self.assertEqual(response.context['total_expenses_month'], 3000)
+        self.assertEqual(response.context['net_month'], 7000)
+
+    def test_direction_dashboard_revenue_comes_from_cash_transactions(self):
+        self.make_tx(amount=10000)
+        Payment.objects.create(
+            enrollment=self.enrollment,
+            amount=5000,
+            method=Payment.Method.CASH,
+            status=Payment.Status.COMPLETED,
+            recorded_by=self.comptable,
+        )
+
+        client = self.client_for(self.direction)
+        response = client.get(reverse('core:dashboard:direction-dashboard'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['total_revenue'], 10000)

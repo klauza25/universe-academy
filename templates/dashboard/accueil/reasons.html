@@ -17,18 +17,23 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad">
+        {% if is_elevated %}
+        <h2 class="ua-section-title mb-4">Consultation</h2>
+        <p class="ua-empty">Consultation seule : la gestion des motifs relève du rôle accueil.</p>
+        {% else %}
         <h2 class="ua-section-title mb-4">Ajouter un motif</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
             {% include "dashboard/_form.html" with form=form %}
             <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "user-plus" %} Ajouter</button>
         </form>
+        {% endif %}
     </section>
 
     <section class="ua-card overflow-hidden xl:col-span-2">
         <div class="ua-table-wrap">
             <table class="ua-table">
-                <thead><tr><th>Motif</th><th>Ordre</th><th>Statut</th><th>Action</th></tr></thead>
+                <thead><tr><th>Motif</th><th>Ordre</th><th>Statut</th>{% if not is_elevated %}<th>Action</th>{% endif %}</tr></thead>
                 <tbody>
                     {% for reason in reasons %}
                     <tr>
@@ -38,6 +43,7 @@
                             {% if reason.active %}<span class="ua-badge ua-badge-green">Actif</span>
                             {% else %}<span class="ua-badge ua-badge-slate">Désactivé</span>{% endif %}
                         </td>
+                        {% if not is_elevated %}
                         <td>
                             <form method="post" action="{% url 'core:dashboard:visit-reason-toggle' reason.id %}">
                                 {% csrf_token %}
@@ -46,9 +52,10 @@
                                 </button>
                             </form>
                         </td>
+                        {% endif %}
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="ua-empty">Aucun motif.</td></tr>
+                    <tr><td colspan="{% if is_elevated %}3{% else %}4{% endif %}" class="ua-empty">Aucun motif.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -5,12 +5,14 @@
 <a href="{% url 'core:dashboard:student-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-list' or request.resolver_match.url_name == 'student-detail' or request.resolver_match.url_name == 'student-edit' %}is-active{% endif %}">
     {% icon "graduation" %}<span>Étudiants</span>
 </a>
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:student-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-create' %}is-active{% endif %}">
     {% icon "user-plus" %}<span>Nouvel étudiant</span>
 </a>
 <a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'enrollment-create' or request.resolver_match.url_name == 'enrollment-edit' %}is-active{% endif %}">
     {% icon "clipboard" %}<span>Nouvelle inscription</span>
 </a>
+{% endif %}
 <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'prospect-list' %}is-active{% endif %}">
     {% icon "users" %}<span>Prospects</span>
 </a>

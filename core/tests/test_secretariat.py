@@ -3,10 +3,9 @@ from datetime import timedelta
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from django.utils import timezone
 
 from core.models import (
-    Attendance, Contact, CourseSession, Enrollment, Payment, Prospect, RoleKey,
+    Contact, CourseSession, Enrollment, Payment, Prospect, RoleKey,
     StudentDocument, User,
 )
 

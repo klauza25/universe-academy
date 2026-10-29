@@ -66,15 +66,61 @@ Puis redémarrer le serveur. La page `/login/` affiche le composant Clerk
    - sinon par email (insensible à la casse), puis lié automatiquement — à
      condition que Clerk confirme que l'adresse est **vérifiée** (protection
      contre l'usurpation de compte) ;
-   - sinon un compte `PENDING_APPROVAL` est créé avec une demande d'accès,
-     conformément au workflow d'approbation existant.
-5. Django ouvre sa propre session : le reste de l'application (rôles,
+   - sinon un compte `PENDING_APPROVAL` est créé, **sans aucun rôle**. Les
+     métadonnées publiques de Clerk (`public_metadata`, `unsafe_metadata`,
+     `role`, etc.) ne sont jamais lues comme source d'autorité.
+5. Si l'utilisateur n'a pas encore indiqué de rôle demandé, il est redirigé
+   vers `/demande-acces/` pour compléter son identité et choisir un **rôle
+   demandé** (étudiant, formateur, secrétaire, comptable, responsable
+   pédagogique, accueil). Ce rôle est enregistré dans `AccessRequest`, jamais
+   dans `UserRole` : il ne donne aucun droit.
+6. Django ouvre sa propre session : le reste de l'application (rôles,
    tableaux de bord, audit) continue de fonctionner sans modification.
 
 La déconnexion ferme la session Django **et** la session Clerk, afin d'éviter
 une reconnexion silencieuse.
 
-## 6. Production
+## 6. Approbation et attribution du rôle effectif
+
+- Un compte `PENDING_APPROVAL` reste bloqué par `AccountStatusMiddleware` :
+  `/dashboard/...` redirige vers la page d'attente, aucun écran métier n'est
+  accessible.
+- Seul un **SUPER_ADMIN** (et non un ADMIN) peut approuver, refuser, suspendre
+  ou révoquer depuis `/dashboard/super-admin/access-requests/`
+  (`super_admin_required`).
+- À l'approbation, le SUPER_ADMIN choisit le rôle effectif. Le serveur
+  n'accepte que `REQUESTABLE_ROLES` (étudiant, formateur, secrétaire,
+  comptable, responsable pédagogique, accueil) : `SUPER_ADMIN`, `ADMIN` et
+  `DIRECTION` sont refusés même si la valeur est postée à la main. Un rôle
+  élevé s'attribue ensuite, séparément, depuis la fiche utilisateur.
+- L'approbation écrit `assigned_role` sur la demande, passe le compte en
+  `ACTIVE`, génère le code interne et envoie la notification. Le journal
+  d'audit conserve : demandeur, rôle demandé, rôle attribué, statut avant/après,
+  décideur, horodatage et note de décision.
+- Un utilisateur ne peut ni examiner sa propre demande (403), ni modifier son
+  propre rôle, ni changer son rôle/statut via le POST du profil.
+- Le rôle demandé n'est jamais considéré comme effectif ; les contrôles
+  d'accès lisent uniquement `UserRole` en base.
+
+## 7. Initialisation sécurisée du SUPER_ADMIN
+
+Aucun compte ne devient SUPER_ADMIN par inscription, par Clerk ou par défaut.
+Le premier super administrateur se crée avec une commande contrôlée :
+
+```powershell
+$env:SUPERADMIN_SETUP_SECRET = '<secret-long-et-unique>'
+$env:SUPERADMIN_EMAIL = 'vous@exemple.com'
+$env:SUPERADMIN_PASSWORD = '<mot-de-passe-fort>'
+.\env\Scripts\python.exe manage.py create_superadmin
+```
+
+La commande refuse de s'exécuter sans secret, crée un compte `ACTIVE`,
+`is_superuser=True`, avec le rôle `SUPER_ADMIN`, et n'écrit aucun mot de passe
+dans le journal d'audit. Ensuite, `manage.py audit_privileges` (lecture seule)
+signale les combinaisons à vérifier (SUPER_ADMIN lié à Clerk, compte non actif
+avec rôle élevé, rôle élevé sans `is_superuser`, etc.) sans rien modifier.
+
+## 8. Production
 
 - Passer les clés `pk_live_...` / `sk_live_...`.
 - Renseigner le domaine réel, par exemple :

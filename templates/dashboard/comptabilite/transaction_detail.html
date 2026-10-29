@@ -1,5 +1,5 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui core_tags %}
 
 {% block title %}{{ tx.reference }} — Opération{% endblock %}
 
@@ -12,7 +12,14 @@
         <h1 class="ua-page-title">{{ tx.reference }}</h1>
         <p class="ua-page-sub">{{ tx.label }} · {{ tx.amount }} FCFA</p>
     </div>
-    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Retour au journal</a>
+    <div class="flex flex-wrap gap-2">
+        {% if 'SUPER_ADMIN' in user_roles or 'ADMIN' in user_roles %}
+        <a href="{% url 'core:dashboard:finance-supervision' %}?q={{ tx.reference }}" class="ua-btn ua-btn-light">
+            {% icon "shield" %} Supervision financière
+        </a>
+        {% endif %}
+        <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Retour au journal</a>
+    </div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
@@ -36,7 +43,33 @@
             {% endif %}
             {% if student_payment %}
             <div><dt class="text-xs ua-muted">Paiement étudiant lié</dt>
-                <dd><a class="ua-cell-title" href="{% url 'core:dashboard:payment-receipt' student_payment.id %}">{{ student_payment.reference }}</a></dd>
+                <dd>
+                    <a class="ua-cell-title" href="{% url 'core:dashboard:payment-receipt' student_payment.id %}">{{ student_payment.reference }}</a>
+                    <p class="text-xs ua-muted mt-1">
+                        {{ student_payment.enrollment.student.display_label }} ·
+                        {{ student_payment.enrollment.session.course.title }} ·
+                        {{ student_payment.get_method_display }} ·
+                        {{ student_payment.get_status_display }} ·
+                        payé le {{ student_payment.paid_at|date:"d/m/Y H:i" }}
+                    </p>
+                    <p class="text-xs ua-muted">Reste à payer sur le dossier : {{ student_payment.enrollment.balance_due }} FCFA</p>
+                </dd>
+            </div>
+            {% endif %}
+            {% if expense %}
+            <div><dt class="text-xs ua-muted">Dépense liée</dt>
+                <dd>
+                    {{ expense.category }} · {{ expense.status }}
+                    <p class="text-xs ua-muted mt-1">{{ expense.description|truncatechars:160 }}</p>
+                    {% if expense.receipt %}
+                    <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ expense.receipt.url }}" target="_blank" rel="noopener">Justificatif de la dépense</a>
+                    {% endif %}
+                </dd>
+            </div>
+            {% endif %}
+            {% if student_payment or expense %}
+            <div><dt class="text-xs ua-muted">Origine</dt>
+                <dd>{% if student_payment %}Paiement étudiant (module Comptabilité){% else %}Dépense enregistrée{% endif %} — une seule transaction, aucun doublon</dd>
             </div>
             {% endif %}
         </dl>
@@ -44,7 +77,9 @@
 
     <section class="ua-card ua-card-pad">
         <h2 class="ua-section-title mb-4">Correction / annulation</h2>
-        {% if tx.status == 'CANCELLED' %}
+        {% if is_elevated %}
+        <p class="ua-empty">Consultation seule : l'annulation d'une opération relève de la comptabilité.</p>
+        {% elif tx.status == 'CANCELLED' %}
         <p class="ua-empty">Cette opération est déjà annulée. Son historique est conservé.</p>
         {% else %}
         <form method="post" class="ua-form">
@@ -60,4 +95,6 @@
         {% endif %}
     </section>
 </div>
+
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_subtitle="Création, corrections et annulation enregistrées dans le journal d'audit." audit_empty="Aucun événement d'audit pour cette opération." %}
 {% endblock %}

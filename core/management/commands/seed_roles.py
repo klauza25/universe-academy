@@ -26,14 +26,7 @@ PERMISSIONS = [
 
 ROLE_PERMISSIONS = {
     'SUPER_ADMIN': [p[0] for p in PERMISSIONS],
-    'ADMIN': [
-        'users.read', 'users.create', 'users.edit',
-        'students.read', 'students.write',
-        'formations.read', 'formations.write',
-        'attendance.read', 'finance.read',
-        'scholarship.read', 'scholarship.review',
-        'access_events.read',
-    ],
+    'ADMIN': [p[0] for p in PERMISSIONS],
     'DIRECTION': [
         'users.read', 'students.read', 'formations.read',
         'attendance.read', 'finance.read',

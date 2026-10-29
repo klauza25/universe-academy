@@ -11,12 +11,14 @@
 {{ total_expenses_month|floatformat:0 }} FCFA de dépenses enregistrées.
 {% endblock %}
 {% block hero_actions %}
+{% if not is_elevated %}
 <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-light">
     {% icon "credit-card" %} Encaisser un paiement
 </a>
 <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-ghost">
     {% icon "wallet" %} Nouvelle opération
 </a>
+{% endif %}
 {% endblock %}
 {% block hero_aside %}
 <div class="ua-hero-card">
@@ -51,7 +53,9 @@
         <p class="ua-empty">Aucune caisse active.</p>
         {% endfor %}
         <div class="mt-4 text-xs ua-muted">Clôtures aujourd'hui : {{ closure_today }}</div>
+        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-light w-full justify-center mt-3">{% icon "check-circle" %} Clôturer une caisse</a>
+        {% endif %}
     </section>
 
     <section class="ua-card overflow-hidden xl:col-span-2">
@@ -91,9 +95,11 @@
             <h2 class="ua-section-title">Paiements étudiants récents</h2>
             <p class="text-xs ua-muted mt-1">Les 10 derniers encaissements</p>
         </div>
+        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
             {% icon "credit-card" %} Nouveau
         </a>
+        {% endif %}
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">

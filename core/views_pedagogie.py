@@ -8,13 +8,13 @@ from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .decorators import role_required
+from .decorators import business_write_required, role_required
 from .forms import (
     LessonForm, ModuleForm, ResourceForm, SessionRecordForm,
 )
 from .models import (
-    Attendance, Course, CourseSession, Enrollment, Lesson, Module, Resource,
-    RoleKey, SessionRecord,
+    Attendance, AuditLog, Course, CourseSession, Enrollment, Lesson, Module,
+    Resource, RoleKey, SessionRecord,
 )
 from .utils import log_audit
 
@@ -23,7 +23,7 @@ MANAGE_ROLES = ('FORMATEUR', 'RESP_PEDA', 'DIRECTION')
 
 
 def _is_manager(user):
-    return user.has_any_role('SUPER_ADMIN', 'RESP_PEDA', 'DIRECTION')
+    return user.has_any_role('SUPER_ADMIN', 'ADMIN', 'RESP_PEDA', 'DIRECTION')
 
 
 def _can_access_session(user, session):
@@ -39,7 +39,9 @@ def _my_sessions(user):
 
 
 def _can_manage_record(user, record):
-    if _is_manager(user):
+    if user.is_elevated:
+        return False
+    if user.has_any_role('RESP_PEDA', 'DIRECTION'):
         return True
     if user.has_role('FORMATEUR'):
         return record.session.formateurs.filter(id=user.id).exists()
@@ -68,13 +70,13 @@ def program_list(request):
         )
     return render(request, 'dashboard/pedagogie/programs.html', {
         'courses': courses,
-        'can_manage': request.user.has_any_role(
-            'RESP_PEDA', 'DIRECTION', 'SUPER_ADMIN'
+        'can_manage': not request.user.is_elevated and request.user.has_any_role(
+            'RESP_PEDA', 'DIRECTION'
         ),
     })
 
 
-@role_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('RESP_PEDA', 'DIRECTION')
 def module_create(request):
     form = ModuleForm()
     if request.method == 'POST':
@@ -91,7 +93,7 @@ def module_create(request):
     })
 
 
-@role_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('RESP_PEDA', 'DIRECTION')
 def module_edit(request, module_id):
     module = get_object_or_404(Module, id=module_id)
     form = ModuleForm(instance=module)
@@ -108,7 +110,7 @@ def module_edit(request, module_id):
     })
 
 
-@role_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('RESP_PEDA', 'DIRECTION')
 def lesson_create(request):
     form = LessonForm()
     module_id = request.GET.get('module')
@@ -128,7 +130,7 @@ def lesson_create(request):
     })
 
 
-@role_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('RESP_PEDA', 'DIRECTION')
 def lesson_edit(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     form = LessonForm(instance=lesson)
@@ -181,7 +183,7 @@ def session_record_list(request):
     })
 
 
-@role_required(*MANAGE_ROLES)
+@business_write_required(*MANAGE_ROLES)
 def session_record_create(request, session_id):
     session = get_object_or_404(
         CourseSession.objects.select_related('course'), id=session_id
@@ -266,6 +268,9 @@ def session_record_detail(request, record_id):
         'can_manage': can_manage,
         'attendances': attendances,
         'summary': summary,
+        'audit_entries': AuditLog.objects.filter(
+            entity_type='SessionRecord', entity_id=str(record.id),
+        ).select_related('actor').order_by('-created_at')[:20],
     })
 
 
@@ -483,7 +488,7 @@ def progression_overview(request):
 # ---------------------------------------------------------------------------
 
 def _resource_access(user, resource, student=False):
-    if user.has_any_role('SUPER_ADMIN', 'RESP_PEDA', 'DIRECTION'):
+    if user.has_any_role('SUPER_ADMIN', 'ADMIN', 'RESP_PEDA', 'DIRECTION'):
         return True
     if user.has_role('FORMATEUR'):
         return resource.author_id == user.id or (
@@ -538,7 +543,7 @@ def resource_list(request):
     })
 
 
-@role_required(*MANAGE_ROLES)
+@business_write_required(*MANAGE_ROLES)
 def resource_create(request):
     course = None
     course_id = request.GET.get('course')
@@ -568,7 +573,7 @@ def resource_create(request):
     })
 
 
-@role_required(*MANAGE_ROLES)
+@business_write_required(*MANAGE_ROLES)
 def resource_edit(request, resource_id):
     resource = get_object_or_404(Resource, id=resource_id)
     if not _resource_access(request.user, resource):

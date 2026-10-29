@@ -63,6 +63,12 @@
 
             <div class="ua-topbar-right">
                 <span class="ua-chip">{% icon "calendar" %} {% now "D d M Y" %}</span>
+                {% if is_platform_admin %}
+                <a href="{% url 'core:dashboard:admin-dashboard' %}" class="ua-icon-btn"
+                   title="Pilotage général" aria-label="Pilotage général">
+                    {% icon "grid" %}
+                </a>
+                {% endif %}
                 <a href="{% url 'core:home' %}" class="ua-icon-btn" title="Site public" aria-label="Site public">
                     {% icon "home" %}
                 </a>

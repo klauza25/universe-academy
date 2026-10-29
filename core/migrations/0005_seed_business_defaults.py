@@ -88,6 +88,11 @@ def seed(apps, schema_editor):
 
     for payment in Payment.objects.filter(status='COMPLETED', transaction__isnull=True):
         account = mobile if payment.method == 'MOBILE_MONEY' else cash
+        student = payment.enrollment.student
+        student_name = (
+            f"{student.first_name} {student.last_name}".strip()
+            or student.email
+        )
         tx = CashTransaction.objects.create(
             reference=next_ref(),
             tx_type='IN',
@@ -98,7 +103,7 @@ def seed(apps, schema_editor):
             occurred_at=payment.paid_at,
             account=account,
             method=payment.method,
-            counterparty=str(payment.enrollment.student),
+            counterparty=student_name,
             status='VALIDATED',
             created_by=payment.recorded_by,
         )

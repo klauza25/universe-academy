@@ -42,6 +42,7 @@ def user_profile_context(request):
             request.user.avatar.url if request.user.avatar else ''
         )
         ctx['greeting'] = _greeting()
+        ctx['is_elevated'] = request.user.is_elevated
         ctx['can_manage_users'] = request.user.has_any_role(
             'SUPER_ADMIN', 'ADMIN'
         )
