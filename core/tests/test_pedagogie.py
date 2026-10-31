@@ -7,7 +7,7 @@ from django.urls import reverse
 from core.forms import SessionRecordForm
 from core.models import (
     Attendance, Course, CourseSession, Enrollment, Lesson, Module, Resource,
-    RoleKey, SessionRecord, StudentSessionNote,
+    ResourceFeedback, RoleKey, SessionRecord, StudentSessionNote,
 )
 
 from .base import BusinessTestBase
@@ -104,10 +104,53 @@ class ProgramTests(PedagogyTestBase):
         lesson = Lesson.objects.get(title='Sélecteurs CSS')
         self.assert_audited('LESSON_CREATE', lesson.pk)
 
-    def test_trainer_cannot_create_module(self):
-        response = self.trainer_client.get(
-            reverse('core:dashboard:module-create'))
-        self.assertEqual(response.status_code, 403)
+    def test_trainer_can_create_module(self):
+        response = self.trainer_client.post(
+            reverse('core:dashboard:module-create'),
+            {
+                'course': self.course.pk,
+                'title': 'Module JavaScript',
+                'description': 'Interactivité côté client',
+                'order': 3,
+                'planned_hours': 12,
+            },
+        )
+        self.assertRedirects(
+            response, reverse('core:dashboard:programs'),
+            fetch_redirect_response=False,
+        )
+        module = Module.objects.get(title='Module JavaScript')
+        self.assertEqual(module.course, self.course)
+        self.assert_audited('MODULE_CREATE', module.pk)
+
+    def test_trainer_can_edit_module(self):
+        module = Module.objects.create(
+            course=self.course, title='Module v1', order=1, planned_hours=10,
+        )
+        response = self.trainer_client.post(
+            reverse('core:dashboard:module-edit', args=[module.pk]),
+            {
+                'course': self.course.pk,
+                'title': 'Module v2',
+                'description': '',
+                'order': 1,
+                'planned_hours': 14,
+            },
+        )
+        self.assertRedirects(
+            response, reverse('core:dashboard:programs'),
+            fetch_redirect_response=False,
+        )
+        module.refresh_from_db()
+        self.assertEqual(module.title, 'Module v2')
+        self.assertEqual(module.planned_hours, 14)
+        self.assert_audited('MODULE_EDIT', module.pk)
+
+    def test_trainer_sees_manage_buttons_on_programs(self):
+        response = self.trainer_client.get(reverse('core:dashboard:programs'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response, reverse('core:dashboard:module-create'))
 
 
 class SessionRecordTests(PedagogyTestBase):
@@ -715,3 +758,87 @@ class CourseSessionGroupTests(PedagogyTestBase):
         self.assertEqual(self.session.capacity, 42)
         self.assertEqual(self.session.status, CourseSession.Status.ACTIVE)
         self.assert_audited('COURSE_SESSION_EDIT', self.session.pk)
+
+
+class ResourceFeedbackTests(PedagogyTestBase):
+    """Retour de l'étudiant sur une ressource publiée."""
+
+    def setUp(self):
+        super().setUp()
+        self.resource = self.make_resource()
+        self.feedback_url = reverse(
+            'core:dashboard:resource-feedback', args=[self.resource.pk])
+        self.view_url = reverse(
+            'core:dashboard:resource-view', args=[self.resource.pk])
+        self.student_client = self.client_for(self.etudiant)
+
+    def feedback_payload(self, **overrides):
+        payload = {'rating': '4', 'comment': 'Très clair, merci.'}
+        payload.update(overrides)
+        return payload
+
+    def test_student_can_post_feedback(self):
+        response = self.student_client.post(
+            self.feedback_url, self.feedback_payload())
+        self.assertRedirects(
+            response, self.view_url, fetch_redirect_response=False)
+        feedback = ResourceFeedback.objects.get(
+            resource=self.resource, student=self.etudiant)
+        self.assertEqual(feedback.rating, 4)
+        self.assertEqual(feedback.comment, 'Très clair, merci.')
+        self.assert_audited('RESOURCE_FEEDBACK', self.resource.pk)
+
+    def test_student_updates_own_feedback_instead_of_duplicating(self):
+        self.student_client.post(self.feedback_url, self.feedback_payload())
+        self.student_client.post(self.feedback_url, self.feedback_payload(
+            rating='5', comment='Finalement excellent.'))
+        rows = ResourceFeedback.objects.filter(
+            resource=self.resource, student=self.etudiant)
+        self.assertEqual(rows.count(), 1)
+        self.assertEqual(rows.get().rating, 5)
+        self.assertEqual(rows.get().comment, 'Finalement excellent.')
+
+    def test_feedback_requires_rating_or_comment(self):
+        response = self.student_client.post(
+            self.feedback_url, {'rating': '', 'comment': ''})
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(
+            response, "Donnez une note", status_code=400)
+        self.assertFalse(ResourceFeedback.objects.exists())
+
+    def test_trainer_sees_student_feedback(self):
+        self.student_client.post(self.feedback_url, self.feedback_payload())
+        response = self.trainer_client.get(self.view_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Très clair, merci.')
+        self.assertContains(response, '4 / 5')
+
+    def test_admin_and_super_admin_see_feedback_readonly(self):
+        self.student_client.post(self.feedback_url, self.feedback_payload())
+        for user in (self.admin, self.super_admin):
+            with self.subTest(role=user.primary_role):
+                client = self.client_for(user)
+                response = client.get(self.view_url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'Très clair, merci.')
+                self.assertEqual(
+                    client.post(
+                        self.feedback_url, self.feedback_payload()).status_code,
+                    403,
+                )
+
+    def test_trainer_cannot_post_feedback(self):
+        response = self.trainer_client.post(
+            self.feedback_url, self.feedback_payload())
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ResourceFeedback.objects.exists())
+
+    def test_student_cannot_feedback_on_foreign_resource(self):
+        other_course = Course.objects.create(
+            title='Espagnol', domain='Langues', fee_amount=50000,
+        )
+        foreign = self.make_resource(title='Cours espagnol', course=other_course)
+        url = reverse('core:dashboard:resource-feedback', args=[foreign.pk])
+        response = self.student_client.post(url, self.feedback_payload())
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(ResourceFeedback.objects.exists())

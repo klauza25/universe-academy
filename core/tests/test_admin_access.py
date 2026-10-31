@@ -128,19 +128,27 @@ class AdminRestrictedWriteTests(BusinessTestBase):
         self.assertEqual(response.status_code, 403)
         self.assertFalse(self.secretaire.has_role(RoleKey.COMPTABLE))
 
-    def test_admin_cannot_review_access_requests(self):
+    def test_admin_can_review_access_requests(self):
         applicant = self.make_user(
             RoleKey.ETUDIANT, 'demande@test.local',
             status=AccountStatus.PENDING_APPROVAL,
         )
-        access_request = AccessRequest.objects.create(user=applicant)
-        response = self.client.get(reverse(
+        access_request = AccessRequest.objects.create(
+            user=applicant, requested_role=RoleKey.ETUDIANT,
+        )
+        response = self.client.post(reverse(
             'core:dashboard:access-request-review',
-            args=[access_request.id]))
-        self.assertEqual(response.status_code, 403)
+            args=[access_request.id]),
+            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT})
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
         applicant.refresh_from_db()
-        self.assertEqual(applicant.account_status,
-                         AccountStatus.PENDING_APPROVAL)
+        access_request.refresh_from_db()
+        self.assertEqual(applicant.account_status, AccountStatus.ACTIVE)
+        self.assertEqual(
+            access_request.status, AccessRequest.Status.APPROVED)
 
 
 class SuperAdminKeepsExclusiveActionsTests(BusinessTestBase):

@@ -67,7 +67,8 @@
                         <div class="flex gap-2">
                             {% if not is_elevated %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-edit' resource.id %}">Modifier</a>{% endif %}
                             {% if resource.file %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">Fichier</a>{% endif %}
-                            {% if resource.html_content %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>{% endif %}
+                            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>
+                            {% if resource.feedback_count %}<a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">{{ resource.feedback_count }} avis</a>{% endif %}
                         </div>
                     </td>
                 </tr>

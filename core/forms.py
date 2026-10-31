@@ -7,7 +7,7 @@ from .models import (
     Payment, Attendance, AccessEvent, AccountStatus, RoleKey,
     REQUESTABLE_ROLE_CHOICES,
     Contact, Visit, VisitReason, Prospect, ProspectFollowUp,
-    Module, Lesson, SessionRecord, Resource, StudentDocument,
+    Module, Lesson, SessionRecord, Resource, ResourceFeedback, StudentDocument,
     CashAccount, CashTransaction, CashClosure, TransactionCategory,
     StudentSessionNote,
 )
@@ -1062,6 +1062,39 @@ class ResourceForm(forms.ModelForm):
         lesson = cleaned.get('lesson')
         if module and lesson and lesson.module_id != module.id:
             self.add_error('lesson', "Cette leçon n'appartient pas au module choisi.")
+        return cleaned
+
+
+class ResourceFeedbackForm(forms.ModelForm):
+    """Retour de l'étudiant sur une ressource publiée."""
+
+    rating = forms.ChoiceField(
+        label="Ma note",
+        choices=[('', '— Sans note —')] + [(str(i), f"{i} / 5") for i in range(1, 6)],
+        required=False,
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+    )
+
+    class Meta:
+        model = ResourceFeedback
+        fields = ['rating', 'comment']
+        labels = {
+            'comment': 'Mon retour',
+        }
+        widgets = {
+            'comment': forms.Textarea(
+                attrs={'class': INPUT_CLASS, 'rows': 4,
+                       'placeholder': "Ce que j'ai compris, ce qui m'a aidé, "
+                                      "mes questions au formateur…"},
+            ),
+        }
+
+    def clean(self):
+        cleaned = super().clean()
+        if not cleaned.get('rating') and not (cleaned.get('comment') or '').strip():
+            raise forms.ValidationError(
+                "Donnez une note ou écrivez un retour."
+            )
         return cleaned
 
 

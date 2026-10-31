@@ -3,7 +3,13 @@
 
 {% block title %}Étudiants — Univers Academy{% endblock %}
 
-{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block sidebar_nav %}
+{% if 'COMPTABLE' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
+    {% include "dashboard/comptabilite/_nav.html" %}
+{% else %}
+    {% include "dashboard/secretaire/_nav.html" %}
+{% endif %}
+{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
@@ -12,7 +18,7 @@
         <h1 class="ua-page-title">Étudiants</h1>
         <p class="ua-page-sub">Dossiers administratifs et inscriptions.</p>
     </div>
-    {% if not is_elevated %}
+    {% if not is_elevated and 'COMPTABLE' not in user_roles %}
     <a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-primary">
         {% icon "user-plus" %} Nouvel étudiant
     </a>

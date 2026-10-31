@@ -82,7 +82,7 @@
                     </td>
                     <td>
                         {% if ar.status == 'PENDING' %}
-                            {% if 'SUPER_ADMIN' in user_roles %}
+                            {% if 'SUPER_ADMIN' in user_roles or 'ADMIN' in user_roles %}
                             <form method="post" action="{% url 'core:dashboard:access-request-review' ar.id %}"
                                   class="flex flex-wrap gap-2 items-center">
                                 {% csrf_token %}
@@ -105,7 +105,7 @@
                                 </button>
                             </form>
                             {% else %}
-                            <span class="ua-muted text-xs">Validation réservée au super administrateur</span>
+                            <span class="ua-muted text-xs">Validation réservée à la supervision</span>
                             {% endif %}
                         {% else %}
                             <p class="ua-cell-sub">

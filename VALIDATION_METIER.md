@@ -1,8 +1,8 @@
 # Validation métier — Univers Academy
 
 Document de suivi des fonctionnalités implémentées et des tests automatisés.
-Dernière exécution : **29/10/2026** — `python manage.py test core.tests` :
-**225 tests, 0 échec** (19,3 s sur la base de test).
+Dernière exécution : **31/10/2026** — `python manage.py test core.tests` :
+**242 tests, 0 échec** (19 s sur la base de test).
 
 ## 1. Comment lancer les tests
 
@@ -39,11 +39,17 @@ production.
   `AccessRequest.requested_role` et ne donne aucun droit.
 - Un compte en attente est bloqué par `AccountStatusMiddleware` : accès refusé
   aux tableaux de bord et à tout écran métier jusqu'à décision.
-- Seul un SUPER_ADMIN peut approuver, refuser, suspendre ou révoquer
-  (`super_admin_required`). À l'approbation, il choisit le rôle effectif parmi
-  `REQUESTABLE_ROLES` (étudiant, formateur, secrétaire, comptable, responsable
-  pédagogique, accueil) ; SUPER_ADMIN, ADMIN et DIRECTION sont refusés côté
-  serveur même si la valeur est forgée dans le POST.
+- Un SUPER_ADMIN ou un ADMIN peut approuver ou refuser une demande d'accès
+  (`access_request_review`). L'écran affiche le **rôle suggéré** à la création
+  du compte (colonne « Rôle » et liste déroulante présélectionnée) ; le
+  décideur valide ce rôle ou en choisit un autre parmi `REQUESTABLE_ROLES`
+  (étudiant, formateur, secrétaire, comptable, responsable pédagogique,
+  accueil). SUPER_ADMIN, ADMIN et DIRECTION sont refusés côté serveur même si
+  la valeur est forgée dans le POST.
+- Le tableau de bord ADMIN affiche un panneau « Demandes d'accès en attente »
+  avec le rôle suggéré de chaque demandeur.
+- La création/modification de comptes et l'attribution de rôles (écran
+  « Utilisateurs ») restent réservées au SUPER_ADMIN.
 - La demande conserve `assigned_role`, le décideur, l'horodatage et la note ;
   `AuditLog` enregistre l'action `ACCESS_APPROVE` / `ACCESS_REJECT` avec le
   demandeur, le rôle demandé, le rôle attribué et le statut avant/après.
@@ -75,9 +81,13 @@ production.
 - Création/modification d'inscriptions avec tarif, remise et montant net.
 - Dépôt de documents (10 Mo max) et téléchargement contrôlé (propriétaire,
   secrétariat, direction, comptabilité, super admin).
+- La comptabilité consulte la liste des inscrits et les fiches étudiant en
+  lecture seule (aucune écriture sur le dossier, boutons masqués).
 
 ### Pédagogie (responsable pédagogique / formateur)
-- Programmes : modules et leçons (création, modification).
+- Programmes : modules et leçons (création, modification) par le formateur, le
+  responsable pédagogique et la direction ; les rôles élevés consultent sans
+  écrire. Chaque création / modification est auditée.
 - Groupes de formation (`CourseSession`) : écran `pedagogie/groupes/` listant
   les groupes visibles (période, horaires, formateurs affectés, inscrits /
   capacité, statut), avec création et modification (formation, dates,
@@ -100,6 +110,13 @@ production.
 - Ressources : support de cours, exercice, devoir ; fichier ou contenu HTML ;
   brouillon/publié/archivé ; visibilité limitée aux étudiants inscrits au
   cours (et au groupe lorsque la ressource est rattachée à une session).
+- Retour étudiant sur une ressource publiée (`ResourceFeedback`) : note de 1 à
+  5 et/ou commentaire, soumis depuis la page de lecture ; un étudiant met à
+  jour son propre retour sans doublon, uniquement sur les ressources de ses
+  formations. Les retours sont visibles du formateur (auteur ou affecté au
+  groupe), du responsable pédagogique, de la direction et de l'administrateur
+  (lecture seule : 403 côté serveur sur la soumission) ; chaque retour est
+  audité (`RESOURCE_FEEDBACK`).
 - Espace étudiant : ressources publiées et historique de ses présences.
 - Cahier de texte du formateur : après chaque séance, le formateur renseigne
   les notions enseignées, les horaires réellement assurés et le nombre
@@ -130,6 +147,9 @@ production.
   un paiement partiel ne solde pas le dossier.
 - Reçu imprimable (HTML) accessible au comptable, au secrétariat, à la
   direction et à l'étudiant propriétaire.
+- Liste des inscrits accessible en consultation à la comptabilité (les
+  étudiants apparaissent dès la validation de leur compte, code interne
+  `UA-ETU-xxxx` généré automatiquement).
 
 ### Direction / super administrateur
 - Tableaux de bord par rôle et routage automatique selon le rôle principal.
@@ -210,13 +230,17 @@ production.
   journal d'audit).
 - Les actes sensibles restent réservés au `SUPER_ADMIN` via
   `super_admin_required` : création et modification d'un compte, attribution ou
-  retrait de rôle, validation/refus d'une demande d'accès.
-- Ces actions ne sont pas affichées à un `ADMIN` (boutons « Créer un compte »,
-  « Modifier », formulaire d'approbation), qui voit un état en lecture seule.
+  retrait de rôle. La validation/refus des demandes d'accès est partagée avec
+  l'ADMIN (`access_request_review`), toujours limitée à `REQUESTABLE_ROLES`.
+- Les actions SUPER_ADMIN ne sont pas affichées à un `ADMIN` (boutons
+  « Créer un compte », « Modifier ») ; le formulaire d'approbation des
+  demandes d'accès lui est en revanche affiché, avec le rôle suggéré
+  présélectionné et modifiable.
 - Tableau de bord ADMIN : indicateurs consolidés — étudiants actifs, demandes
   en attente, formateurs, formations actives, entrées et sorties du mois, solde
   total des caisses, reste à recouvrer des inscriptions en cours, détail des
-  soldes par caisse.
+  soldes par caisse — et panneau « Demandes d'accès en attente » avec le rôle
+  suggéré de chaque demandeur.
 - Techniquement : `ELEVATED_ROLES` / `User.is_elevated` ouvrent `role_required`
   et `permission_required` aux rôles `SUPER_ADMIN` et ADMIN ; le menu
   back-office est mutualisé dans `dashboard/admin/_nav.html` (Tableau de bord,
@@ -259,18 +283,18 @@ production.
 | Fichier | Tests | Périmètre |
 |---|---:|---|
 | `core/tests/test_public.py` | 16 | Landing, login local prioritaire devant Clerk, code interne, inscription avec rôle demandé, refus d'un rôle élevé, comptes en attente/suspendus, déconnexion |
-| `core/tests/test_auth_roles.py` | 22 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus réservés au SUPER_ADMIN, rôles élevés refusés, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
+| `core/tests/test_auth_roles.py` | 27 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus par SUPER_ADMIN et ADMIN (rôle suggéré présélectionné, modifiable ; rôles élevés refusés), étudiant approuvé listé dans les inscrits côté comptable, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
 | `core/tests/test_profile.py` | 13 | Profil, avatar (upload, suppression, service protégé, fichier absent), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
 | `core/tests/test_accueil.py` | 14 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche |
 | `core/tests/test_secretariat.py` | 15 | Étudiants, conversion prospect, inscriptions, remises, doublons, documents |
-| `core/tests/test_pedagogie.py` | 44 | Modules/leçons, groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances, validations, présences, non-écrasement, ressources, accès étudiant, fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
-| `core/tests/test_comptabilite.py` | 28 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, source unique des soldes et indicateurs |
+| `core/tests/test_pedagogie.py` | 53 | Modules/leçons (création et modification par formateur, resp. pédagogique et direction ; rôles élevés en lecture), groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances, validations, présences, non-écrasement, ressources, accès étudiant, retour étudiant sur ressource (soumission, mise à jour sans doublon, validation, lecture par formateur/admin, refus formateur et rôles élevés en écriture), fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
+| `core/tests/test_comptabilite.py` | 31 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, liste des inscrits en consultation (nav, fiche en lecture, écritures refusées), source unique des soldes et indicateurs |
 | `core/tests/test_permissions.py` | 29 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier (exception : édition d'inscription ouverte aux rôles élevés), décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
 | `core/tests/test_supervision.py` | 10 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, calcul du reste à recouvrer dossier par dossier, historique de transaction, filtres et rendu du journal d'audit |
-| `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources ; refus (403) sur création/édition de comptes, attribution de rôles et revue de demande d'accès |
+| `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources, revue des demandes d'accès ; refus (403) sur création/édition de comptes et attribution de rôles |
 | `core/tests/test_audit_finances.py` | 3 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse |
 | `core/tests/test_user_access.py` | 22 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif |
-| **Total** | **225** | |
+| **Total** | **242** | |
 
 Points explicitement vérifiés :
 

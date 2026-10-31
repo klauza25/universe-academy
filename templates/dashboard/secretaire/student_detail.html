@@ -3,7 +3,13 @@
 
 {% block title %}{{ student.get_full_name|default:student.email }} — Étudiant{% endblock %}
 
-{% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
+{% block sidebar_nav %}
+{% if 'COMPTABLE' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
+    {% include "dashboard/comptabilite/_nav.html" %}
+{% else %}
+    {% include "dashboard/secretaire/_nav.html" %}
+{% endif %}
+{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
@@ -13,7 +19,7 @@
         <p class="ua-page-sub">{{ student.internal_code|default:"—" }} · {{ student.email }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        {% if not is_elevated %}
+        {% if not is_elevated and 'COMPTABLE' not in user_roles %}
         <a href="{% url 'core:dashboard:student-edit' student.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier la fiche</a>
         <a href="{% url 'core:dashboard:enrollment-create' %}?student={{ student.id }}" class="ua-btn ua-btn-light">{% icon "clipboard" %} Nouvelle inscription</a>
         {% endif %}

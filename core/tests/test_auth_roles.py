@@ -310,6 +310,73 @@ class AccessApprovalTests(BusinessTestBase):
                     entity_id=str(self.access_request.id),
                 ).exists())
 
+    def test_admin_can_approve_with_suggested_role(self):
+        response = self.client_for(self.admin).post(
+            reverse('core:dashboard:access-request-review',
+                    args=[self.access_request.id]),
+            {'decision': 'approve', 'role_key': RoleKey.FORMATEUR},
+        )
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
+        self.access_request.refresh_from_db()
+        self.assertEqual(
+            self.access_request.status, AccessRequest.Status.APPROVED
+        )
+        self.assertEqual(self.access_request.reviewed_by, self.admin)
+
+    def test_admin_can_modify_suggested_role_on_approval(self):
+        response = self.client_for(self.admin).post(
+            reverse('core:dashboard:access-request-review',
+                    args=[self.access_request.id]),
+            {'decision': 'approve', 'role_key': RoleKey.COMPTABLE},
+        )
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
+        self.access_request.refresh_from_db()
+        self.pending.refresh_from_db()
+        self.assertEqual(self.access_request.assigned_role, RoleKey.COMPTABLE)
+        self.assertTrue(self.pending.has_role(RoleKey.COMPTABLE))
+        self.assertTrue(self.pending.internal_code.startswith('UA-CPT'))
+
+    def test_admin_review_refuses_privileged_roles(self):
+        response = self.client_for(self.admin).post(
+            reverse('core:dashboard:access-request-review',
+                    args=[self.access_request.id]),
+            {'decision': 'approve', 'role_key': RoleKey.ADMIN},
+        )
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
+        self.access_request.refresh_from_db()
+        self.assertEqual(
+            self.access_request.status, AccessRequest.Status.PENDING
+        )
+        self.assertFalse(self.pending.roles.exists())
+
+    def test_admin_sees_suggested_role_on_review_list(self):
+        response = self.client_for(self.admin).get(
+            reverse('core:dashboard:access-requests'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'value="FORMATEUR" selected')
+        self.assertContains(response, 'Approuver')
+
+    def test_approved_student_appears_in_inscrits_for_comptable(self):
+        self.access_request.requested_role = RoleKey.ETUDIANT
+        self.access_request.save(update_fields=['requested_role'])
+        self.approve(RoleKey.ETUDIANT)
+        self.pending.refresh_from_db()
+        response = self.client_for(self.comptable).get(
+            reverse('core:dashboard:student-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Postulant Test')
+        self.assertTrue(
+            self.pending.internal_code.startswith('UA-ETU'))
+
     def test_rejection_blocks_access_and_keeps_trace(self):
         response = self.client_for(self.super_admin).post(
             reverse('core:dashboard:access-request-review',

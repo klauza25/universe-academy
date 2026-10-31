@@ -5,7 +5,7 @@ from .models import (
     AccessRequest, Course, CourseSession, Enrollment,
     Attendance, Payment, Expense,
     ScholarshipApplication, ScholarshipDocument, Destination,
-    AccessEvent, Notification, AuditLog, Certificate,
+    AccessEvent, Notification, AuditLog, Certificate, ResourceFeedback,
 )
 
 
@@ -15,12 +15,19 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('account_status', 'roles')
     search_fields = ('email', 'first_name', 'last_name', 'internal_code', 'clerk_user_id')
     ordering = ('-date_joined',)
+    readonly_fields = ('internal_code',)
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Univers Academy', {
             'fields': ('internal_code', 'account_status', 'phone', 'address',
                        'birth_date', 'clerk_user_id')
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        # Le code interne est toujours généré automatiquement, jamais saisi.
+        if not obj.internal_code:
+            obj.generate_internal_code(obj.primary_role)
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Role)
@@ -97,3 +104,4 @@ admin.site.register(Expense)
 admin.site.register(AccessEvent)
 admin.site.register(Notification)
 admin.site.register(Certificate)
+admin.site.register(ResourceFeedback)

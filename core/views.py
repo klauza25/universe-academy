@@ -694,7 +694,7 @@ def access_requests_list(request):
     })
 
 
-@super_admin_required
+@role_required('SUPER_ADMIN', 'ADMIN')
 def access_request_review(request, request_id):
     ar = get_object_or_404(
         AccessRequest.objects.select_related('user'), id=request_id
@@ -927,6 +927,9 @@ def admin_dashboard(request):
         'pending_requests': AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING
         ).count(),
+        'pending_access_requests': AccessRequest.objects.select_related(
+            'user'
+        ).filter(status=AccessRequest.Status.PENDING)[:5],
         'total_trainers': User.objects.filter(
             roles__key='FORMATEUR', account_status=AccountStatus.ACTIVE
         ).count(),

@@ -19,3 +19,6 @@
 <a href="{% url 'core:dashboard:closures' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'closures' or request.resolver_match.url_name == 'closure-create' %}is-active{% endif %}">
     {% icon "check-circle" %}<span>Clôtures</span>
 </a>
+<a href="{% url 'core:dashboard:student-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-list' or request.resolver_match.url_name == 'student-detail' %}is-active{% endif %}">
+    {% icon "graduation" %}<span>Étudiants</span>
+</a>

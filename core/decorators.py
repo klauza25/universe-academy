@@ -77,8 +77,8 @@ def permission_required(perm_key):
 def super_admin_required(view_func):
     """Réservé au SUPER_ADMIN, y compris face à un ADMIN.
 
-    Utilisé pour les opérations sensibles : création de comptes, attribution de
-    rôles et validation des demandes d'accès.
+    Utilisé pour les opérations sensibles : création de comptes et attribution
+    de rôles depuis l'écran « Utilisateurs ».
     """
     @wraps(view_func)
     @active_account_required

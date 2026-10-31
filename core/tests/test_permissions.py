@@ -242,7 +242,7 @@ class AdminTransversalAccessTests(BusinessTestBase):
         self.assertFalse(
             self.secretaire.roles.filter(key=RoleKey.COMPTABLE).exists())
 
-    def test_admin_cannot_review_access_request(self):
+    def test_admin_can_review_access_request(self):
         pending = AccessRequest.objects.create(
             user=self.make_user(RoleKey.ETUDIANT, 'enattente@test.local'),
             requested_role=RoleKey.ETUDIANT,
@@ -252,9 +252,14 @@ class AdminTransversalAccessTests(BusinessTestBase):
             reverse('core:dashboard:access-request-review', args=[pending.id]),
             {'decision': 'approve', 'role_key': RoleKey.ETUDIANT},
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
         pending.refresh_from_db()
-        self.assertEqual(pending.status, AccessRequest.Status.PENDING)
+        self.assertEqual(pending.status, AccessRequest.Status.APPROVED)
+        self.assertEqual(pending.assigned_role, RoleKey.ETUDIANT)
+        self.assertEqual(pending.reviewed_by, self.admin)
 
     def test_admin_user_screens_hide_super_admin_actions(self):
         client = self.client_for(self.admin)
@@ -274,11 +279,11 @@ class AdminTransversalAccessTests(BusinessTestBase):
             requested_role=RoleKey.ETUDIANT,
         )
         reviews = client.get(reverse('core:dashboard:access-requests'))
-        self.assertNotContains(
+        self.assertContains(
             reviews,
             reverse('core:dashboard:access-request-review', args=[pending.id]),
         )
-        self.assertContains(reviews, 'Validation réservée au super administrateur')
+        self.assertContains(reviews, 'Approuver')
 
     def test_super_admin_keeps_sensitive_actions(self):
         client = self.client_for(self.super_admin)

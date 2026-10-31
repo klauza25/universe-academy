@@ -64,6 +64,8 @@
             {% endif %}
             {% if resource.html_content %}
             <a href="{% url 'core:dashboard:resource-view' resource.id %}" class="ua-btn ua-btn-light ua-btn-sm">{% icon "book-open" %} Lire</a>
+            {% else %}
+            <a href="{% url 'core:dashboard:resource-view' resource.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% icon "mail" %} Détails &amp; avis</a>
             {% endif %}
         </div>
     </article>

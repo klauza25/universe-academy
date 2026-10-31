@@ -3,7 +3,7 @@ import os
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.validators import (
-    FileExtensionValidator, MinValueValidator, RegexValidator
+    FileExtensionValidator, MaxValueValidator, MinValueValidator, RegexValidator
 )
 from django.utils import timezone
 
@@ -1281,6 +1281,39 @@ class Resource(models.Model):
     @property
     def is_published(self):
         return self.status == self.Status.PUBLISHED
+
+
+class ResourceFeedback(models.Model):
+    """Retour d'un étudiant sur une ressource publiée par un formateur."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    resource = models.ForeignKey(
+        Resource, on_delete=models.CASCADE, related_name='feedback'
+    )
+    student = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='resource_feedback'
+    )
+    rating = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text="Note de 1 à 5"
+    )
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'resource_feedback'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['resource', 'student'],
+                name='unique_feedback_per_student_resource',
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.student} → {self.resource}"
 
 
 def student_doc_path(instance, filename):

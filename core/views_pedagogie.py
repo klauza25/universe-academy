@@ -4,18 +4,18 @@ from datetime import date
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .decorators import business_write_required, role_required
 from .forms import (
-    CourseSessionForm, LessonForm, ModuleForm, ResourceForm, SessionRecordForm,
-    StudentSessionNoteForm, TextbookEntryForm,
+    CourseSessionForm, LessonForm, ModuleForm, ResourceFeedbackForm,
+    ResourceForm, SessionRecordForm, StudentSessionNoteForm, TextbookEntryForm,
 )
 from .models import (
     Attendance, AuditLog, Course, CourseSession, Enrollment, Lesson, Module,
-    Resource, RoleKey, SessionRecord, StudentSessionNote,
+    Resource, ResourceFeedback, RoleKey, SessionRecord, StudentSessionNote,
 )
 from .utils import log_audit
 
@@ -72,12 +72,12 @@ def program_list(request):
     return render(request, 'dashboard/pedagogie/programs.html', {
         'courses': courses,
         'can_manage': not request.user.is_elevated and request.user.has_any_role(
-            'RESP_PEDA', 'DIRECTION'
+            'FORMATEUR', 'RESP_PEDA', 'DIRECTION'
         ),
     })
 
 
-@business_write_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('FORMATEUR', 'RESP_PEDA', 'DIRECTION')
 def module_create(request):
     form = ModuleForm()
     if request.method == 'POST':
@@ -94,7 +94,7 @@ def module_create(request):
     })
 
 
-@business_write_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('FORMATEUR', 'RESP_PEDA', 'DIRECTION')
 def module_edit(request, module_id):
     module = get_object_or_404(Module, id=module_id)
     form = ModuleForm(instance=module)
@@ -111,7 +111,7 @@ def module_edit(request, module_id):
     })
 
 
-@business_write_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('FORMATEUR', 'RESP_PEDA', 'DIRECTION')
 def lesson_create(request):
     form = LessonForm()
     module_id = request.GET.get('module')
@@ -131,7 +131,7 @@ def lesson_create(request):
     })
 
 
-@business_write_required('RESP_PEDA', 'DIRECTION')
+@business_write_required('FORMATEUR', 'RESP_PEDA', 'DIRECTION')
 def lesson_edit(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     form = LessonForm(instance=lesson)
@@ -605,6 +605,8 @@ def _resource_access(user, resource, student=False):
 def resource_list(request):
     resources = Resource.objects.select_related(
         'course', 'module', 'lesson', 'session', 'author'
+    ).annotate(feedback_count=Count('feedback', distinct=True)).order_by(
+        '-published_at', '-created_at'
     )
     if not _is_manager(request.user):
         resources = resources.filter(
@@ -718,9 +720,64 @@ def resource_view(request, resource_id):
     resource = get_object_or_404(Resource, id=resource_id)
     if not _resource_access(request.user, resource, student=True):
         raise Http404
+    is_student = (
+        request.user.has_role('ETUDIANT') and not request.user.is_elevated
+    )
+    feedback = resource.feedback.select_related('student')
+    my_feedback = None
+    if is_student:
+        my_feedback = feedback.filter(student=request.user).first()
     return render(request, 'dashboard/pedagogie/resource_view.html', {
         'resource': resource,
+        'feedback': feedback,
+        'my_feedback': my_feedback,
+        'is_student': is_student,
+        'feedback_form': ResourceFeedbackForm(),
     })
+
+
+@role_required('ETUDIANT')
+def resource_feedback(request, resource_id):
+    if request.user.is_elevated:
+        return HttpResponseForbidden(
+            "Consultation seule : cette action relève du rôle métier."
+        )
+    resource = get_object_or_404(Resource, id=resource_id)
+    if not _resource_access(request.user, resource, student=True):
+        raise Http404
+    if request.method != 'POST':
+        return redirect('core:dashboard:resource-view', resource_id=resource.id)
+    form = ResourceFeedbackForm(request.POST)
+    if form.is_valid():
+        rating = form.cleaned_data.get('rating')
+        ResourceFeedback.objects.update_or_create(
+            resource=resource,
+            student=request.user,
+            defaults={
+                'rating': int(rating) if rating else None,
+                'comment': (form.cleaned_data.get('comment') or '').strip(),
+            },
+        )
+        log_audit(
+            request, 'RESOURCE_FEEDBACK', 'Resource', str(resource.id),
+            after={
+                'student': str(request.user.id),
+                'rating': rating or None,
+                'comment': (form.cleaned_data.get('comment') or '')[:200],
+            },
+        )
+        messages.success(request, "Merci, votre retour a été enregistré.")
+        return redirect('core:dashboard:resource-view', resource_id=resource.id)
+    is_student = True
+    feedback = resource.feedback.select_related('student')
+    my_feedback = feedback.filter(student=request.user).first()
+    return render(request, 'dashboard/pedagogie/resource_view.html', {
+        'resource': resource,
+        'feedback': feedback,
+        'my_feedback': my_feedback,
+        'is_student': is_student,
+        'feedback_form': form,
+    }, status=400)
 
 
 # ---------------------------------------------------------------------------

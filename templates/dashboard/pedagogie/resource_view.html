@@ -3,7 +3,7 @@
 
 {% block title %}{{ resource.title }} — Ressource{% endblock %}
 
-{% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
+{% block sidebar_nav %}{% if is_student %}{% include "dashboard/etudiant/_nav.html" %}{% else %}{% include "dashboard/pedagogie/_nav.html" %}{% endif %}{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
@@ -16,7 +16,11 @@
         {% if resource.file %}
         <a href="{% url 'core:dashboard:resource-download' resource.id %}" class="ua-btn ua-btn-primary">{% icon "file-text" %} Télécharger le fichier</a>
         {% endif %}
+        {% if is_student %}
+        <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        {% else %}
         <a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        {% endif %}
     </div>
 </div>
 
@@ -34,5 +38,53 @@
     {% else %}
     <p class="ua-empty">Aucun contenu HTML. Téléchargez le fichier joint.</p>
     {% endif %}
+</section>
+
+<section class="ua-card ua-card-pad mt-5">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="ua-section-title">Retours des étudiants</h2>
+        <span class="ua-badge ua-badge-indigo">{{ feedback|length }} retour{{ feedback|length|pluralize }}</span>
+    </div>
+
+    {% if is_student %}
+    <form method="post" action="{% url 'core:dashboard:resource-feedback' resource.id %}" class="ua-form mb-5">
+        {% csrf_token %}
+        {% if feedback_form.non_field_errors %}
+        <div class="ua-card ua-card-pad text-sm font-semibold text-rose-600 mb-4">
+            {{ feedback_form.non_field_errors }}
+        </div>
+        {% endif %}
+        {% if my_feedback %}
+        <p class="text-xs ua-muted mb-2">Vous avez déjà donné votre retour le {{ my_feedback.created_at|date:"d/m/Y à H:i" }} — le renvoyer le met à jour.</p>
+        {% endif %}
+        <div class="mb-4">
+            <label for="{{ feedback_form.rating.id_for_label }}">{{ feedback_form.rating.label }}</label>
+            {{ feedback_form.rating }}
+            {{ feedback_form.rating.errors }}
+        </div>
+        <div class="mb-4">
+            <label for="{{ feedback_form.comment.id_for_label }}">{{ feedback_form.comment.label }}</label>
+            {{ feedback_form.comment }}
+            {{ feedback_form.comment.errors }}
+        </div>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "mail" %} Envoyer mon retour</button>
+    </form>
+    {% endif %}
+
+    {% for entry in feedback %}
+    <div class="ua-list-row">
+        <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold" style="color:#1e2044;">
+                {{ entry.student.get_full_name|default:entry.student.email }}
+                {% if entry.rating %}<span class="ua-badge ua-badge-amber ml-1">{{ entry.rating }} / 5</span>{% endif %}
+                {% if my_feedback and entry.id == my_feedback.id %}<span class="ua-badge ua-badge-green ml-1">Vous</span>{% endif %}
+            </p>
+            <p class="text-sm ua-muted mt-1">{{ entry.comment|default:"(aucun commentaire)"|linebreaksbr }}</p>
+            <p class="text-xs ua-muted mt-1">{{ entry.created_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <p class="ua-empty">Aucun retour pour le moment.{% if is_student %} Soyez le premier à partager votre avis.{% endif %}</p>
+    {% endfor %}
 </section>
 {% endblock %}

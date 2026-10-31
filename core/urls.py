@@ -102,6 +102,7 @@ dashboard_urlpatterns = [
     path('pedagogie/ressources/<uuid:resource_id>/modifier/', views_pedagogie.resource_edit, name='resource-edit'),
     path('pedagogie/ressources/<uuid:resource_id>/telecharger/', views_pedagogie.resource_download, name='resource-download'),
     path('pedagogie/ressources/<uuid:resource_id>/voir/', views_pedagogie.resource_view, name='resource-view'),
+    path('pedagogie/ressources/<uuid:resource_id>/retour/', views_pedagogie.resource_feedback, name='resource-feedback'),
 
     # Comptabilité -----------------------------------------------------------
     path('comptabilite/', views.comptabilite_dashboard, name='comptabilite-dashboard'),

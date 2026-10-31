@@ -489,3 +489,41 @@ class SingleSourceOfTruthTests(AccountingTestBase):
         response = client.get(reverse('core:dashboard:direction-dashboard'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context['total_revenue'], 10000)
+
+
+class ComptableStudentListTests(BusinessTestBase):
+    """La comptable consulte la liste des inscrits, sans écriture."""
+
+    def test_comptable_sees_students_list(self):
+        client = self.client_for(self.comptable)
+        response = client.get(reverse('core:dashboard:student-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.etudiant.get_full_name())
+        self.assertContains(
+            response, reverse('core:dashboard:student-list'))
+        self.assertNotContains(
+            response, reverse('core:dashboard:student-create'))
+
+    def test_comptable_reads_student_detail_without_write_controls(self):
+        client = self.client_for(self.comptable)
+        response = client.get(reverse(
+            'core:dashboard:student-detail', args=[self.etudiant.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(
+            response,
+            reverse('core:dashboard:student-edit', args=[self.etudiant.id]))
+        self.assertNotContains(
+            response, reverse('core:dashboard:enrollment-create'))
+
+    def test_comptable_cannot_write_student_records(self):
+        client = self.client_for(self.comptable)
+        self.assertEqual(
+            client.get(reverse('core:dashboard:student-create')).status_code,
+            403,
+        )
+        self.assertEqual(
+            client.post(reverse(
+                'core:dashboard:student-edit', args=[self.etudiant.id]),
+                {}).status_code,
+            403,
+        )

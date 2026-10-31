@@ -129,6 +129,59 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
     </div>
 </section>
 
+<section class="ua-card overflow-hidden mb-6">
+    <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
+        <div>
+            <h2 class="ua-section-title">Demandes d'accès en attente</h2>
+            <p class="text-xs ua-muted mt-1">Rôle suggéré à la création du compte — à valider ou modifier</p>
+        </div>
+        <a href="{% url 'core:dashboard:access-requests' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
+            Toutes les demandes {% icon "arrow-right" %}
+        </a>
+    </div>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>Demandeur</th>
+                    <th>Rôle suggéré</th>
+                    <th>Créé le</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ar in pending_access_requests %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <span class="ua-avatar-sm">
+                                {{ ar.user.first_name|slice:":1" }}{{ ar.user.last_name|slice:":1" }}
+                            </span>
+                            <div class="min-w-0">
+                                <p class="ua-cell-title truncate">{{ ar.user.get_full_name|default:ar.user.email }}</p>
+                                <p class="ua-cell-sub truncate">{{ ar.user.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="ua-badge ua-badge-amber">
+                            {{ ar.get_requested_role_display|default:"Rôle à définir" }}
+                        </span>
+                    </td>
+                    <td class="ua-muted whitespace-nowrap">{{ ar.created_at|date:"d/m/Y H:i" }}</td>
+                    <td class="text-right">
+                        <a href="{% url 'core:dashboard:access-requests' %}?statut=PENDING"
+                           class="ua-btn ua-btn-ghost ua-btn-sm">Examiner</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="ua-empty">Aucune demande en attente</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
 <section class="ua-card overflow-hidden">
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
         <div>

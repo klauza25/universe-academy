@@ -27,7 +27,7 @@ def _students_queryset():
     return User.objects.filter(roles__key=RoleKey.ETUDIANT).distinct()
 
 
-@role_required(*SECRETARIAT_ROLES)
+@role_required(*SECRETARIAT_ROLES, 'COMPTABLE')
 def student_list(request):
     students = _students_queryset().prefetch_related('roles')
     query = (request.GET.get('q') or '').strip()
@@ -147,7 +147,7 @@ def student_create(request):
     })
 
 
-@role_required(*SECRETARIAT_ROLES)
+@role_required(*SECRETARIAT_ROLES, 'COMPTABLE')
 def student_detail(request, student_id):
     student = get_object_or_404(
         User.objects.prefetch_related('roles'), id=student_id
