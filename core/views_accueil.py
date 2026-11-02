@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .decorators import business_write_required, role_required
 from .forms import ProspectFollowUpForm, ProspectForm, VisitForm, VisitReasonForm
@@ -75,9 +76,7 @@ def visit_create(request):
                     'status': visit.status,
                 },
             )
-            messages.success(
-                request, f"Visite {visit.reference} enregistrée."
-            )
+            messages.success(request, _("Visite %(reference)s enregistrée.") % {'reference': visit.reference})
             return redirect('core:dashboard:visit-detail', visit_id=visit.id)
     return render(request, 'dashboard/accueil/visit_form.html', {'form': form})
 
@@ -90,9 +89,7 @@ def visit_detail(request, visit_id):
     form = VisitForm(instance=visit)
     if request.method == 'POST':
         if request.user.is_elevated:
-            return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
-            )
+            return HttpResponseForbidden(_("Consultation seule : cette action relève du rôle métier."))
         before = {'status': visit.status, 'departure_at': str(visit.departure_at)}
         form = VisitForm(request.POST, instance=visit)
         if form.is_valid():
@@ -105,7 +102,7 @@ def visit_detail(request, visit_id):
                 after={'status': visit.status,
                        'departure_at': str(visit.departure_at)},
             )
-            messages.success(request, "Visite mise à jour.")
+            messages.success(request, _("Visite mise à jour."))
             return redirect('core:dashboard:visit-detail', visit_id=visit.id)
 
     return render(request, 'dashboard/accueil/visit_detail.html', {
@@ -125,7 +122,7 @@ def visit_departure(request, visit_id):
         return redirect('core:dashboard:visit-detail', visit_id=visit_id)
     visit = get_object_or_404(Visit, id=visit_id)
     if visit.departure_at:
-        messages.info(request, "Le départ de cette visite est déjà enregistré.")
+        messages.info(request, _("Le départ de cette visite est déjà enregistré."))
     else:
         visit.departure_at = timezone.now()
         visit.status = Visit.Status.COMPLETED
@@ -134,7 +131,7 @@ def visit_departure(request, visit_id):
             request, 'VISIT_DEPARTURE', 'Visit', str(visit.id),
             after={'departure_at': str(visit.departure_at)},
         )
-        messages.success(request, "Départ enregistré.")
+        messages.success(request, _("Départ enregistré."))
     return redirect('core:dashboard:visit-detail', visit_id=visit.id)
 
 
@@ -145,7 +142,7 @@ def visit_to_prospect(request, visit_id):
         return redirect('core:dashboard:visit-detail', visit_id=visit.id)
     existing = visit.prospects.first()
     if existing:
-        messages.info(request, f"Cette visite est déjà liée au prospect {existing.reference}.")
+        messages.info(request, _("Cette visite est déjà liée au prospect %(reference)s.") % {'reference': existing.reference})
         return redirect('core:dashboard:prospect-detail', prospect_id=existing.id)
 
     prospect = Prospect.objects.create(
@@ -161,7 +158,7 @@ def visit_to_prospect(request, visit_id):
         request, 'PROSPECT_FROM_VISIT', 'Prospect', str(prospect.id),
         after={'reference': prospect.reference, 'visit': visit.reference},
     )
-    messages.success(request, f"Prospect {prospect.reference} créé depuis la visite.")
+    messages.success(request, _("Prospect %(reference)s créé depuis la visite.") % {'reference': prospect.reference})
     return redirect('core:dashboard:prospect-detail', prospect_id=prospect.id)
 
 
@@ -220,9 +217,7 @@ def prospect_create(request):
                 after={'reference': prospect.reference,
                        'status': prospect.status},
             )
-            messages.success(
-                request, f"Prospect {prospect.reference} enregistré."
-            )
+            messages.success(request, _("Prospect %(reference)s enregistré.") % {'reference': prospect.reference})
             return redirect('core:dashboard:prospect-detail', prospect_id=prospect.id)
     return render(request, 'dashboard/accueil/prospect_form.html', {'form': form})
 
@@ -242,9 +237,7 @@ def prospect_detail(request, prospect_id):
 
     if request.method == 'POST':
         if request.user.is_elevated:
-            return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
-            )
+            return HttpResponseForbidden(_("Consultation seule : cette action relève du rôle métier."))
         action = request.POST.get('action', 'edit')
         if action == 'follow_up':
             follow_form = ProspectFollowUpForm(request.POST)
@@ -264,7 +257,7 @@ def prospect_detail(request, prospect_id):
                     after={'contact_type': follow.contact_type,
                            'next_follow_up': str(follow.next_follow_up)},
                 )
-                messages.success(request, "Suivi enregistré.")
+                messages.success(request, _("Suivi enregistré."))
                 return redirect('core:dashboard:prospect-detail',
                                 prospect_id=prospect.id)
         else:
@@ -279,7 +272,7 @@ def prospect_detail(request, prospect_id):
                     after={'status': prospect.status,
                            'next_follow_up': str(prospect.next_follow_up)},
                 )
-                messages.success(request, "Prospect mis à jour.")
+                messages.success(request, _("Prospect mis à jour."))
                 return redirect('core:dashboard:prospect-detail',
                                 prospect_id=prospect.id)
 
@@ -293,7 +286,7 @@ def prospect_detail(request, prospect_id):
             entity_type='Prospect', entity_id=str(prospect.id),
         ).select_related('actor').order_by('-created_at')[:20],
         'can_convert': not request.user.is_elevated and request.user.has_any_role(
-            'SECRETAIRE', 'DIRECTION', 'ACCUEIL'
+            'SECRETAIRE', 'DIRECTION'
         ),
         'can_manage_students': not request.user.is_elevated and request.user.has_any_role(
             'SECRETAIRE', 'DIRECTION'
@@ -306,15 +299,13 @@ def visit_reason_list(request):
     form = VisitReasonForm()
     if request.method == 'POST':
         if request.user.is_elevated:
-            return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
-            )
+            return HttpResponseForbidden(_("Consultation seule : cette action relève du rôle métier."))
         form = VisitReasonForm(request.POST)
         if form.is_valid():
             reason = form.save()
             log_audit(request, 'VISIT_REASON_CREATE', 'VisitReason', str(reason.id),
                       after={'label': reason.label})
-            messages.success(request, "Motif de visite ajouté.")
+            messages.success(request, _("Motif de visite ajouté."))
             return redirect('core:dashboard:visit-reasons')
     return render(request, 'dashboard/accueil/reasons.html', {
         'form': form,
@@ -333,10 +324,8 @@ def visit_reason_toggle(request, reason_id):
         request, 'VISIT_REASON_TOGGLE', 'VisitReason', str(reason.id),
         after={'active': reason.active},
     )
-    messages.success(
-        request,
-        f"Motif « {reason.label} » {'activé' if reason.active else 'désactivé'}.",
-    )
+    etat = _("activé") if reason.active else _("désactivé")
+    messages.success(request, _("Motif « %(label)s » %(etat)s.") % {'label': reason.label, 'etat': etat})
     return redirect('core:dashboard:visit-reasons')
 
 
@@ -352,6 +341,6 @@ def contact_search(request):
             Q(phone__icontains=query) |
             Q(email__icontains=query)
         )[:10]
-    return render(request, 'dashboard/accueil/_contact_results.html', {
+    return render(request, 'dashboard/accueil/_contact_results.html', {  # i18n-exempt: chemin de gabarit, jamais affiché
         'contacts': contacts,
     })

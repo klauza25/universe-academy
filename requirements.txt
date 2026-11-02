@@ -5,3 +5,4 @@ Pillow>=10.0
 django-cleanup>=9.0
 dj-database-url>=2.1.0
 clerk-backend-api>=7.0
+openpyxl>=3.1

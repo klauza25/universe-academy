@@ -1,13 +1,13 @@
-{% load ui %}
+{% load ui i18n %}
 <a href="{% url 'core:dashboard:etudiant-dashboard' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'etudiant-dashboard' %}is-active{% endif %}">
-    {% icon "grid" %}<span>Tableau de bord</span>
+    {% icon "grid" %}<span>{% translate "Tableau de bord" %}</span>
 </a>
 <a href="{% url 'core:dashboard:student-resources' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-resources' %}is-active{% endif %}">
-    {% icon "book-open" %}<span>Mes cours & ressources</span>
+    {% icon "book-open" %}<span>{% translate "Mes cours & ressources" %}</span>
 </a>
 <a href="{% url 'core:dashboard:student-attendance' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-attendance' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Mes présences</span>
+    {% icon "clipboard" %}<span>{% translate "Mes présences" %}</span>
 </a>
-<a href="{% url 'core:dashboard:student-notebook' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-notebook' or request.resolver_match.url_name == 'student-note' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Mes fiches de cours</span>
+<a href="{% url 'core:dashboard:student-notebook' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-notebook' or request.resolver_match.url_name == 'student-note' or request.resolver_match.url_name == 'student-course-sheet' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>{% translate "Mes fiches de cours" %}</span>
 </a>

@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Cahier de texte — Univers Academy{% endblock %}
+{% block title %}{% translate "Cahier de texte — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,41 +9,39 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Cahier de texte</h1>
-        <p class="ua-page-sub">
-            Une ligne par cours : date, heures, notions enseignées, nombre
-            d'apprenants et observations.
-        </p>
+        <h1 class="ua-page-title">{% translate "Cahier de texte" %}</h1>
+        <p class="ua-page-sub">{% translate "Une ligne par cours : date, heures, notions enseignées, nombre d'apprenants et observations." %}</p>
     </div>
     <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">
-        {% icon "presentation" %} Séances
+        {% icon "presentation" %} {% translate "Séances" %}
     </a>
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[200px]">
-            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Recherche</label>
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Recherche" %}</label>
             <input type="search" name="q" value="{{ query }}"
-                   placeholder="Formation, filière…"
+                   placeholder="{% translate 'Formation, filière…' %}"
                    class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
         </div>
         <button type="submit" class="ua-btn ua-btn-primary">
-            {% icon "search" %} Filtrer
+            {% icon "search" %} {% translate "Filtrer" %}
         </button>
     </form>
 </section>
 
+{% translate "Horaire non défini" as lbl_horaire_indefini %}
 <section class="ua-card overflow-hidden">
     <div class="ua-table-wrap">
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Formation</th>
-                    <th>Filière / domaine</th>
-                    <th>Période</th>
-                    <th>Formateur(s)</th>
-                    <th>Séances</th>
+                    <th>{% translate "Formation" %}</th>
+                    <th>{% translate "Filière / domaine" %}</th>
+                    <th>{% translate "Période" %}</th>
+                    <th>{% translate "Formateur(s)" %}</th>
+                    <th>{% translate "Séances" %}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -54,7 +52,7 @@
                         <a href="{% url 'core:dashboard:textbook-session' session.id %}" class="ua-cell-title">
                             {{ session.course.title }}
                         </a>
-                        <span class="ua-cell-sub">{{ session.schedule|default:"Horaire non défini" }}</span>
+                        <span class="ua-cell-sub">{{ session.schedule|default:lbl_horaire_indefini }}</span>
                     </td>
                     <td>{{ session.course.domain|default:"—" }}</td>
                     <td class="whitespace-nowrap">
@@ -64,23 +62,23 @@
                         {% for f in session.formateurs.all %}
                         <span class="ua-badge ua-badge-indigo">{{ f.display_label }}</span>
                         {% empty %}
-                        <span class="ua-muted text-xs">Non affecté</span>
+                        <span class="ua-muted text-xs">{% translate "Non affecté" %}</span>
                         {% endfor %}
                     </td>
                     <td><span class="ua-badge ua-badge-slate">{{ session.record_count }}</span></td>
                     <td>
                         <div class="flex items-center justify-end gap-2">
                             <a href="{% url 'core:dashboard:textbook-session' session.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-                                {% icon "arrow-right" %} Ouvrir
+                                {% icon "arrow-right" %} {% translate "Ouvrir" %}
                             </a>
                             <a href="{% url 'core:dashboard:textbook-print' session.id %}" class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">
-                                Imprimer
+                                {% translate "Imprimer" %}
                             </a>
                         </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="ua-empty">Aucune formation ne correspond à cette recherche.</td></tr>
+                <tr><td colspan="6" class="ua-empty">{% translate "Aucune formation ne correspond à cette recherche." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

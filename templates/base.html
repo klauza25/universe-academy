@@ -1,36 +1,58 @@
-<!DOCTYPE html>
-<html lang="fr">
+{% load i18n static %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="light" data-theme-choice="auto">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}Univers Academy - Plateforme de gestion académique{% endblock %}">
+    <meta name="description" content="{% block meta_description %}{% trans "Univers Academy — plateforme de gestion académique" %}{% endblock %}">
     <title>{% block title %}Univers Academy{% endblock %}</title>
-    
-    {% load static %}
-    
+
+    <!-- Thème résolu avant la peinture : sans ce bloc, la page s'affiche claire
+         puis bascule, ce qui fait clignoter tout le tableau de bord. -->
+    <script>
+<!--
+        (function () {
+            var choix = 'auto';
+            try {
+                var stocke = localStorage.getItem('ua-theme');
+                if (stocke === 'light' || stocke === 'dark' || stocke === 'auto') choix = stocke;
+            } catch (erreur) { /* stockage privé : on reste sur le thème système */ }
+
+            function sombre(preference) {
+                return preference === 'dark'
+                    || (preference === 'auto'
+                        && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            }
+
+            var racine = document.documentElement;
+            racine.dataset.theme = sombre(choix) ? 'dark' : 'light';
+            racine.dataset.themeChoice = choix;
+
+            window.uaThemeAppliquer = function (preference) {
+                racine.dataset.theme = sombre(preference) ? 'dark' : 'light';
+                racine.dataset.themeChoice = preference;
+                try { localStorage.setItem('ua-theme', preference); } catch (erreur) {}
+            };
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+                var preference = racine.dataset.themeChoice || 'auto';
+                if (preference === 'auto') {
+                    racine.dataset.theme = sombre('auto') ? 'dark' : 'light';
+                }
+            });
+        })();
+//-->
+    </script>
+
     <!-- Tailwind CSS compilé -->
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
-    
+
     <!-- Polices modernes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            /* Thème principal Univers Academy (bleu marine + or) */
-            --ua-primary: #1e3a5f;
-            --ua-primary-dark: #152a45;
-            --ua-secondary: #c8a45a;
-            --ua-secondary-dark: #a8893f;
-            --ua-bg: #f5f7fa;
-            
-            /* Thème Dashboard Hireism (violet/lavande) */
-            --ua-dashboard-bg: #E8E5FF;
-            --ua-dashboard-surface: #F8F7FF;
-            --ua-dashboard-accent: #4F46E5;
-        }
 
+    <style><!--
         /* Police globale */
         html {
             font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -52,11 +74,11 @@
             background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: var(--ua-surface-scroll);
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            background: var(--ua-surface-scroll-hover);
         }
 
         /* Animations utilitaires */
@@ -78,7 +100,7 @@
 
         /* Focus visible pour l'accessibilité */
         *:focus-visible {
-            outline: 2px solid var(--ua-dashboard-accent);
+            outline: 2px solid var(--ua-brand);
             outline-offset: 2px;
             border-radius: 4px;
         }
@@ -92,13 +114,13 @@
         .no-flash {
             opacity: 1 !important;
         }
-    </style>
-    
+    --></style>
+
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen">
     {% block body %}{% endblock %}
-    
+
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

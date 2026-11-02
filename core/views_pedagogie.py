@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Sum
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .decorators import business_write_required, role_required
 from .forms import (
@@ -64,10 +65,10 @@ def program_list(request):
     sessions = _my_sessions(request.user).select_related('course').distinct()
     courses = Course.objects.filter(
         id__in=sessions.values_list('course_id', flat=True)
-    ).prefetch_related('modules__lessons')
+    ).prefetch_related('modules__lessons')  # i18n-exempt: lookup ORM, jamais affiché
     if _is_manager(request.user):
         courses = Course.objects.filter(active=True).prefetch_related(
-            'modules__lessons'
+            'modules__lessons'  # i18n-exempt: lookup ORM, jamais affiché
         )
     return render(request, 'dashboard/pedagogie/programs.html', {
         'courses': courses,
@@ -84,10 +85,10 @@ def module_create(request):
         form = ModuleForm(request.POST)
         if form.is_valid():
             module = form.save()
-            log_audit(request, 'MODULE_CREATE', 'Module', str(module.id),
+            log_audit(request, 'MODULE_CREATE', 'Module', str(module.id),  # i18n-exempt: 'Module' = nom de classe technique (audit)
                       after={'title': module.title,
                              'course': str(module.course_id)})
-            messages.success(request, "Module créé.")
+            messages.success(request, _("Module créé."))
             return redirect('core:dashboard:programs')
     return render(request, 'dashboard/pedagogie/module_form.html', {
         'form': form, 'creating': True,
@@ -102,9 +103,9 @@ def module_edit(request, module_id):
         form = ModuleForm(request.POST, instance=module)
         if form.is_valid():
             module = form.save()
-            log_audit(request, 'MODULE_EDIT', 'Module', str(module.id),
+            log_audit(request, 'MODULE_EDIT', 'Module', str(module.id),  # i18n-exempt: 'Module' = nom de classe technique (audit)
                       after={'title': module.title})
-            messages.success(request, "Module mis à jour.")
+            messages.success(request, _("Module mis à jour."))
             return redirect('core:dashboard:programs')
     return render(request, 'dashboard/pedagogie/module_form.html', {
         'form': form, 'module': module, 'creating': False,
@@ -124,7 +125,7 @@ def lesson_create(request):
             log_audit(request, 'LESSON_CREATE', 'Lesson', str(lesson.id),
                       after={'title': lesson.title,
                              'module': str(lesson.module_id)})
-            messages.success(request, "Leçon créée.")
+            messages.success(request, _("Leçon créée."))
             return redirect('core:dashboard:programs')
     return render(request, 'dashboard/pedagogie/lesson_form.html', {
         'form': form, 'creating': True,
@@ -141,7 +142,7 @@ def lesson_edit(request, lesson_id):
             lesson = form.save()
             log_audit(request, 'LESSON_EDIT', 'Lesson', str(lesson.id),
                       after={'title': lesson.title})
-            messages.success(request, "Leçon mise à jour.")
+            messages.success(request, _("Leçon mise à jour."))
             return redirect('core:dashboard:programs')
     return render(request, 'dashboard/pedagogie/lesson_form.html', {
         'form': form, 'lesson': lesson, 'creating': False,
@@ -196,7 +197,7 @@ def course_session_create(request):
                        'status': session.status,
                        'formateurs': [str(f.id) for f in session.formateurs.all()]},
             )
-            messages.success(request, "Groupe créé.")
+            messages.success(request, _("Groupe créé."))
             return redirect('core:dashboard:course-sessions')
     return render(request, 'dashboard/pedagogie/course_session_form.html', {
         'form': form, 'creating': True,
@@ -230,7 +231,7 @@ def course_session_edit(request, session_id):
                        'status': session.status,
                        'formateurs': [str(f.id) for f in session.formateurs.all()]},
             )
-            messages.success(request, "Groupe mis à jour.")
+            messages.success(request, _("Groupe mis à jour."))
             return redirect('core:dashboard:course-sessions')
     return render(request, 'dashboard/pedagogie/course_session_form.html', {
         'form': form, 'session': session, 'creating': False,
@@ -270,6 +271,10 @@ def session_record_list(request):
         'session_filter': session_id,
         'status_choices': SessionRecord.Status.choices,
         'sessions': _my_sessions(request.user).select_related('course').distinct(),
+        'can_plan': (
+            not request.user.is_elevated
+            and request.user.has_any_role(*MANAGE_ROLES)
+        ),
     })
 
 
@@ -295,7 +300,7 @@ def session_record_create(request, session_id):
                 after={'session': str(session.id), 'date': str(record.date),
                        'status': record.status},
             )
-            messages.success(request, "Séance enregistrée.")
+            messages.success(request, _("Séance enregistrée."))
             return redirect('core:dashboard:session-record-detail',
                             record_id=record.id)
     return render(request, 'dashboard/pedagogie/session_form.html', {
@@ -335,7 +340,7 @@ def session_record_detail(request, record_id):
                        'actual_start': str(record.actual_start),
                        'actual_end': str(record.actual_end)},
             )
-            messages.success(request, "Compte rendu de séance mis à jour.")
+            messages.success(request, _("Compte rendu de séance mis à jour."))
             return redirect('core:dashboard:session-record-detail',
                             record_id=record.id)
 
@@ -388,7 +393,7 @@ def attendance_sheet(request, record_id):
             raw_status = request.POST.get(f'status_{enrollment.id}')
             if not raw_status:
                 continue
-            valid = {choice for choice, _ in Attendance.Status.choices}
+            valid = {choice for choice, _libelle in Attendance.Status.choices}
             if raw_status not in valid:
                 continue
             arrival = request.POST.get(f'arrival_{enrollment.id}') or None
@@ -422,7 +427,7 @@ def attendance_sheet(request, record_id):
             request, 'ATTENDANCE_RECORD', 'SessionRecord', str(record.id),
             after={'date': str(record.date), 'count': saved},
         )
-        messages.success(request, f"{saved} présence(s) enregistrée(s).")
+        messages.success(request, _("%(nb)s présence(s) enregistrée(s).") % {'nb': saved})
         return redirect('core:dashboard:session-record-attendance',
                         record_id=record.id)
 
@@ -549,24 +554,35 @@ def progression_overview(request):
 
     rows = []
     for session in sessions:
-        records = session.records.all()
-        planned = sum(r.planned_minutes for r in records) / 60
-        actual = sum(r.actual_minutes for r in records) / 60
-        completed_lessons = records.filter(
-            status=SessionRecord.Status.COMPLETED
-        ).values('lesson').distinct().count()
+        records = list(session.records.all())
+        planned_vals = [
+            r.planned_minutes for r in records
+            if r.planned_minutes is not None
+        ]
+        actual_vals = [
+            r.actual_minutes for r in records
+            if r.actual_minutes is not None
+        ]
+        planned = sum(planned_vals) if planned_vals else None
+        actual = sum(actual_vals) if actual_vals else None
+        completed_records = [
+            r for r in records if r.status == SessionRecord.Status.COMPLETED
+        ]
         rows.append({
             'session': session,
-            'records': records.count(),
-            'completed': records.filter(
-                status=SessionRecord.Status.COMPLETED).count(),
-            'planned_hours': round(planned, 2),
-            'actual_hours': round(actual, 2),
-            'remaining_hours': round(max(planned - actual, 0), 2),
-            'lessons_done': completed_lessons,
-            'last_record': records.filter(
-                status=SessionRecord.Status.COMPLETED
-            ).order_by('-date').first(),
+            'records': len(records),
+            'completed': len(completed_records),
+            'planned_minutes': planned,
+            'actual_minutes': actual,
+            'remaining_minutes': (
+                max(planned - (actual or 0), 0)
+                if planned is not None
+                else None
+            ),
+            # Une leçon terminée est une leçon réellement rattachée à la séance.
+            'lessons_done': len({r.lesson_id for r in completed_records if r.lesson_id}),
+            'last_record': max(completed_records, key=lambda r: r.date)
+            if completed_records else None,
         })
 
     return render(request, 'dashboard/pedagogie/progression.html', {
@@ -661,7 +677,7 @@ def resource_create(request):
                       after={'title': resource.title,
                              'status': resource.status,
                              'kind': resource.kind})
-            messages.success(request, "Ressource enregistrée.")
+            messages.success(request, _("Ressource enregistrée."))
             return redirect('core:dashboard:resources')
     return render(request, 'dashboard/pedagogie/resource_form.html', {
         'form': form, 'creating': True,
@@ -688,7 +704,7 @@ def resource_edit(request, resource_id):
             log_audit(request, 'RESOURCE_EDIT', 'Resource', str(resource.id),
                       before=before,
                       after={'title': resource.title, 'status': resource.status})
-            messages.success(request, "Ressource mise à jour.")
+            messages.success(request, _("Ressource mise à jour."))
             return redirect('core:dashboard:resources')
     return render(request, 'dashboard/pedagogie/resource_form.html', {
         'form': form, 'resource': resource, 'creating': False,
@@ -740,7 +756,7 @@ def resource_view(request, resource_id):
 def resource_feedback(request, resource_id):
     if request.user.is_elevated:
         return HttpResponseForbidden(
-            "Consultation seule : cette action relève du rôle métier."
+            _("Consultation seule : cette action relève du rôle métier.")
         )
     resource = get_object_or_404(Resource, id=resource_id)
     if not _resource_access(request.user, resource, student=True):
@@ -766,7 +782,7 @@ def resource_feedback(request, resource_id):
                 'comment': (form.cleaned_data.get('comment') or '')[:200],
             },
         )
-        messages.success(request, "Merci, votre retour a été enregistré.")
+        messages.success(request, _("Merci, votre retour a été enregistré."))
         return redirect('core:dashboard:resource-view', resource_id=resource.id)
     is_student = True
     feedback = resource.feedback.select_related('student')
@@ -893,10 +909,7 @@ def _textbook_header(session):
     return {
         'formateur': formateurs,
         'filiere': session.course.domain or session.course.title,
-        'classe': (
-            f"{session.course.title} — du "
-            f"{session.starts_at:%d/%m/%Y} au {session.ends_at:%d/%m/%Y}"
-        ),
+        'classe': _("%(titre)s — du %(de)s au %(au)s") % {'titre': session.course.title, 'de': session.starts_at.strftime('%d/%m/%Y'), 'au': session.ends_at.strftime('%d/%m/%Y')},
     }
 
 
@@ -916,7 +929,9 @@ def _textbook_context(request, session, form=None):
         'header': _textbook_header(session),
         'totals': {
             'seances': len(records),
-            'heures': round(sum(r.display_hours for r in records), 2),
+            'duration_minutes': sum(
+                m for m in (r.display_minutes for r in records) if m is not None
+            ),
             'apprenants': sum(r.displayed_attendee_count for r in records),
             'notions': sum(1 for r in records if r.content_covered.strip()),
         },
@@ -988,7 +1003,7 @@ def textbook_create(request, session_id):
                 'attendee_count': record.attendee_count,
             },
         )
-        messages.success(request, "Séance enregistrée dans le cahier de texte.")
+        messages.success(request, _("Séance enregistrée dans le cahier de texte."))
         return redirect('core:dashboard:textbook-session',
                         session_id=session.id)
 
@@ -1033,7 +1048,7 @@ def textbook_edit(request, record_id):
                     'notes': record.notes,
                 },
             )
-            messages.success(request, "Ligne du cahier de texte mise à jour.")
+            messages.success(request, _("Ligne du cahier de texte mise à jour."))
             return redirect('core:dashboard:textbook-session',
                             session_id=record.session_id)
 
@@ -1151,11 +1166,11 @@ def student_note_form(request, record_id):
         student=request.user, session=record.session
     ).first()
     if enrollment is None:
-        raise Http404("Séance hors de votre parcours.")
+        raise Http404(_("Séance hors de votre parcours."))
 
     if record.status != SessionRecord.Status.COMPLETED:
         messages.error(
-            request, "Cette séance n'est pas encore réalisée."
+            request, _("Cette séance n'est pas encore réalisée.")
         )
         return redirect('core:dashboard:student-notebook')
 
@@ -1182,7 +1197,7 @@ def student_note_form(request, record_id):
                 },
             )
             messages.success(
-                request, "Votre fiche de cours a été enregistrée.")
+                request, _("Votre fiche de cours a été enregistrée."))
             return redirect('core:dashboard:student-notebook')
 
     return render(request, 'dashboard/etudiant/notebook_form.html', {
@@ -1210,7 +1225,7 @@ def student_course_sheet(request, session_id):
     notes = list(
         StudentSessionNote.objects.filter(enrollment=enrollment)
         .select_related('session_record')
-        .order_by('session_record__date', 'session_record__planned_start')
+        .order_by('session_record__date', 'session_record__planned_start')  # i18n-exempt: lookups ORM, jamais affichés
     )
     return render(request, 'dashboard/etudiant/course_sheet.html', {
         'enrollment': enrollment,

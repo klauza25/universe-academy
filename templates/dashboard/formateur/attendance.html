@@ -1,14 +1,14 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Présences — Univers Academy{% endblock %}
+{% block title %}{% translate "Présences — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}
 <a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-nav-link">
-    {% icon "grid" %}<span>Mes sessions</span>
+    {% icon "grid" %}<span>{% translate "Mes sessions" %}</span>
 </a>
 <a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-nav-link is-active">
-    {% icon "check-circle" %}<span>Présences</span>
+    {% icon "check-circle" %}<span>{% translate "Présences" %}</span>
 </a>
 {% endblock %}
 
@@ -17,11 +17,11 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Présences</h1>
+        <h1 class="ua-page-title">{% translate "Présences" %}</h1>
         <p class="ua-page-sub">{{ session.course.title }}</p>
     </div>
     <a href="{% url 'core:dashboard:formateur-dashboard' %}" class="ua-btn ua-btn-ghost">
-        Retour aux sessions
+        {% translate "Retour aux sessions" %}
     </a>
 </div>
 
@@ -30,7 +30,7 @@
 
     <section class="ua-card ua-card-pad mb-5 max-w-xs">
         <label for="attendance-date" class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">
-            Date de la séance
+            {% translate "Date de la séance" %}
         </label>
         <input type="date" name="date" id="attendance-date" required
                class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
@@ -38,18 +38,18 @@
 
     <section class="ua-card overflow-hidden mb-5">
         <div class="px-6 pt-6 pb-4">
-            <h2 class="ua-section-title">Feuille de présence</h2>
-            <p class="text-xs ua-muted mt-1">{{ enrollments|length }} étudiant{{ enrollments|length|pluralize }} inscrit{{ enrollments|length|pluralize }}</p>
+            <h2 class="ua-section-title">{% translate "Feuille de présence" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% blocktrans with n=enrollments|length %}{{ n }} étudiant(s) inscrit(s){% endblocktrans %}</p>
         </div>
         <div class="ua-table-wrap">
             <table class="ua-table">
                 <thead>
                     <tr>
-                        <th>Étudiant</th>
-                        <th class="text-center">Présent</th>
-                        <th class="text-center">Absent</th>
-                        <th class="text-center">En retard</th>
-                        <th class="text-center">Excusé</th>
+                        <th>{% translate "Étudiant" %}</th>
+                        <th class="text-center">{% translate "Présent" %}</th>
+                        <th class="text-center">{% translate "Absent" %}</th>
+                        <th class="text-center">{% translate "En retard" %}</th>
+                        <th class="text-center">{% translate "Excusé" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -86,7 +86,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="ua-empty">Aucun étudiant inscrit à cette session</td></tr>
+                    <tr><td colspan="5" class="ua-empty">{% translate "Aucun étudiant inscrit à cette session" %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -94,7 +94,7 @@
     </section>
 
     <button type="submit" class="ua-btn ua-btn-primary">
-        {% icon "check-circle" %} Enregistrer les présences
+        {% icon "check-circle" %} {% translate "Enregistrer les présences" %}
     </button>
 </form>
 {% endblock %}

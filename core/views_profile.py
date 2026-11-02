@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.static import serve
 
 from .decorators import active_account_required
@@ -54,7 +55,7 @@ def profile_view(request):
                         'phone': user.phone,
                     },
                 )
-                messages.success(request, "Votre profil a été mis à jour.")
+                messages.success(request, _("Votre profil a été mis à jour."))
                 return redirect('core:dashboard:profile')
 
         elif action == 'avatar':
@@ -63,7 +64,7 @@ def profile_view(request):
                 user.avatar = avatar_form.cleaned_data['avatar']
                 user.save(update_fields=['avatar'])
                 log_audit(request, 'PROFILE_AVATAR', 'User', str(user.id))
-                messages.success(request, "Photo de profil enregistrée.")
+                messages.success(request, _("Photo de profil enregistrée."))
                 return redirect('core:dashboard:profile')
 
         elif action == 'avatar_delete':
@@ -72,7 +73,7 @@ def profile_view(request):
                 user.avatar = None
                 user.save(update_fields=['avatar'])
                 log_audit(request, 'PROFILE_AVATAR_DELETE', 'User', str(user.id))
-                messages.success(request, "Photo supprimée, avatar par défaut rétabli.")
+                messages.success(request, _("Photo supprimée, avatar par défaut rétabli."))
             return redirect('core:dashboard:profile')
 
         elif action == 'email':
@@ -86,21 +87,19 @@ def profile_view(request):
                 confirm_url = request.build_absolute_uri(
                     reverse('core:dashboard:profile-email-confirm', args=[token])
                 )
-                subject = "Confirmation de votre nouvelle adresse — Univers Academy"
+                subject = _("Confirmation de votre nouvelle adresse — Univers Academy")
                 body = (
-                    "Bonjour,\n\n"
-                    "Vous avez demandé à utiliser cette adresse pour votre compte "
-                    "Univers Academy.\n"
-                    f"Confirmez le changement en ouvrant ce lien :\n{confirm_url}\n\n"
-                    "Ce lien expire dans 24 heures. Si vous n'êtes pas à l'origine "
-                    "de cette demande, ignorez ce message.\n"
+                    _("Bonjour,") + "\n\n"
+                    + _("Vous avez demandé à utiliser cette adresse pour votre compte Univers Academy.") + "\n"
+                    + _("Confirmez le changement en ouvrant ce lien :") + f"\n{confirm_url}\n\n"
+                    + _("Ce lien expire dans 24 heures. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.") + "\n"
                 )
                 try:
                     sent = send_mail(
                         subject, body, None, [new_email], fail_silently=False
                     )
                 except Exception:
-                    logger.exception("Envoi du mail de vérification impossible")
+                    logger.exception("Envoi du mail de vérification impossible")  # i18n-exempt: ligne de log interne, jamais affichée
                     sent = 0
                 if sent:
                     log_audit(
@@ -108,14 +107,12 @@ def profile_view(request):
                         after={'new_email': new_email},
                     )
                     messages.success(
-                        request,
-                        "Un lien de confirmation a été envoyé à la nouvelle adresse.",
+                        request, _("Un lien de confirmation a été envoyé à la nouvelle adresse."),
                     )
                     return redirect('core:dashboard:profile')
                 email_form.add_error(
                     None,
-                    "L'email de vérification n'a pas pu être envoyé. "
-                    "Le changement n'a pas été appliqué.",
+                    _("L'email de vérification n'a pas pu être envoyé. Le changement n'a pas été appliqué."),
                 )
 
     return render(request, 'dashboard/profile/index.html', {
@@ -135,24 +132,24 @@ def profile_email_confirm(request, token):
             token, salt=EMAIL_TOKEN_SALT, max_age=EMAIL_TOKEN_MAX_AGE
         )
     except signing.SignatureExpired:
-        messages.error(request, "Ce lien de confirmation a expiré.")
+        messages.error(request, _("Ce lien de confirmation a expiré."))
         return redirect('core:dashboard:profile')
     except signing.BadSignature:
-        messages.error(request, "Lien de confirmation invalide.")
+        messages.error(request, _("Lien de confirmation invalide."))
         return redirect('core:dashboard:profile')
 
     if data.get('uid') != str(request.user.id):
-        messages.error(request, "Ce lien ne correspond pas à votre compte.")
+        messages.error(request, _("Ce lien ne correspond pas à votre compte."))
         return redirect('core:dashboard:profile')
 
     new_email = (data.get('email') or '').strip().lower()
     if not new_email:
-        messages.error(request, "Lien de confirmation invalide.")
+        messages.error(request, _("Lien de confirmation invalide."))
         return redirect('core:dashboard:profile')
 
     if User.objects.filter(email__iexact=new_email).exclude(
             id=request.user.id).exists():
-        messages.error(request, "Cette adresse est déjà utilisée par un autre compte.")
+        messages.error(request, _("Cette adresse est déjà utilisée par un autre compte."))
         return redirect('core:dashboard:profile')
 
     user = request.user
@@ -164,7 +161,7 @@ def profile_email_confirm(request, token):
         request, 'PROFILE_EMAIL_CONFIRM', 'User', str(user.id),
         before={'email': old_email}, after={'email': new_email},
     )
-    messages.success(request, "Votre adresse e-mail a été mise à jour.")
+    messages.success(request, _("Votre adresse e-mail a été mise à jour."))
     return redirect('core:dashboard:profile')
 
 

@@ -1,0 +1,74 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/views_accueil.py
+msgid "Visite %(reference)s enregistrée."
+msgstr "Visit %(reference)s recorded."
+
+msgid "Visite mise à jour."
+msgstr "Visit updated."
+
+msgid "Le départ de cette visite est déjà enregistré."
+msgstr "The departure of this visit is already recorded."
+
+msgid "Départ enregistré."
+msgstr "Departure recorded."
+
+msgid "Cette visite est déjà liée au prospect %(reference)s."
+msgstr "This visit is already linked to prospect %(reference)s."
+
+msgid "Prospect %(reference)s créé depuis la visite."
+msgstr "Prospect %(reference)s created from the visit."
+
+msgid "Prospect %(reference)s enregistré."
+msgstr "Prospect %(reference)s recorded."
+
+msgid "Suivi enregistré."
+msgstr "Follow-up recorded."
+
+msgid "Prospect mis à jour."
+msgstr "Prospect updated."
+
+msgid "Motif de visite ajouté."
+msgstr "Visit reason added."
+
+msgid "Motif « %(label)s » %(etat)s."
+msgstr "Visit reason « %(label)s » %(etat)s."
+
+msgid "activé"
+msgstr "enabled"
+
+msgid "désactivé"
+msgstr "disabled"
+
+# core/views_secretariat.py
+msgid "Étudiant %(nom)s créé (%(code)s) et inscrit à %(formation)s."
+msgstr "Student %(nom)s created (%(code)s) and enrolled in %(formation)s."
+
+msgid "Fiche étudiant mise à jour."
+msgstr "Student record updated."
+
+msgid "Inscription enregistrée."
+msgstr "Enrollment recorded."
+
+msgid "Inscription mise à jour."
+msgstr "Enrollment updated."
+
+msgid "Seules les inscriptions en attente de validation peuvent être validées."
+msgstr "Only enrollments pending validation can be validated."
+
+msgid "Inscription validée : le dossier peut désormais être encaissé."
+msgstr "Enrollment validated: payment can now be collected on this record."
+
+msgid "Le document dépasse 10 Mo."
+msgstr "The document exceeds 10 MB."
+
+msgid "Document ajouté au dossier."
+msgstr "Document added to the record."
+
+msgid "Le document n'a pas pu être enregistré."
+msgstr "The document could not be saved."

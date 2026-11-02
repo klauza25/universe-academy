@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Prospects — Univers Academy{% endblock %}
+{% block title %}{% translate "Prospects — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,12 +9,12 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Prospects</h1>
-        <p class="ua-page-sub">Personnes intéressées par une formation ou un service.</p>
+        <h1 class="ua-page-title">{% translate "Prospects" %}</h1>
+        <p class="ua-page-sub">{% translate "Personnes intéressées par une formation ou un service." %}</p>
     </div>
     {% if not is_elevated %}
     <a href="{% url 'core:dashboard:prospect-create' %}" class="ua-btn ua-btn-primary">
-        {% icon "user-plus" %} Nouveau prospect
+        {% icon "user-plus" %} {% translate "Nouveau prospect" %}
     </a>
     {% endif %}
 </div>
@@ -22,29 +22,29 @@
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
         <div class="md:col-span-2">
-            <label class="text-xs ua-muted block mb-1">Recherche</label>
-            <input type="search" name="q" value="{{ query }}" placeholder="Nom, téléphone, référence…"
+            <label class="text-xs ua-muted block mb-1">{% translate "Recherche" %}</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Nom, téléphone, référence…' %}"
                    class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Statut" %}</label>
             <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for value, label in status_choices %}
                 <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Relance</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Relance" %}</label>
             <select name="due" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
-                <option value="today" {% if due_filter == 'today' %}selected{% endif %}>Aujourd'hui</option>
-                <option value="overdue" {% if due_filter == 'overdue' %}selected{% endif %}>En retard</option>
+                <option value="">{% translate "Toutes" %}</option>
+                <option value="today" {% if due_filter == 'today' %}selected{% endif %}>{% translate "Aujourd'hui" %}</option>
+                <option value="overdue" {% if due_filter == 'overdue' %}selected{% endif %}>{% translate "En retard" %}</option>
             </select>
         </div>
         <div class="flex gap-2">
-            <button type="submit" class="ua-btn ua-btn-primary w-full justify-center">{% icon "search" %} Filtrer</button>
+            <button type="submit" class="ua-btn ua-btn-primary w-full justify-center">{% icon "search" %} {% translate "Filtrer" %}</button>
         </div>
     </form>
 </section>
@@ -54,14 +54,14 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Référence</th>
-                    <th>Prospect</th>
-                    <th>Téléphone</th>
-                    <th>Formation</th>
-                    <th>Statut</th>
-                    <th>Dernier contact</th>
-                    <th>Relance</th>
-                    <th>Agent</th>
+                    <th>{% translate "Référence" %}</th>
+                    <th>{% translate "Prospect" %}</th>
+                    <th>{% translate "Téléphone" %}</th>
+                    <th>{% translate "Formation" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th>{% translate "Dernier contact" %}</th>
+                    <th>{% translate "Relance" %}</th>
+                    <th>{% translate "Agent" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -94,7 +94,7 @@
                     <td>{{ prospect.agent.display_label|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="ua-empty">Aucun prospect pour ces critères.</td></tr>
+                <tr><td colspan="8" class="ua-empty">{% translate "Aucun prospect pour ces critères." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

@@ -29,3 +29,8 @@ _tests_out.txt
 *.key
 *.p12
 *.pfx
+
+# Classeurs de l'administration : noms, téléphones et emails réels des apprenants.
+# Les commandes analyser_donnees / importer_formations les lisent sur ce poste,
+# ils n'ont jamais rien à faire sur le dépôt distant.
+docs/donnees/

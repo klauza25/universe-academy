@@ -1,6 +1,7 @@
 from django import forms
 from django.core.validators import FileExtensionValidator
 from django.db.models import Q
+from django.utils.translation import gettext_lazy as _
 from .models import (
     User, ScholarshipApplication, ScholarshipDocument,
     Destination, Course, CourseSession, Enrollment,
@@ -20,22 +21,29 @@ INPUT_CLASS = (
 )
 FILE_CLASS = (
     'block w-full rounded-lg border border-slate-300 bg-white text-sm text-slate-600 '
-    'file:mr-3 file:cursor-pointer file:border-0 file:bg-slate-100 file:px-3 file:py-2.5 '
-    'file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200 '
+    'file:mr-3 file:cursor-pointer file:border-0 file:bg-slate-100 file:px-3 file:py-2.5 '  # i18n-exempt: classes utilitaires Tailwind, jamais affichées
+    'file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200 '  # i18n-exempt: classes utilitaires Tailwind, jamais affichées
     'focus:outline-none focus:ring-2 focus:ring-slate-900/10'
 )
 
 
+def enrollable_sessions():
+    """Groupes ouverts à l'inscription (planifiés ou en cours)."""
+    return CourseSession.objects.filter(
+        status__in=[CourseSession.Status.PLANNED, CourseSession.Status.ACTIVE],
+    ).select_related('course').order_by('course__title', 'starts_at')
+
+
 class LoginForm(forms.Form):
     identifier = forms.CharField(
-        label="Identifiant",
+        label=_("Identifiant"),
         widget=forms.TextInput(attrs={
             'class': INPUT_CLASS,
-            'placeholder': 'Email ou code interne'
+            'placeholder': _('Email ou code interne')
         })
     )
     password = forms.CharField(
-        label="Mot de passe",
+        label=_("Mot de passe"),
         widget=forms.PasswordInput(attrs={
             'class': INPUT_CLASS,
             'placeholder': '••••••••'
@@ -46,20 +54,20 @@ class LoginForm(forms.Form):
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': INPUT_CLASS,
-        'placeholder': 'Minimum 8 caractères'
+        'placeholder': _('Minimum 8 caractères')
     }))
     password_confirm = forms.CharField(
-        label="Confirmer le mot de passe",
+        label=_("Confirmer le mot de passe"),
         widget=forms.PasswordInput(attrs={
             'class': INPUT_CLASS,
             'placeholder': '••••••••'
         })
     )
     requested_role = forms.ChoiceField(
-        label="Rôle demandé",
-        choices=[('', '-- Choisir un rôle --')] + REQUESTABLE_ROLE_CHOICES,
+        label=_("Rôle demandé"),
+        choices=[('', _('-- Choisir un rôle --'))] + REQUESTABLE_ROLE_CHOICES,
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
-        help_text="Votre demande sera examinée : aucun accès n'est accordé avant validation.",
+        help_text=_("Votre demande sera examinée : aucun accès n'est accordé avant validation."),
     )
 
     class Meta:
@@ -67,39 +75,44 @@ class RegisterForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email']
         widgets = {
             'first_name': forms.TextInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'Prénom'
+                'class': INPUT_CLASS, 'placeholder': _('Prénom')
             }),
             'last_name': forms.TextInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'Nom'
+                'class': INPUT_CLASS, 'placeholder': _('Nom')
             }),
             'email': forms.EmailInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'email@exemple.com'
+                'class': INPUT_CLASS, 'placeholder': _('email@exemple.com')
             }),
         }
 
     def clean(self):
         cleaned = super().clean()
         if cleaned.get('password') != cleaned.get('password_confirm'):
-            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
+            raise forms.ValidationError(_("Les mots de passe ne correspondent pas."))
         return cleaned
 
 
 class UserCreateForm(forms.ModelForm):
     role = forms.ChoiceField(
-        choices=[('', '-- Choisir un rôle --')] + [
+        choices=[('', _('-- Choisir un rôle --'))] + [
             (key, label) for key, label in RoleKey.choices
             if key not in ('SUPER_ADMIN', 'ADMIN')
         ],
-        label="Rôle",
-        help_text=(
-            "Les rôles SUPER_ADMIN et ADMIN s'attribuent ensuite depuis la "
-            "fiche utilisateur, par un super administrateur."
-        ),
+        label=_("Rôle"),
+        help_text=_("Les rôles SUPER_ADMIN et ADMIN s'attribuent ensuite depuis la fiche utilisateur, par un super administrateur."),
+    )
+    session = forms.ModelChoiceField(
+        label=_("Formation / groupe"),
+        queryset=enrollable_sessions(),
+        required=False,
+        empty_label=_("-- Choisir un groupe --"),
+        help_text=_("Obligatoire pour un étudiant : le compte est inscrit dès sa création."),
+        widget=forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
     )
     password = forms.CharField(
         required=False,
         widget=forms.PasswordInput(attrs={'class': 'w-full p-2 border rounded'}),
-        help_text="Laisser vide pour envoyer une invitation par email"
+        help_text=_("Laisser vide pour envoyer une invitation par email")
     )
 
     class Meta:
@@ -111,6 +124,27 @@ class UserCreateForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'w-full p-2 border rounded'}),
             'phone': forms.TextInput(attrs={'class': 'w-full p-2 border rounded'}),
         }
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('role') == RoleKey.ETUDIANT and not cleaned.get('session'):
+            self.add_error(
+                'session',
+                _("Un compte étudiant doit être inscrit à un groupe."),
+            )
+        return cleaned
+
+
+class AccessApprovalForm(forms.Form):
+    """Groupe choisi lors de la validation d'une demande d'accès."""
+
+    session = forms.ModelChoiceField(
+        label=_("Formation / groupe"),
+        queryset=enrollable_sessions(),
+        required=False,
+        empty_label=_("-- Choisir un groupe --"),
+        widget=forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
+    )
 
 
 class UserEditForm(forms.ModelForm):
@@ -137,15 +171,15 @@ class ScholarshipApplicationForm(forms.ModelForm):
         widgets = {
             'last_name': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': 'Nom'
+                'placeholder': _('Nom')
             }),
             'first_name': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': 'Prénom'
+                'placeholder': _('Prénom')
             }),
             'email': forms.EmailInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': 'email@exemple.com'
+                'placeholder': _('email@exemple.com')
             }),
             'phone': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
@@ -154,11 +188,11 @@ class ScholarshipApplicationForm(forms.ModelForm):
             'destination': forms.Select(attrs={'class': INPUT_CLASS}),
             'program': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': 'Ex: Licence, Master'
+                'placeholder': _('Ex: Licence, Master')
             }),
             'study_domain': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': 'Ex: Informatique, Médecine'
+                'placeholder': _('Ex: Informatique, Médecine')
             }),
         }
 
@@ -169,14 +203,14 @@ class ScholarshipApplicationForm(forms.ModelForm):
 
 class ScholarshipDocumentForm(forms.Form):
     identity_doc = forms.FileField(
-        label="Pièce d'identité",
+        label=_("Pièce d'identité"),
         validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
         widget=forms.ClearableFileInput(attrs={
             'class': FILE_CLASS, 'accept': '.pdf,.jpg,.jpeg,.png'
         })
     )
     diplomas = forms.FileField(
-        label="Diplômes",
+        label=_("Diplômes"),
         required=False,
         validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
         widget=forms.ClearableFileInput(attrs={
@@ -184,7 +218,7 @@ class ScholarshipDocumentForm(forms.Form):
         })
     )
     transcripts = forms.FileField(
-        label="Relevés de notes",
+        label=_("Relevés de notes"),
         required=False,
         validators=[FileExtensionValidator(['pdf', 'jpg', 'jpeg', 'png'])],
         widget=forms.ClearableFileInput(attrs={
@@ -192,24 +226,18 @@ class ScholarshipDocumentForm(forms.Form):
         })
     )
     photo = forms.ImageField(
-        label="Photo d'identité",
+        label=_("Photo d'identité"),
         validators=[FileExtensionValidator(['jpg', 'jpeg', 'png'])],
         widget=forms.ClearableFileInput(attrs={
             'class': FILE_CLASS, 'accept': '.jpg,.jpeg,.png'
         })
     )
     motivation_letter = forms.FileField(
-        label="Lettre de motivation",
+        label=_("Lettre de motivation"),
         validators=[FileExtensionValidator(['pdf', 'doc', 'docx'])],
         widget=forms.ClearableFileInput(attrs={
             'class': FILE_CLASS, 'accept': '.pdf,.doc,.docx'
         })
-    )
-
-
-class AttendanceForm(forms.Form):
-    date = forms.DateField(
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'p-2 border rounded'})
     )
 
 
@@ -221,12 +249,12 @@ class AccessEventForm(forms.ModelForm):
             'person': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
             'visitor_label': forms.TextInput(attrs={
                 'class': 'w-full p-2 border rounded',
-                'placeholder': 'Nom du visiteur (si pas inscrit)'
+                'placeholder': _('Nom du visiteur (si pas inscrit)')
             }),
             'event_type': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
             'reason': forms.TextInput(attrs={
                 'class': 'w-full p-2 border rounded',
-                'placeholder': 'Motif (optionnel)'
+                'placeholder': _('Motif (optionnel)')
             }),
         }
 
@@ -245,7 +273,7 @@ class ProfileForm(forms.ModelForm):
             'last_name': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'display_name': forms.TextInput(attrs={
                 'class': INPUT_CLASS,
-                'placeholder': "Nom affiché dans l'interface",
+                'placeholder': _("Nom affiché dans l'interface"),
             }),
             'phone': forms.TextInput(attrs={
                 'class': INPUT_CLASS, 'placeholder': '+242 06 XXX XX XX'
@@ -256,14 +284,14 @@ class ProfileForm(forms.ModelForm):
 
 class AvatarForm(forms.Form):
     avatar = forms.ImageField(
-        label="Photo de profil",
+        label=_("Photo de profil"),
         widget=forms.ClearableFileInput(attrs={'class': FILE_CLASS, 'accept': 'image/*'}),
     )
 
     def clean_avatar(self):
         image = self.cleaned_data['avatar']
         if image.size > 2 * 1024 * 1024:
-            raise forms.ValidationError("L'image ne doit pas dépasser 2 Mo.")
+            raise forms.ValidationError(_("L'image ne doit pas dépasser 2 Mo."))
         return image
 
 
@@ -271,10 +299,10 @@ class AccessRequestCompletionForm(forms.ModelForm):
     """Complète le profil et le rôle demandé d'un compte en attente (Clerk)."""
 
     requested_role = forms.ChoiceField(
-        label="Rôle demandé",
-        choices=[('', '-- Choisir un rôle --')] + REQUESTABLE_ROLE_CHOICES,
+        label=_("Rôle demandé"),
+        choices=[('', _('-- Choisir un rôle --'))] + REQUESTABLE_ROLE_CHOICES,
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
-        help_text="Votre demande sera examinée : aucun accès n'est accordé avant validation.",
+        help_text=_("Votre demande sera examinée : aucun accès n'est accordé avant validation."),
     )
 
     class Meta:
@@ -282,10 +310,10 @@ class AccessRequestCompletionForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'phone']
         widgets = {
             'first_name': forms.TextInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'Prénom'
+                'class': INPUT_CLASS, 'placeholder': _('Prénom')
             }),
             'last_name': forms.TextInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'Nom'
+                'class': INPUT_CLASS, 'placeholder': _('Nom')
             }),
             'phone': forms.TextInput(attrs={
                 'class': INPUT_CLASS, 'placeholder': '+242 06 XXX XX XX'
@@ -295,11 +323,11 @@ class AccessRequestCompletionForm(forms.ModelForm):
 
 class EmailChangeForm(forms.Form):
     new_email = forms.EmailField(
-        label="Nouvelle adresse e-mail",
+        label=_("Nouvelle adresse e-mail"),
         widget=forms.EmailInput(attrs={'class': INPUT_CLASS}),
     )
     password = forms.CharField(
-        label="Mot de passe actuel",
+        label=_("Mot de passe actuel"),
         widget=forms.PasswordInput(attrs={'class': INPUT_CLASS}),
     )
 
@@ -310,13 +338,13 @@ class EmailChangeForm(forms.Form):
     def clean_new_email(self):
         email = self.cleaned_data['new_email'].strip().lower()
         if User.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Cette adresse est déjà utilisée.")
+            raise forms.ValidationError(_("Cette adresse est déjà utilisée."))
         return email
 
     def clean_password(self):
         password = self.cleaned_data['password']
         if self.user and not self.user.check_password(password):
-            raise forms.ValidationError("Mot de passe incorrect.")
+            raise forms.ValidationError(_("Mot de passe incorrect."))
         return password
 
 
@@ -326,17 +354,17 @@ class EmailChangeForm(forms.Form):
 
 
 class VisitForm(forms.ModelForm):
-    first_name = forms.CharField(label="Prénom", max_length=100,
+    first_name = forms.CharField(label=_("Prénom"), max_length=100,
                                  widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    last_name = forms.CharField(label="Nom", max_length=100,
+    last_name = forms.CharField(label=_("Nom"), max_length=100,
                                 widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    phone = forms.CharField(label="Téléphone", max_length=30,
+    phone = forms.CharField(label=_("Téléphone"), max_length=30,
                             widget=forms.TextInput(attrs={
                                 'class': INPUT_CLASS, 'placeholder': '+242 06 XXX XX XX'}))
-    secondary_phone = forms.CharField(label="Téléphone secondaire", required=False,
+    secondary_phone = forms.CharField(label=_("Téléphone secondaire"), required=False,
                                       max_length=30,
                                       widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    email = forms.EmailField(label="Email", required=False,
+    email = forms.EmailField(label=_("Email"), required=False,
                              widget=forms.EmailInput(attrs={'class': INPUT_CLASS}))
 
     class Meta:
@@ -382,7 +410,7 @@ class VisitForm(forms.ModelForm):
         departure = cleaned.get('departure_at')
         if arrival and departure and departure < arrival:
             self.add_error('departure_at',
-                           "Le départ ne peut pas précéder l'arrivée.")
+                           _("Le départ ne peut pas précéder l'arrivée."))
         if not cleaned.get('status') or cleaned.get('status') == Visit.Status.WAITING:
             pass
         return cleaned
@@ -426,16 +454,16 @@ class VisitReasonForm(forms.ModelForm):
 
 
 class ProspectForm(forms.ModelForm):
-    first_name = forms.CharField(label="Prénom", max_length=100,
+    first_name = forms.CharField(label=_("Prénom"), max_length=100,
                                  widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    last_name = forms.CharField(label="Nom", max_length=100,
+    last_name = forms.CharField(label=_("Nom"), max_length=100,
                                 widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    phone = forms.CharField(label="Téléphone principal", max_length=30,
+    phone = forms.CharField(label=_("Téléphone principal"), max_length=30,
                             widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    secondary_phone = forms.CharField(label="Téléphone secondaire", required=False,
+    secondary_phone = forms.CharField(label=_("Téléphone secondaire"), required=False,
                                       max_length=30,
                                       widget=forms.TextInput(attrs={'class': INPUT_CLASS}))
-    email = forms.EmailField(label="Email", required=False,
+    email = forms.EmailField(label=_("Email"), required=False,
                              widget=forms.EmailInput(attrs={'class': INPUT_CLASS}))
 
     class Meta:
@@ -451,7 +479,7 @@ class ProspectForm(forms.ModelForm):
             'level': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'language_program': forms.TextInput(attrs={'class': INPUT_CLASS}),
             'desired_start': forms.TextInput(attrs={
-                'class': INPUT_CLASS, 'placeholder': 'Ex: janvier 2027'}),
+                'class': INPUT_CLASS, 'placeholder': _('Ex: janvier 2027')}),
             'preferred_contact': forms.Select(attrs={'class': INPUT_CLASS}),
             'source': forms.Select(attrs={'class': INPUT_CLASS}),
             'first_contact_at': forms.DateInput(
@@ -539,10 +567,10 @@ class ProspectFollowUpForm(forms.ModelForm):
 
 class StudentForm(forms.ModelForm):
     password = forms.CharField(
-        label="Mot de passe initial", required=False,
-        help_text="Laisser vide pour créer un compte sans mot de passe (invitation).",
+        label=_("Mot de passe initial"), required=False,
+        help_text=_("Laisser vide pour créer un compte sans mot de passe (invitation)."),
         widget=forms.PasswordInput(attrs={'class': INPUT_CLASS,
-                                          'placeholder': 'Minimum 8 caractères'}),
+                                          'placeholder': _('Minimum 8 caractères')}),
     )
 
     class Meta:
@@ -568,7 +596,7 @@ class StudentForm(forms.ModelForm):
         if not self.instance._state.adding:
             qs = qs.exclude(pk=self.instance.pk)
         if qs.exists():
-            raise forms.ValidationError("Un compte utilise déjà cette adresse.")
+            raise forms.ValidationError(_("Un compte utilise déjà cette adresse."))
         return email
 
     def clean_password(self):
@@ -631,7 +659,7 @@ class EnrollmentForm(forms.ModelForm):
         tariff = cleaned.get('tariff_amount') or 0
         discount = cleaned.get('discount_amount') or 0
         if discount > tariff:
-            self.add_error('discount_amount', "La remise ne peut pas dépasser le tarif.")
+            self.add_error('discount_amount', _("La remise ne peut pas dépasser le tarif."))
         cleaned['net_amount'] = max(tariff - discount, 0)
         return cleaned
 
@@ -651,42 +679,42 @@ class NewEnrollmentForm(forms.Form):
     """Inscription créée en même temps que le compte étudiant."""
 
     session = forms.ModelChoiceField(
-        label="Formation / groupe",
+        label=_("Formation / groupe"),
         queryset=CourseSession.objects.none(),
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
     )
     status = forms.ChoiceField(
-        label="Statut de l'inscription",
+        label=_("Statut de l'inscription"),
         choices=Enrollment.Status.choices,
         initial=Enrollment.Status.ACTIVE,
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
     )
     start_date = forms.DateField(
-        label="Date de début",
+        label=_("Date de début"),
         required=False,
         widget=forms.DateInput(attrs={'class': INPUT_CLASS, 'type': 'date'},
                                format='%Y-%m-%d'),
     )
     tariff_amount = forms.IntegerField(
-        label="Frais de formation prévus (FCFA)",
+        label=_("Frais de formation prévus (FCFA)"),
         required=False, min_value=0,
         widget=forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 0}),
     )
     discount_amount = forms.IntegerField(
-        label="Remise (FCFA)",
+        label=_("Remise (FCFA)"),
         required=False, min_value=0, initial=0,
         widget=forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 0}),
     )
     payment_plan = forms.CharField(
-        label="Modalités de paiement",
+        label=_("Modalités de paiement"),
         required=False,
         widget=forms.TextInput(attrs={
             'class': INPUT_CLASS,
-            'placeholder': "Ex: 2 versements — 50 % à l'inscription",
+            'placeholder': _("Ex: 2 versements — 50 % à l'inscription"),
         }),
     )
     notes = forms.CharField(
-        label="Observations",
+        label=_("Observations"),
         required=False,
         widget=forms.Textarea(attrs={'class': INPUT_CLASS, 'rows': 2}),
     )
@@ -708,7 +736,7 @@ class NewEnrollmentForm(forms.Form):
         cleaned['tariff_amount'] = tariff or 0
         if discount > cleaned['tariff_amount']:
             self.add_error('discount_amount',
-                           "La remise ne peut pas dépasser le tarif.")
+                           _("La remise ne peut pas dépasser le tarif."))
         return cleaned
 
     @property
@@ -772,13 +800,13 @@ class CourseSessionForm(forms.ModelForm):
             'status', 'formateurs',
         ]
         labels = {
-            'course': 'Formation',
-            'starts_at': 'Date de début',
-            'ends_at': 'Date de fin',
-            'schedule': 'Horaires',
-            'capacity': 'Capacité',
-            'status': 'Statut',
-            'formateurs': 'Formateurs',
+            'course': _("Formation"),
+            'starts_at': _("Date de début"),
+            'ends_at': _("Date de fin"),
+            'schedule': _("Horaires"),
+            'capacity': _("Capacité"),
+            'status': _("Statut"),
+            'formateurs': _("Formateurs"),
         }
         widgets = {
             'course': forms.Select(attrs={'class': INPUT_CLASS}),
@@ -787,7 +815,7 @@ class CourseSessionForm(forms.ModelForm):
             'ends_at': forms.DateInput(
                 attrs={'class': INPUT_CLASS, 'type': 'date'}, format='%Y-%m-%d'),
             'schedule': forms.TextInput(
-                attrs={'class': INPUT_CLASS, 'placeholder': 'Ex: Lun-Ven 13h-15h'}),
+                attrs={'class': INPUT_CLASS, 'placeholder': _('Ex: Lun-Ven 13h-15h')}),
             'capacity': forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 1}),
             'status': forms.Select(attrs={'class': INPUT_CLASS}),
             'formateurs': forms.SelectMultiple(attrs={'class': INPUT_CLASS, 'size': 6}),
@@ -801,9 +829,8 @@ class CourseSessionForm(forms.ModelForm):
         self.fields['formateurs'].queryset = User.objects.filter(
             roles__key=RoleKey.FORMATEUR
         ).distinct().order_by('first_name', 'last_name', 'email')
-        self.fields['formateurs'].help_text = (
-            "Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs formateurs."
-        )
+        self.fields['formateurs'].help_text = _(
+            "Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs formateurs.")
 
     def clean(self):
         cleaned = super().clean()
@@ -811,7 +838,7 @@ class CourseSessionForm(forms.ModelForm):
         ends_at = cleaned.get('ends_at')
         if starts_at and ends_at and ends_at < starts_at:
             self.add_error(
-                'ends_at', "La date de fin doit suivre la date de début."
+                'ends_at', _("La date de fin doit suivre la date de début.")
             )
         return cleaned
 
@@ -872,18 +899,18 @@ class SessionRecordForm(forms.ModelForm):
         cleaned = super().clean()
         start, end = cleaned.get('planned_start'), cleaned.get('planned_end')
         if start and end and end <= start:
-            self.add_error('planned_end', "L'heure de fin doit suivre le début.")
+            self.add_error('planned_end', _("L'heure de fin doit suivre le début."))
         a_start, a_end = cleaned.get('actual_start'), cleaned.get('actual_end')
         if a_start and a_end and a_end <= a_start:
-            self.add_error('actual_end', "L'heure de fin doit suivre le début.")
+            self.add_error('actual_end', _("L'heure de fin doit suivre le début."))
         status = cleaned.get('status')
         if status == SessionRecord.Status.COMPLETED and not a_start:
             self.add_error('actual_start',
-                           "Renseignez l'heure réelle de début pour une séance réalisée.")
+                           _("Renseignez l'heure réelle de début pour une séance réalisée."))
         module = cleaned.get('module')
         lesson = cleaned.get('lesson')
         if module and lesson and lesson.module_id != module.id:
-            self.add_error('lesson', "Cette leçon n'appartient pas au module choisi.")
+            self.add_error('lesson', _("Cette leçon n'appartient pas au module choisi."))
         return cleaned
 
 
@@ -901,13 +928,13 @@ class TextbookEntryForm(forms.ModelForm):
             'attendee_count', 'notes', 'status',
         ]
         labels = {
-            'date': 'Date',
-            'planned_start': 'Heure de début',
-            'planned_end': 'Heure de fin',
-            'content_covered': 'Notions enseignées',
-            'attendee_count': "Nombre d'apprenants",
-            'notes': 'Observations',
-            'status': 'Statut de la séance',
+            'date': _("Date"),
+            'planned_start': _("Heure de début"),
+            'planned_end': _("Heure de fin"),
+            'content_covered': _("Notions enseignées"),
+            'attendee_count': _("Nombre d'apprenants"),
+            'notes': _("Observations"),
+            'status': _("Statut de la séance"),
         }
         widgets = {
             'date': forms.DateInput(
@@ -918,13 +945,13 @@ class TextbookEntryForm(forms.ModelForm):
                 attrs={'class': INPUT_CLASS, 'type': 'time'}, format='%H:%M'),
             'content_covered': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 3,
-                       'placeholder': "Ex : les composants d'un ordinateur"},
+                       'placeholder': _("Ex : les composants d'un ordinateur")},
             ),
             'attendee_count': forms.NumberInput(
                 attrs={'class': INPUT_CLASS, 'min': 0}),
             'notes': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 2,
-                       'placeholder': 'Observations, matériel, incident…'},
+                       'placeholder': _('Observations, matériel, incident…')},
             ),
             'status': forms.Select(attrs={'class': INPUT_CLASS}),
         }
@@ -942,7 +969,7 @@ class TextbookEntryForm(forms.ModelForm):
         start = cleaned.get('planned_start')
         end = cleaned.get('planned_end')
         if start and end and end <= start:
-            self.add_error('planned_end', "L'heure de fin doit suivre le début.")
+            self.add_error('planned_end', _("L'heure de fin doit suivre le début."))
 
         record_date = cleaned.get('date')
         if self.session and record_date and start:
@@ -953,8 +980,7 @@ class TextbookEntryForm(forms.ModelForm):
                 duplicates = duplicates.exclude(pk=self.instance.pk)
             if duplicates.exists():
                 raise forms.ValidationError(
-                    "Une séance est déjà enregistrée à cette date et à cette "
-                    "heure pour ce groupe."
+                    _("Une séance est déjà enregistrée à cette date et à cette heure pour ce groupe.")
                 )
         return cleaned
 
@@ -969,25 +995,25 @@ class StudentSessionNoteForm(forms.ModelForm):
             'attended', 'followed_start', 'followed_end',
         ]
         labels = {
-            'notions_learned': 'Notions retenues',
-            'difficulties': 'Difficultés rencontrées',
-            'observations': 'Observations',
-            'attended': "J'étais présent à cette séance",
-            'followed_start': 'Heure de début suivie',
-            'followed_end': 'Heure de fin suivie',
+            'notions_learned': _("Notions retenues"),
+            'difficulties': _("Difficultés rencontrées"),
+            'observations': _("Observations"),
+            'attended': _("J'étais présent à cette séance"),
+            'followed_start': _("Heure de début suivie"),
+            'followed_end': _("Heure de fin suivie"),
         }
         widgets = {
             'notions_learned': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 3,
-                       'placeholder': "Ce que j'ai appris pendant cette séance"},
+                       'placeholder': _("Ce que j'ai appris pendant cette séance")},
             ),
             'difficulties': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 2,
-                       'placeholder': "Ce que je n'ai pas compris"},
+                       'placeholder': _("Ce que je n'ai pas compris")},
             ),
             'observations': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 2,
-                       'placeholder': 'Remarque, question pour le formateur…'},
+                       'placeholder': _('Remarque, question pour le formateur…')},
             ),
             'attended': forms.CheckboxInput(attrs={'class': 'ua-check'}),
             'followed_start': forms.TimeInput(
@@ -1008,7 +1034,7 @@ class StudentSessionNoteForm(forms.ModelForm):
         end = cleaned.get('followed_end')
         if start and end and end <= start:
             raise forms.ValidationError(
-                "L'heure de fin suivie doit être après l'heure de début."
+                _("L'heure de fin suivie doit être après l'heure de début.")
             )
         return cleaned
 
@@ -1054,14 +1080,14 @@ class ResourceForm(forms.ModelForm):
         html = cleaned.get('html_content')
         if not file and not (html or '').strip():
             raise forms.ValidationError(
-                "Joignez un fichier ou saisissez un contenu HTML."
+                _("Joignez un fichier ou saisissez un contenu HTML.")
             )
         if file and file.size > 10 * 1024 * 1024:
-            self.add_error('file', "Le fichier ne doit pas dépasser 10 Mo.")
+            self.add_error('file', _("Le fichier ne doit pas dépasser 10 Mo."))
         module = cleaned.get('module')
         lesson = cleaned.get('lesson')
         if module and lesson and lesson.module_id != module.id:
-            self.add_error('lesson', "Cette leçon n'appartient pas au module choisi.")
+            self.add_error('lesson', _("Cette leçon n'appartient pas au module choisi."))
         return cleaned
 
 
@@ -1069,8 +1095,8 @@ class ResourceFeedbackForm(forms.ModelForm):
     """Retour de l'étudiant sur une ressource publiée."""
 
     rating = forms.ChoiceField(
-        label="Ma note",
-        choices=[('', '— Sans note —')] + [(str(i), f"{i} / 5") for i in range(1, 6)],
+        label=_("Ma note"),
+        choices=[('', _('— Sans note —'))] + [(str(i), f"{i} / 5") for i in range(1, 6)],
         required=False,
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
     )
@@ -1079,13 +1105,12 @@ class ResourceFeedbackForm(forms.ModelForm):
         model = ResourceFeedback
         fields = ['rating', 'comment']
         labels = {
-            'comment': 'Mon retour',
+            'comment': _("Mon retour"),
         }
         widgets = {
             'comment': forms.Textarea(
                 attrs={'class': INPUT_CLASS, 'rows': 4,
-                       'placeholder': "Ce que j'ai compris, ce qui m'a aidé, "
-                                      "mes questions au formateur…"},
+                       'placeholder': _("Ce que j'ai compris, ce qui m'a aidé, mes questions au formateur…")},
             ),
         }
 
@@ -1093,7 +1118,7 @@ class ResourceFeedbackForm(forms.ModelForm):
         cleaned = super().clean()
         if not cleaned.get('rating') and not (cleaned.get('comment') or '').strip():
             raise forms.ValidationError(
-                "Donnez une note ou écrivez un retour."
+                _("Donnez une note ou écrivez un retour.")
             )
         return cleaned
 
@@ -1151,14 +1176,14 @@ class CashTransactionForm(forms.ModelForm):
         if tx_type == CashTransaction.Type.TRANSFER:
             if not destination:
                 self.add_error('destination_account',
-                               "Choisissez le compte destinataire.")
+                               _("Choisissez le compte destinataire."))
             elif destination == account:
                 self.add_error('destination_account',
-                               "Le compte destinataire doit être différent.")
+                               _("Le compte destinataire doit être différent."))
         elif destination:
             cleaned['destination_account'] = None
         if category and tx_type and category.direction != tx_type:
-            self.add_error('category', "Cette catégorie ne correspond pas au type.")
+            self.add_error('category', _("Cette catégorie ne correspond pas au type."))
         return cleaned
 
 
@@ -1192,58 +1217,267 @@ class CashClosureForm(forms.ModelForm):
         self.fields['date'].input_formats = ['%Y-%m-%d']
 
 
+# Statuts d'inscription réellement encaissables. Une inscription créée au
+# guichet reste « En attente » tant que la direction ne l'a pas validée : elle
+# ne doit donc pas apparaître dans la liste des dossiers à encaisser.
+PAYABLE_ENROLLMENT_STATUSES = (
+    Enrollment.Status.ACTIVE,
+    Enrollment.Status.COMPLETED,
+)
+
+
+class EnrollmentSelect(forms.Select):
+    """Liste d'inscriptions enrichie du reste à payer de chaque dossier."""
+
+    def create_option(self, name, value, label, selected, index,
+                      subindex=None, attrs=None):
+        option = super().create_option(
+            name, value, label, selected, index, subindex=subindex, attrs=attrs
+        )
+        instance = getattr(value, 'instance', None)
+        if instance is not None:
+            option['attrs']['data-balance'] = instance.balance_due
+        return option
+
+
+class EnrollmentChoiceField(forms.ModelChoiceField):
+    """Inscription dont le libellé rappelle l'étudiant et le reste à payer."""
+
+    def label_from_instance(self, obj):
+        course = obj.session.course.title
+        if obj.net_amount <= 0:
+            state = _("montant net à définir")
+        elif obj.balance_due <= 0:
+            state = _("soldé")
+        else:
+            state = _("reste %(amount)s FCFA") % {'amount': obj.balance_due}
+        return f"{obj.student.display_label} — {course} ({state})"
+
+
 class StudentPaymentForm(forms.Form):
-    enrollment = forms.ModelChoiceField(
-        label="Inscription",
-        queryset=Enrollment.objects.none(),
+    student = forms.ModelChoiceField(
+        label=_("Étudiant"),
+        queryset=User.objects.none(),
+        required=False,
+        empty_label=_("— Choisir un étudiant —"),
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
+        help_text=_("La liste des inscriptions se filtre sur l'étudiant choisi. Un étudiant absent de cette liste n'a pas encore de compte actif."),
+    )
+    enrollment = EnrollmentChoiceField(
+        label=_("Inscription à encaisser"),
+        queryset=Enrollment.objects.none(),
+        empty_label=_("— Choisir un dossier —"),
+        widget=EnrollmentSelect(attrs={'class': INPUT_CLASS}),
+        error_messages={
+            'required': _("Choisissez l'inscription à encaisser."),
+            'invalid_choice': _("Cette inscription n'est pas encaissable : elle est annulée, en attente de validation ou n'appartient pas à l'étudiant sélectionné."),
+        },
     )
     amount = forms.IntegerField(
-        label="Montant encaissé",
+        label=_("Montant encaissé"),
         min_value=1,
         widget=forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 1}),
     )
     method = forms.ChoiceField(
-        label="Moyen de paiement",
+        label=_("Moyen de paiement"),
         choices=Payment.Method.choices,
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
     )
     account = forms.ModelChoiceField(
-        label="Caisse / compte destinataire",
+        label=_("Caisse / compte destinataire"),
         queryset=CashAccount.objects.none(),
         widget=forms.Select(attrs={'class': INPUT_CLASS}),
     )
     paid_at = forms.DateTimeField(
-        label="Date et heure du paiement",
+        label=_("Date et heure du paiement"),
         widget=forms.DateTimeInput(
             attrs={'class': INPUT_CLASS, 'type': 'datetime-local'},
             format='%Y-%m-%dT%H:%M'),
     )
     note = forms.CharField(
-        label="Observations", required=False,
+        label=_("Observations"), required=False,
         widget=forms.Textarea(attrs={'class': INPUT_CLASS, 'rows': 2}),
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['enrollment'].queryset = (
-            Enrollment.objects.select_related('student', 'session__course')
-            .exclude(status=Enrollment.Status.CANCELLED)
-            .order_by('student__last_name')
+        self.fields['student'].queryset = (
+            User.objects.filter(
+                roles__key=RoleKey.ETUDIANT,
+                account_status=AccountStatus.ACTIVE,
+            ).distinct().order_by('last_name', 'first_name')
         )
+        enrollments = (
+            Enrollment.objects.select_related('student', 'session__course')
+            .filter(status__in=PAYABLE_ENROLLMENT_STATUSES)
+            .order_by('student__last_name', 'session__course__title')
+        )
+        if self.is_bound:
+            student_id = self.data.get('student') or ''
+        else:
+            student_id = self.initial.get('student') or ''
+        if student_id:
+            enrollments = enrollments.filter(student_id=student_id)
+        self.fields['enrollment'].queryset = enrollments
+        self.fields['enrollment'].help_text = _(
+            "Chaque ligne rappelle l'étudiant, la formation et le reste à payer.")
+        if student_id and not enrollments.exists():
+            dossiers = Enrollment.objects.filter(student_id=student_id)
+            self.fields['enrollment'].help_text = (
+                _("Aucune inscription pour cet étudiant : elle se crée au secrétariat avant tout encaissement.")
+                if not dossiers.exists() else
+                _("Ce dossier n'est pas encore encaissable : le secrétariat l'a créé, il attend une validation.")
+            )
         self.fields['account'].queryset = CashAccount.objects.filter(active=True)
         self.fields['paid_at'].input_formats = ['%Y-%m-%dT%H:%M']
 
     def clean(self):
         cleaned = super().clean()
+        student = cleaned.get('student')
         enrollment = cleaned.get('enrollment')
         amount = cleaned.get('amount') or 0
-        if enrollment and enrollment.net_amount:
-            if amount > enrollment.balance_due:
+
+        if enrollment and student and enrollment.student_id != student.id:
+            self.add_error(
+                'enrollment',
+                _("Cette inscription n'appartient pas à l'étudiant sélectionné."),
+            )
+
+        if student and not enrollment and 'enrollment' not in self.errors:
+            if student.enrollments.filter(
+                status=Enrollment.Status.PENDING
+            ).exists():
+                self.add_error(
+                    'enrollment',
+                    _("L'inscription de cet étudiant est en attente de validation : elle ne peut pas encore être encaissée."),
+                )
+            elif not student.enrollments.exclude(
+                status=Enrollment.Status.CANCELLED
+            ).exists():
+                self.add_error(
+                    'enrollment',
+                    _("Cet étudiant n'a pas encore d'inscription. Créez-la dans le panneau « Inscrire un étudiant », puis faites-la valider avant l'encaissement."),
+                )
+
+        if enrollment:
+            # Compatibilité : un ancien formulaire peut ne pas transmettre
+            # l'étudiant ; l'inscription suffit alors à l'identifier.
+            if not cleaned.get('student'):
+                cleaned['student'] = enrollment.student
+            if enrollment.net_amount <= 0:
                 self.add_error(
                     'amount',
-                    f"Le montant dépasse le reste à payer "
-                    f"({enrollment.balance_due} FCFA)."
+                    _("Le montant net du dossier n'est pas défini : complétez l'inscription avant d'encaisser."),
                 )
+            elif amount > enrollment.balance_due:
+                if enrollment.balance_due <= 0:
+                    self.add_error(
+                        'amount',
+                        _("Ce dossier est soldé : aucun montant ne reste à encaisser."),
+                    )
+                else:
+                    self.add_error(
+                        'amount',
+                        _("Le montant dépasse le reste à payer (%(montant)s FCFA).") % {'montant': enrollment.balance_due},
+                    )
         return cleaned
+
+
+class CounterEnrollmentForm(forms.Form):
+    """Inscription créée au guichet : elle reste en attente de validation.
+
+    Le comptable et le secrétariat peuvent ouvrir le dossier d'un étudiant
+    encore inconnu ; la direction valide ensuite l'inscription, et seulement
+    à ce moment le dossier devient encaissable.
+    """
+
+    student = forms.ModelChoiceField(
+        label=_("Étudiant"),
+        queryset=User.objects.none(),
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+    )
+    session = forms.ModelChoiceField(
+        label=_("Formation / groupe"),
+        queryset=enrollable_sessions(),
+        widget=forms.Select(attrs={'class': INPUT_CLASS}),
+    )
+    start_date = forms.DateField(
+        label=_("Date de début"),
+        required=False,
+        widget=forms.DateInput(
+            attrs={'class': INPUT_CLASS, 'type': 'date'}, format='%Y-%m-%d'),
+    )
+    tariff_amount = forms.IntegerField(
+        label=_("Tarif appliqué (FCFA)"),
+        min_value=0,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 0}),
+        help_text=_("Laisser vide pour reprendre le tarif catalogue du groupe."),
+    )
+    discount_amount = forms.IntegerField(
+        label=_("Remise (FCFA)"),
+        min_value=0,
+        required=False,
+        initial=0,
+        widget=forms.NumberInput(attrs={'class': INPUT_CLASS, 'min': 0}),
+    )
+    payment_plan = forms.CharField(
+        label=_("Modalités de paiement"),
+        required=False,
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': INPUT_CLASS}),
+    )
+    notes = forms.CharField(
+        label=_("Observations"),
+        required=False,
+        widget=forms.Textarea(attrs={'class': INPUT_CLASS, 'rows': 2}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['student'].queryset = (
+            User.objects.filter(roles__key=RoleKey.ETUDIANT)
+            .distinct().order_by('last_name', 'first_name')
+        )
+        self.fields['start_date'].input_formats = ['%Y-%m-%d']
+
+    def clean(self):
+        cleaned = super().clean()
+        student = cleaned.get('student')
+        session = cleaned.get('session')
+        tariff = cleaned.get('tariff_amount')
+        discount = cleaned.get('discount_amount') or 0
+
+        if tariff is None and session is not None:
+            tariff = session.course.fee_amount
+            cleaned['tariff_amount'] = tariff
+        tariff = tariff or 0
+        if discount > tariff:
+            self.add_error(
+                'discount_amount', _("La remise ne peut pas dépasser le tarif.")
+            )
+        if student and session and Enrollment.objects.filter(
+            student=student, session=session
+        ).exists():
+            self.add_error(
+                'session',
+                _("Cet étudiant est déjà inscrit à cette formation."),
+            )
+        cleaned['net_amount'] = max(tariff - discount, 0)
+        return cleaned
+
+    def save(self, user):
+        data = self.cleaned_data
+        return Enrollment.objects.create(
+            student=data['student'],
+            session=data['session'],
+            status=Enrollment.Status.PENDING,
+            start_date=data['start_date'],
+            tariff_amount=data['tariff_amount'] or data['session'].course.fee_amount,
+            discount_amount=data['discount_amount'] or 0,
+            net_amount=data['net_amount'],
+            payment_plan=data['payment_plan'],
+            notes=data['notes'],
+            registered_by=user,
+        )
 

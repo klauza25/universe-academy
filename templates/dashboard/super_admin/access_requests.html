@@ -1,30 +1,31 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Demandes d'accès — Univers Academy{% endblock %}
+{% block title %}{% translate "Demandes d'accès — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
+{% translate "Rôle à définir" as var_role_definir %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Demandes d'accès</h1>
+        <h1 class="ua-page-title">{% translate "Demandes d'accès" %}</h1>
         <p class="ua-page-sub">
-            {{ pending_count }} en attente · {{ total_count }} demande{{ total_count|pluralize }} au total
+            {% blocktrans with pc=pending_count tc=total_count %}{{ pc }} en attente · {{ tc }} demande(s) au total{% endblocktrans %}
         </p>
     </div>
     <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">
-        {% icon "users" %} Voir les utilisateurs
+        {% icon "users" %} {% translate "Voir les utilisateurs" %}
     </a>
 </div>
 
 <div class="flex flex-wrap gap-2 mb-5">
-    <a href="?statut=all" class="ua-btn ua-btn-sm {% if status_filter == 'all' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Toutes</a>
-    <a href="?statut=PENDING" class="ua-btn ua-btn-sm {% if status_filter == 'PENDING' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">En attente</a>
-    <a href="?statut=APPROVED" class="ua-btn ua-btn-sm {% if status_filter == 'APPROVED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Approuvées</a>
-    <a href="?statut=REJECTED" class="ua-btn ua-btn-sm {% if status_filter == 'REJECTED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">Refusées</a>
+    <a href="?statut=all" class="ua-btn ua-btn-sm {% if status_filter == 'all' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">{% translate "Toutes" %}</a>
+    <a href="?statut=PENDING" class="ua-btn ua-btn-sm {% if status_filter == 'PENDING' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">{% translate "En attente" %}</a>
+    <a href="?statut=APPROVED" class="ua-btn ua-btn-sm {% if status_filter == 'APPROVED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">{% translate "Approuvées" %}</a>
+    <a href="?statut=REJECTED" class="ua-btn ua-btn-sm {% if status_filter == 'REJECTED' %}ua-btn-primary{% else %}ua-btn-ghost{% endif %}">{% translate "Refusées" %}</a>
 </div>
 
 <section class="ua-card overflow-hidden">
@@ -32,12 +33,12 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Demandeur</th>
-                    <th>Email</th>
-                    <th>Date</th>
-                    <th>Rôle</th>
-                    <th>Statut</th>
-                    <th>Décision</th>
+                    <th>{% translate "Demandeur" %}</th>
+                    <th>{% translate "Email" %}</th>
+                    <th>{% translate "Date" %}</th>
+                    <th>{% translate "Rôle" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th>{% translate "Décision" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -63,11 +64,11 @@
                     <td class="ua-muted whitespace-nowrap">{{ ar.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
                         <p class="ua-cell-title">
-                            {{ ar.get_requested_role_display|default:"Rôle à définir" }}
+                            {{ ar.get_requested_role_display|default:var_role_definir }}
                         </p>
                         {% if ar.assigned_role %}
                         <p class="ua-cell-sub">
-                            Attribué : {{ ar.get_assigned_role_display }}
+                            {% blocktrans with r=ar.get_assigned_role_display %}Attribué : {{ r }}{% endblocktrans %}
                         </p>
                         {% endif %}
                     </td>
@@ -86,33 +87,38 @@
                             <form method="post" action="{% url 'core:dashboard:access-request-review' ar.id %}"
                                   class="flex flex-wrap gap-2 items-center">
                                 {% csrf_token %}
-                                <input type="text" name="note" placeholder="Motif (facultatif)"
+                                <input type="text" name="note" placeholder="{% translate 'Motif (facultatif)' %}"
                                        class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
                                 <select name="role_key"
                                         class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
-                                    <option value="">-- Rôle à attribuer --</option>
+                                    <option value="">{% translate "-- Rôle à attribuer --" %}</option>
                                     {% for val, label in role_choices %}
                                     <option value="{{ val }}" {% if ar.requested_role == val %}selected{% endif %}>{{ label }}</option>
                                     {% endfor %}
                                 </select>
+                                <select name="session"
+                                        class="px-3 py-2 text-xs rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                                    <option value="">{% translate "-- Groupe (obligatoire si étudiant) --" %}</option>
+                                    {% for group in enrollment_sessions %}
+                                    <option value="{{ group.id }}">{{ group.course.title }} — {{ group.starts_at|date:"d/m/Y" }}</option>
+                                    {% endfor %}
+                                </select>
                                 <button name="decision" value="approve"
                                         class="ua-btn ua-btn-sm" style="background:#e6f8ef;color:#15803d;">
-                                    {% icon "check-circle" %} Approuver
+                                    {% icon "check-circle" %} {% translate "Approuver" %}
                                 </button>
                                 <button name="decision" value="reject"
                                         class="ua-btn ua-btn-sm" style="background:#fde9ee;color:#be123c;">
-                                    {% icon "close" %} Refuser
+                                    {% icon "close" %} {% translate "Refuser" %}
                                 </button>
                             </form>
                             {% else %}
-                            <span class="ua-muted text-xs">Validation réservée à la supervision</span>
+                            <span class="ua-muted text-xs">{% translate "Validation réservée à la supervision" %}</span>
                             {% endif %}
                         {% else %}
                             <p class="ua-cell-sub">
-                                {% if ar.reviewed_by %}
-                                par {{ ar.reviewed_by.get_full_name|default:ar.reviewed_by.email }}
-                                {% endif %}
-                                {% if ar.reviewed_at %}le {{ ar.reviewed_at|date:"d/m/Y H:i" }}{% endif %}
+                                {% if ar.reviewed_by %}{% blocktrans with n=ar.reviewed_by.get_full_name|default:ar.reviewed_by.email %}par {{ n }}{% endblocktrans %} {% endif %}
+                                {% if ar.reviewed_at %}{% blocktrans with d=ar.reviewed_at|date:"d/m/Y H:i" %}le {{ d }}{% endblocktrans %}{% endif %}
                             </p>
                             {% if ar.decision_note %}
                             <p class="ua-cell-sub">{{ ar.decision_note }}</p>
@@ -121,7 +127,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="ua-empty">Aucune demande d'accès</td></tr>
+                <tr><td colspan="6" class="ua-empty">{% translate "Aucune demande d'accès" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

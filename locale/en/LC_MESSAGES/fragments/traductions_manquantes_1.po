@@ -1,0 +1,332 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid ""
+"%(a)s étudiant(s) actif(s) et %(p)s demande(s) d'accès en attente sur la "
+"plateforme."
+msgstr ""
+"%(a)s active student(s) and %(p)s access request(s) pending on the platform."
+
+msgid "%(c)s candidature(s) reçue(s)"
+msgstr "%(c)s application(s) received"
+
+msgid "%(c)s compte(s) enregistré(s)"
+msgstr "%(c)s registered account(s)"
+
+msgid ""
+"%(c)s formation(s) au catalogue, %(s)s séance(s) documentée(s) et %(m)s "
+"réalisées."
+msgstr ""
+"%(c)s program(s) in the catalog, %(s)s documented session(s) and %(m)s "
+"delivered."
+
+msgid "%(c)s opération(s) correspondant aux critères"
+msgstr "%(c)s transaction(s) matching these criteria"
+
+msgid "%(c)s opération(s) validée(s) ce mois · toutes origines confondues"
+msgstr "%(c)s validated transaction(s) this month · all sources combined"
+
+msgid "%(c)s événement(s) correspondant aux critères"
+msgstr "%(c)s event(s) matching these criteria"
+
+msgid "%(n)s dossier(s)"
+msgstr "%(n)s record(s)"
+
+msgid ""
+"%(n)s formation%(fp)s suivie%(fp)s et %(t)s présence%(ep)s "
+"enregistrée%(ep)s."
+msgstr "%(n)s program%(fp)s followed and %(t)s attendance%(ep)s recorded."
+
+msgid "%(n)s nouvelle(s) inscription(s) ce mois-ci"
+msgstr "%(n)s new enrollment(s) this month"
+
+msgid "%(n)s opération(s)"
+msgstr "%(n)s transaction(s)"
+
+msgid ""
+"%(p)s demande(s) d'accès et %(s)s candidature(s) bourse attendent votre "
+"validation."
+msgstr ""
+"%(p)s access request(s) and %(s)s scholarship application(s) awaiting your "
+"validation."
+
+msgid ""
+"%(p)s inscription(s) en attente sur %(t)s dossier(s) au total, %(s)s "
+"étudiant(s) au fichier."
+msgstr ""
+"%(p)s enrollment(s) pending out of %(t)s record(s) in total, %(s)s "
+"student(s) on file."
+
+msgid "%(pc)s en attente · %(tc)s demande(s) au total"
+msgstr "%(pc)s pending · %(tc)s request(s) in total"
+
+msgid ""
+"%(t)s étudiant(s) actif(s), %(s)s session(s) en cours et %(r)s FCFA de "
+"recettes encaissées."
+msgstr ""
+"%(t)s active student(s), %(s)s ongoing class group(s) and %(r)s FCFA of "
+"income collected."
+
+msgid ""
+"%(v)s visite(s) aujourd'hui, %(p)s personne(s) encore présente(s) et %(o)s "
+"prospect(s) à suivre."
+msgstr ""
+"%(v)s visit(s) today, %(p)s person(s) still present and %(o)s prospect(s) to"
+" follow up."
+
+msgid "(facultatif)"
+msgstr "(optional)"
+
+msgid "(se connecter)"
+msgstr "(sign in)"
+
+msgid "-- Groupe (obligatoire si étudiant) --"
+msgstr "-- Class group (required for a student) --"
+
+msgid "-- Rôle à attribuer --"
+msgstr "-- Role to assign --"
+
+msgid "7 derniers jours"
+msgstr "Last 7 days"
+
+msgid "Accueil & visites"
+msgstr "Reception & visits"
+
+msgid "Accédez à votre espace de formation"
+msgstr "Access your training workspace"
+
+msgid "Acteur"
+msgstr "Actor"
+
+msgid "Action, entité, identifiant, acteur…"
+msgstr "Action, entity, identifier, actor…"
+
+msgid "Activité récente"
+msgstr "Recent activity"
+
+msgid "Administrateur — Univers Academy"
+msgstr "Administrator — Univers Academy"
+
+msgid "Annulées"
+msgstr "Cancelled"
+
+msgid "Année"
+msgstr "Year"
+
+msgid "Approuver"
+msgstr "Approve"
+
+msgid "Approuvées"
+msgstr "Approved"
+
+msgid ""
+"Après chaque séance, notez les notions retenues, vos difficultés et vos "
+"observations. Le formateur peut les consulter."
+msgstr ""
+"After each session, note the concepts learned, your difficulties and your "
+"observations. The trainer can view them."
+
+msgid "Attribué : %(r)s"
+msgstr "Assigned: %(r)s"
+
+msgid "Aucun document"
+msgstr "No document"
+
+msgid "Aucun utilisateur pour le moment"
+msgstr "No users yet"
+
+msgid "Aucun événement enregistré pour ces critères"
+msgstr "No event recorded for these criteria"
+
+msgid "Aucune activité récente"
+msgstr "No recent activity"
+
+msgid "Aucune caisse active"
+msgstr "No active cash account"
+
+msgid "Aucune candidature"
+msgstr "No application"
+
+msgid "Aucune candidature reçue"
+msgstr "No application received"
+
+msgid "Aucune demande d'accès"
+msgstr "No access request"
+
+msgid "Aucune demande en attente"
+msgstr "No requests pending"
+
+msgid "Aucune fiche remplie pour cette formation."
+msgstr "No sheet filled in for this program."
+
+msgid "Aucune formation en cours"
+msgstr "No program in progress"
+
+msgid "Aucune opération sur la période."
+msgstr "No transaction over the period."
+
+msgid "Aucune présence enregistrée"
+msgstr "No attendance recorded"
+
+msgid "Aucune ressource publiée pour le moment."
+msgstr "No resource published yet."
+
+msgid "Aucune ressource publiée pour vos formations."
+msgstr "No resource published for your programs."
+
+msgid "Aucune session active."
+msgstr "No active class group."
+
+msgid "Aucune sortie validée pour ces critères."
+msgstr "No validated exit for these criteria."
+
+msgid "Aucune séance réalisée pour ces critères."
+msgstr "No delivered session for these criteria."
+
+msgid "Aucune transaction enregistrée"
+msgstr "No transaction recorded"
+
+msgid "Audit"
+msgstr "Audit"
+
+msgid "Bourses"
+msgstr "Scholarships"
+
+msgid "Bourses en attente"
+msgstr "Pending scholarships"
+
+msgid "Caisses & points de contrôle"
+msgstr "Cash accounts & control points"
+
+msgid "Caisses, journal, clôtures"
+msgstr "Cash accounts, journal, closings"
+
+msgid "Candidat"
+msgstr "Applicant"
+
+msgid "Candidater à une bourse d'études"
+msgstr "Apply for a scholarship"
+
+msgid "Candidater à une bourse — Univers Academy"
+msgstr "Apply for a scholarship — Univers Academy"
+
+msgid "Candidature soumise"
+msgstr "Application submitted"
+
+msgid "Candidature soumise — Univers Academy"
+msgstr "Application submitted — Univers Academy"
+
+msgid "Candidatures bourse"
+msgstr "Scholarship applications"
+
+msgid "Candidatures bourse — Univers Academy"
+msgstr "Scholarship applications — Univers Academy"
+
+msgid "Candidatures à examiner"
+msgstr "Applications to review"
+
+msgid "Candidatures à instruire"
+msgstr "Applications to process"
+
+msgid "Catalogue en cours"
+msgstr "Current catalog"
+
+msgid "Centre de Formation en Langues"
+msgstr "Centre de Formation en Langues"
+
+msgid ""
+"Ces informations sont visibles par le formateur de la séance et l'équipe "
+"pédagogique."
+msgstr ""
+"This information is visible to the session trainer and the academic team."
+
+msgid "Changer le statut"
+msgstr "Change status"
+
+msgid "Chargement de la connexion sécurisée…"
+msgstr "Loading secure sign-in…"
+
+msgid "Comptabilité"
+msgstr "Accounting"
+
+msgid "Comptes au total"
+msgstr "Total accounts"
+
+msgid "Comptes étudiants ouverts"
+msgstr "Student accounts opened"
+
+msgid "Connexion avec votre e-mail ou votre code interne Univers Academy."
+msgstr "Sign in with your e-mail or your Univers Academy internal code."
+
+msgid ""
+"Connexion sécurisée par Clerk — Google, Gmail ou email et mot de passe."
+msgstr "Secure sign-in with Clerk — Google, Gmail or email and password."
+
+msgid "Connexion — Universe Academy"
+msgstr "Sign in — Universe Academy"
+
+msgid "Conservez ces informations pour suivre l'état de votre candidature."
+msgstr "Keep this information to track the status of your application."
+
+msgid "Consultation seule : aucune donnée n'est modifiée depuis cet écran."
+msgstr "Read-only: no data is modified from this screen."
+
+msgid ""
+"Consultation seule : la décision de bourse est réservée au super "
+"administrateur."
+msgstr ""
+"Read-only: the scholarship decision is reserved for the super administrator."
+
+msgid "Consulter"
+msgstr "View"
+
+msgid "Consulter / modifier"
+msgstr "View / edit"
+
+msgid "Consulter les utilisateurs"
+msgstr "View users"
+
+msgid "Consultez l'état de votre dossier de bourse."
+msgstr "View the status of your scholarship record."
+
+msgid "Contrôle financier — %(m)s"
+msgstr "Financial control — %(m)s"
+
+msgid "Créer un compte — Universe Academy"
+msgstr "Create an account — Universe Academy"
+
+msgid ""
+"Demande envoyée le %(d)s. Aucun accès n'est accordé avant la décision du "
+"super administrateur."
+msgstr ""
+"Request sent on %(d)s. No access is granted before the super administrator's"
+" decision."
+
+msgid "Demandes d'accès"
+msgstr "Access requests"
+
+msgid "Demandes d'accès en attente"
+msgstr "Pending access requests"
+
+msgid "Demandes d'accès — Univers Academy"
+msgstr "Access requests — Univers Academy"
+
+msgid "Demandes en attente"
+msgstr "Pending requests"
+
+msgid "Demandeur"
+msgstr "Requester"
+
+msgid "Derniers comptes créés"
+msgstr "Recently created accounts"
+
+msgid "Derniers paiements"
+msgstr "Recent payments"
+
+msgid "Dernière mise à jour : %(d)s"
+msgstr "Last updated: %(d)s"

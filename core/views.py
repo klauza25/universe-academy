@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpResponseForbidden, FileResponse, Http404
 from django.db.models import (
     Q, Sum, Count, F, Case, When, IntegerField, OuterRef, Subquery,
@@ -12,13 +13,14 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from .models import (
     User, Role, UserRole, AccessRequest, AccountStatus,
     ScholarshipApplication, ScholarshipDocument, Destination,
     Course, CourseSession, Enrollment, Attendance, Payment,
-    AccessEvent, Notification, AuditLog, Certificate,
+    AccessEvent, Notification, AuditLog,
     ROLE_DASHBOARD_ROUTES, PRIVILEGED_ROLES, RoleKey,
     REQUESTABLE_ROLES, REQUESTABLE_ROLE_CHOICES,
     Visit, Prospect, ProspectFollowUp, Contact,
@@ -27,7 +29,7 @@ from .models import (
 )
 from .forms import (
     LoginForm, RegisterForm, UserCreateForm, UserEditForm,
-    AccessRequestCompletionForm,
+    AccessApprovalForm, AccessRequestCompletionForm, enrollable_sessions,
     ScholarshipApplicationForm, ScholarshipDocumentForm,
     AccessEventForm
 )
@@ -35,7 +37,10 @@ from .decorators import (
     active_account_required, business_write_required, permission_required,
     role_required, super_admin_required,
 )
-from .utils import log_audit, outstanding_receivables
+from .utils import (
+    enrollments_waiting_validation, log_audit, outstanding_receivables,
+)
+from .graphiques import pour_comptabilite, pour_direction, pour_pedagogie
 from .clerk import ClerkError, sync_clerk_user, verify_clerk_token
 
 logger = logging.getLogger(__name__)
@@ -74,12 +79,12 @@ def login_view(request):
                     return redirect('core:pending-approval')
                 elif user.account_status != AccountStatus.ACTIVE:
                     logout(request)
-                    messages.error(request, "Votre compte est désactivé ou suspendu.")
+                    messages.error(request, _("Votre compte est désactivé ou suspendu."))
                     return redirect('core:login')
 
                 return redirect('core:dashboard:dashboard-router')
             else:
-                messages.error(request, "Identifiant ou mot de passe incorrect.")
+                messages.error(request, _("Identifiant ou mot de passe incorrect."))
 
     return render(request, 'public/login.html', {'form': form})
 
@@ -96,7 +101,7 @@ def clerk_session(request):
 
     token = (request.POST.get('token') or '').strip()
     if not token:
-        messages.error(request, "Connexion Clerk impossible : jeton manquant.")
+        messages.error(request, _("Connexion Clerk impossible : jeton manquant."))
         return redirect('/login/?clerk_error=1')
 
     try:
@@ -107,13 +112,11 @@ def clerk_session(request):
         return redirect('/login/?clerk_error=1')
     except Exception:
         logger.exception("Clerk authentication failed")
-        messages.error(request, "Connexion Clerk impossible. Veuillez reessayer.")
+        messages.error(request, _("Connexion Clerk impossible. Veuillez reessayer."))
         return redirect('/login/?clerk_error=1')
 
     if not user.is_active:
-        messages.error(
-            request, "Votre compte est desactive. Contactez l'administration."
-        )
+        messages.error(request, _("Votre compte est desactive. Contactez l'administration."))
         return redirect('/login/?clerk_error=1')
 
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -132,7 +135,7 @@ def clerk_session(request):
 
     if user.account_status != AccountStatus.ACTIVE:
         logout(request)
-        messages.error(request, "Votre compte est desactive ou suspendu.")
+        messages.error(request, _("Votre compte est desactive ou suspendu."))
         return redirect('/login/?clerk_error=1')
 
     return redirect('core:dashboard:dashboard-router')
@@ -229,7 +232,7 @@ def complete_access_request(request):
                     'requested_role': access_request.requested_role,
                 },
             )
-            messages.success(request, "Votre demande d'accès a été enregistrée.")
+            messages.success(request, _("Votre demande d'accès a été enregistrée."))
             return redirect('core:pending-approval')
 
     return render(request, 'public/access_request.html', {'form': form})
@@ -262,7 +265,7 @@ def scholarship_apply(request):
                 file = request.FILES.get(field_name)
                 if file:
                     if file.size > 10 * 1024 * 1024:
-                        messages.error(request, f"Le fichier {file.name} est trop volumineux (max 10 Mo).")
+                        messages.error(request, _("Le fichier %(nom)s est trop volumineux (max 10 Mo).") % {'nom': file.name})
                         continue
 
                     ScholarshipDocument.objects.create(
@@ -305,7 +308,7 @@ def scholarship_tracking(request):
                 reference=ref, tracking_token=token
             )
         except (ScholarshipApplication.DoesNotExist, ValueError):
-            messages.error(request, "Aucune candidature trouvée avec ces informations.")
+            messages.error(request, _("Aucune candidature trouvée avec ces informations."))
 
     return render(request, 'bourses/suivi.html', {'application': application})
 
@@ -329,7 +332,7 @@ def super_admin_dashboard(request):
         occurred_at__date__lte=today,
     )
     salaries_categories = (
-        'Salaires', 'Paiements des formateurs', 'Avances sur salaire',
+        'Salaires', 'Paiements des formateurs', 'Avances sur salaire',  # i18n-exempt: noms de catégories tels qu'enregistrés en base (filtre __in)
     )
     month_income = month_transactions.filter(
         tx_type=CashTransaction.Type.IN
@@ -374,6 +377,7 @@ def super_admin_dashboard(request):
         'recent_scholarships': ScholarshipApplication.objects.select_related(
             'destination'
         ).order_by('-submitted_at')[:5],
+        'enrollments_to_validate': enrollments_waiting_validation(),
         # Contrôle financier global.
         'today': today,
         'month_start': month_start,
@@ -456,9 +460,22 @@ def user_create(request):
             user.save()
 
             role = Role.objects.get(key=role_key)
-            UserRole.objects.create(
-                user=user, role=role, assigned_by=request.user
-            )
+            with transaction.atomic():
+                UserRole.objects.create(
+                    user=user, role=role, assigned_by=request.user
+                )
+                enrollment = None
+                if role_key == RoleKey.ETUDIANT:
+                    group = form.cleaned_data['session']
+                    enrollment = Enrollment.objects.create(
+                        student=user, session=group,
+                        status=Enrollment.Status.ACTIVE,
+                        start_date=timezone.localdate(),
+                        tariff_amount=group.course.fee_amount,
+                        net_amount=group.course.fee_amount,
+                        registered_by=request.user,
+                        notes=_("Inscription créée à la création du compte."),
+                    )
 
             log_audit(
                 request, 'USER_CREATE', 'User', str(user.id),
@@ -468,11 +485,38 @@ def user_create(request):
                     'code': user.internal_code
                 }
             )
+            if enrollment:
+                log_audit(
+                    request, 'ENROLLMENT_CREATE', 'Enrollment',
+                    str(enrollment.id),
+                    after={'student': str(user.id),
+                           'session': str(enrollment.session_id),
+                           'net': enrollment.net_amount,
+                           'source': 'création du compte'},  # i18n-exempt: métadonnée d'audit sérialisée en JSON, non destinée à l'écran
+                )
 
-            messages.success(request, f"Utilisateur {user.get_full_name()} créé avec succès.")
+            messages.success(request, _("Utilisateur %(nom)s créé avec succès.") % {'nom': user.get_full_name()})
             return redirect('core:dashboard:user-list')
 
     return render(request, 'dashboard/super_admin/user_form.html', {'form': form})
+
+
+def _warn_student_without_enrollment(request, user):
+    """Rappel non bloquant : un compte étudiant actif doit être inscrit.
+
+    Les listes « inscrits » des formulaires (encaissement, feuilles de cours)
+    sont construites sur les inscriptions : un compte validé sans inscription
+    y est donc invisible. Le groupe ne peut pas être deviné ici, l'inscription
+    relève du secrétariat.
+    """
+    if (user.account_status == AccountStatus.ACTIVE
+            and user.has_role(RoleKey.ETUDIANT)
+            and not user.enrollments.exclude(
+                status=Enrollment.Status.CANCELLED).exists()):
+        messages.warning(
+            request,
+            _("Ce compte étudiant est actif sans inscription : le secrétariat doit l'inscrire à un groupe pour qu'il figure dans la liste des inscrits."),
+        )
 
 
 def _is_last_active_super_admin(user):
@@ -547,7 +591,8 @@ def user_edit(request, user_id):
                     'email': updated_user.email,
                 }
             )
-            messages.success(request, "Utilisateur modifié.")
+            messages.success(request, _("Utilisateur modifié."))
+            _warn_student_without_enrollment(request, updated_user)
             return redirect('core:dashboard:user-detail', user_id=user.id)
 
     return render(request, 'dashboard/super_admin/user_form.html', {
@@ -564,54 +609,59 @@ def user_role_assign(request, user_id):
 
     user = get_object_or_404(User, id=user_id)
     if user.id == request.user.id:
-        return HttpResponseForbidden(
-            "Vous ne pouvez pas modifier vos propres rôles."
-        )
+        return HttpResponseForbidden(_("Vous ne pouvez pas modifier vos propres rôles."))
 
     role_key = request.POST.get('role_key')
     action = request.POST.get('action', 'add')
     if action not in {'add', 'remove'}:
-        messages.error(request, "Action sur le rôle inconnue.")
+        messages.error(request, _("Action sur le rôle inconnue."))
         return redirect_to_detail
 
     role = Role.objects.filter(key=role_key).first()
     if role is None:
-        messages.error(request, "Rôle inconnu.")
+        messages.error(request, _("Rôle inconnu."))
         return redirect_to_detail
 
     if role.is_privileged and not request.user.has_role('SUPER_ADMIN'):
-        return HttpResponseForbidden("Impossible d'attribuer un rôle privilégié.")
+        return HttpResponseForbidden(_("Impossible d'attribuer un rôle privilégié."))
 
     if action == 'add':
-        _, created = UserRole.objects.get_or_create(
+        link, created = UserRole.objects.get_or_create(
             user=user, role=role, defaults={'assigned_by': request.user}
         )
         if created:
+            if not user.internal_code:
+                user.generate_internal_code(role_key)
+                user.save(update_fields=['internal_code'])
             log_audit(
                 request, 'ROLE_ASSIGN', 'User', str(user.id),
                 after={'role': role_key}
             )
-            messages.success(request, f"Rôle {role.label} ajouté.")
+            messages.success(request, _("Rôle %(role)s ajouté.") % {'role': role.label})
+            if role_key == RoleKey.ETUDIANT and not user.enrollments.exists():
+                messages.warning(
+                    request,
+                    _("Ce compte n'a aucune inscription : le secrétariat doit l'inscrire à un groupe pour qu'il figure dans la liste des inscrits."),
+                )
         else:
-            messages.info(request, f"Le rôle {role.label} est déjà attribué.")
+            messages.info(request, _("Le rôle %(role)s est déjà attribué.") % {'role': role.label})
     else:
         if (role.key == RoleKey.SUPER_ADMIN and
                 _is_last_active_super_admin(user)):
             messages.error(
                 request,
-                "Impossible de retirer le rôle SUPER_ADMIN au dernier "
-                "super administrateur actif."
+                _("Impossible de retirer le rôle SUPER_ADMIN au dernier super administrateur actif."),
             )
             return redirect_to_detail
-        removed, _ = UserRole.objects.filter(user=user, role=role).delete()
+        removed, __ = UserRole.objects.filter(user=user, role=role).delete()
         if removed:
             log_audit(
                 request, 'ROLE_REMOVE', 'User', str(user.id),
                 after={'role': role_key}
             )
-            messages.success(request, f"Rôle {role.label} retiré.")
+            messages.success(request, _("Rôle %(role)s retiré.") % {'role': role.label})
         else:
-            messages.info(request, f"Le rôle {role.label} n'était pas attribué.")
+            messages.info(request, _("Le rôle %(role)s n'était pas attribué.") % {'role': role.label})
 
     return redirect_to_detail
 
@@ -626,25 +676,23 @@ def user_status_change(request, user_id):
 
     user = get_object_or_404(User, id=user_id)
     if user.id == request.user.id:
-        return HttpResponseForbidden(
-            "Vous ne pouvez pas modifier le statut de votre propre compte."
-        )
+        return HttpResponseForbidden(_("Vous ne pouvez pas modifier le statut de votre propre compte."))
 
     status = request.POST.get('account_status')
     valid_statuses = {choice for choice, _ in AccountStatus.choices}
     if status not in valid_statuses:
-        messages.error(request, "Statut de compte invalide.")
+        messages.error(request, _("Statut de compte invalide."))
         return redirect_to_detail
 
     before = user.account_status
     if before == status:
-        messages.info(request, "Le compte a déjà ce statut.")
+        messages.info(request, _("Le compte a déjà ce statut."))
         return redirect_to_detail
 
     if status != AccountStatus.ACTIVE and _is_last_active_super_admin(user):
         messages.error(
             request,
-            "Impossible de désactiver le dernier super administrateur actif."
+            _("Impossible de désactiver le dernier super administrateur actif."),
         )
         return redirect_to_detail
 
@@ -661,8 +709,9 @@ def user_status_change(request, user_id):
     )
     messages.success(
         request,
-        f"Statut du compte passé à « {user.get_account_status_display()} »."
+        _("Statut du compte passé à « %(statut)s ».") % {'statut': user.get_account_status_display()},
     )
+    _warn_student_without_enrollment(request, user)
     return redirect_to_detail
 
 
@@ -686,6 +735,7 @@ def access_requests_list(request):
     return render(request, 'dashboard/super_admin/access_requests.html', {
         'requests': requests_qs,
         'role_choices': REQUESTABLE_ROLE_CHOICES,
+        'enrollment_sessions': enrollable_sessions(),
         'status_filter': status_filter,
         'pending_count': AccessRequest.objects.filter(
             status=AccessRequest.Status.PENDING
@@ -708,13 +758,11 @@ def access_request_review(request, request_id):
     note = (request.POST.get('note') or '').strip()
 
     if ar.status != AccessRequest.Status.PENDING:
-        messages.error(request, "Cette demande a déjà été traitée.")
+        messages.error(request, _("Cette demande a déjà été traitée."))
         return redirect('core:dashboard:access-requests')
 
     if ar.user_id == request.user.id:
-        return HttpResponseForbidden(
-            "Vous ne pouvez pas traiter votre propre demande d'accès."
-        )
+        return HttpResponseForbidden(_("Vous ne pouvez pas traiter votre propre demande d'accès."))
 
     before = {
         'request_status': ar.status,
@@ -731,27 +779,80 @@ def access_request_review(request, request_id):
         if role_key not in REQUESTABLE_ROLES:
             messages.error(
                 request,
-                "Rôle invalide : choisissez le rôle à attribuer dans la liste.",
+                _("Rôle invalide : choisissez le rôle à attribuer dans la liste."),
             )
             return redirect('core:dashboard:access-requests')
 
+        approval_form = AccessApprovalForm(request.POST)
+        if not approval_form.is_valid():
+            messages.error(
+                request, _("Groupe invalide : choisissez-le dans la liste proposée.")
+            )
+            return redirect('core:dashboard:access-requests')
+        group = approval_form.cleaned_data['session']
+
+        # Un compte étudiant est nécessairement inscrit : le groupe est donc
+        # exigé à la validation, sauf si l'étudiant a déjà une inscription.
+        already_enrolled = ar.user.enrollments.exclude(
+            status=Enrollment.Status.CANCELLED
+        ).exists()
+        if role_key == RoleKey.ETUDIANT and group is None and not already_enrolled:
+            messages.error(
+                request,
+                _("Un compte étudiant doit être inscrit à un groupe : choisissez la formation / le groupe avant d'approuver."),
+            )
+            return redirect('core:dashboard:access-requests')
+        if already_enrolled:
+            group = None
+            messages.info(
+                request,
+                _("Ce compte a déjà une inscription : la nouvelle inscription se crée au secrétariat."),
+            )
+
         role = get_object_or_404(Role, key=role_key)
-        ar.status = AccessRequest.Status.APPROVED
-        ar.assigned_role = role_key
-        ar.user.account_status = AccountStatus.ACTIVE
-        ar.user.generate_internal_code(role_key)
-        ar.user.save()
-        UserRole.objects.get_or_create(
-            user=ar.user, role=role, defaults={'assigned_by': request.user}
-        )
+        with transaction.atomic():
+            ar.status = AccessRequest.Status.APPROVED
+            ar.assigned_role = role_key
+            ar.user.account_status = AccountStatus.ACTIVE
+            if not ar.user.internal_code:
+                ar.user.generate_internal_code(role_key)
+            ar.user.save()
+            UserRole.objects.get_or_create(
+                user=ar.user, role=role, defaults={'assigned_by': request.user}
+            )
+
+            enrollment = None
+            if role_key == RoleKey.ETUDIANT and group:
+                enrollment, created = Enrollment.objects.get_or_create(
+                    student=ar.user, session=group,
+                    defaults={
+                        'status': Enrollment.Status.ACTIVE,
+                        'start_date': timezone.localdate(),
+                        'tariff_amount': group.course.fee_amount,
+                        'net_amount': group.course.fee_amount,
+                        'registered_by': request.user,
+                        'notes': _("Inscription créée à la validation du compte."),
+                    },
+                )
+                if created:
+                    log_audit(
+                        request, 'ENROLLMENT_CREATE', 'Enrollment',
+                        str(enrollment.id),
+                        after={'student': str(ar.user.id),
+                               'session': str(group.id),
+                               'net': enrollment.net_amount,
+                               'source': 'validation du compte'},  # i18n-exempt: métadonnée d'audit sérialisée en JSON, non destinée à l'écran
+                    )
+
+        if enrollment:
+            message = _("Compte de %(nom)s approuvé. Inscrit à %(cours)s.") % {'nom': ar.user.get_full_name(), 'cours': enrollment.session.course.title}
+        else:
+            message = _("Compte de %(nom)s approuvé.") % {'nom': ar.user.get_full_name()}
 
         Notification.objects.create(
             user=ar.user,
-            title="Compte approuvé",
-            message=(
-                f"Votre compte a été approuvé avec le rôle "
-                f"{role.label}. Votre code : {ar.user.internal_code}"
-            ),
+            title=_("Compte approuvé"),
+            message=_("Votre compte a été approuvé avec le rôle %(role)s. Votre code : %(code)s") % {'role': role.label, 'code': ar.user.internal_code},
             notification_type=Notification.Type.ACCOUNT_APPROVED,
         )
 
@@ -764,9 +865,10 @@ def access_request_review(request, request_id):
                 'assigned_role': role_key,
                 'account_status': ar.user.account_status,
                 'reviewed_by': str(request.user.id),
+                'enrollment': str(enrollment.id) if enrollment else None,
             },
         )
-        messages.success(request, f"Compte de {ar.user.get_full_name()} approuvé.")
+        messages.success(request, message)
 
     elif decision == 'reject':
         ar.status = AccessRequest.Status.REJECTED
@@ -776,8 +878,8 @@ def access_request_review(request, request_id):
 
         Notification.objects.create(
             user=ar.user,
-            title="Demande refusée",
-            message="Votre demande d'accès a été refusée.",
+            title=_("Demande refusée"),
+            message=_("Votre demande d'accès a été refusée."),
             notification_type=Notification.Type.ACCOUNT_REJECTED,
         )
 
@@ -792,10 +894,10 @@ def access_request_review(request, request_id):
                 'note': note,
             },
         )
-        messages.info(request, "Demande refusée.")
+        messages.info(request, _("Demande refusée."))
 
     else:
-        messages.error(request, "Décision invalide.")
+        messages.error(request, _("Décision invalide."))
         return redirect('core:dashboard:access-requests')
 
     ar.save()
@@ -880,9 +982,7 @@ def scholarship_review_detail(request, app_id):
 
     if request.method == 'POST':
         if not request.user.has_role('SUPER_ADMIN'):
-            return HttpResponseForbidden(
-                "La décision de bourse est réservée au super administrateur."
-            )
+            return HttpResponseForbidden(_("La décision de bourse est réservée au super administrateur."))
         new_status = request.POST.get('status')
         note = request.POST.get('review_note', '')
 
@@ -897,7 +997,7 @@ def scholarship_review_detail(request, app_id):
             request, 'SCHOLARSHIP_REVIEW', 'ScholarshipApplication',
             str(app.id), before=before, after={'status': new_status}
         )
-        messages.success(request, f"Statut mis à jour : {app.get_status_display()}")
+        messages.success(request, _("Statut mis à jour : %(statut)s") % {'statut': app.get_status_display()})
         return redirect('core:dashboard:scholarship-review-list')
 
     return render(request, 'dashboard/super_admin/scholarship_review.html', {
@@ -1038,6 +1138,10 @@ def direction_dashboard(request):
             total=Count('id'),
             completed=Count('id', filter=Q(status='COMPLETED')),
         ),
+        # Inscriptions ouvertes au guichet : elles attendent une validation
+        # avant de pouvoir être encaissées.
+        'enrollments_to_validate': enrollments_waiting_validation(),
+        'graphiques': pour_direction(),
     }
     return render(request, 'dashboard/direction/index.html', context)
 
@@ -1085,6 +1189,7 @@ def comptabilite_dashboard(request):
         occurred_at__month=today.month,
         occurred_at__year=today.year,
     )
+    cash_rows = accounts_with_balance()
     context = {
         'total_revenue_month': month_transactions.filter(
             tx_type=CashTransaction.Type.IN,
@@ -1106,12 +1211,14 @@ def comptabilite_dashboard(request):
         'pending_transactions': CashTransaction.objects.filter(
             status=CashTransaction.Status.DRAFT
         ).count(),
-        'cash_rows': accounts_with_balance(),
+        'cash_rows': cash_rows,
         'recent_transactions': CashTransaction.objects.select_related(
             'account', 'category'
         ).order_by('-occurred_at')[:10],
         'closure_today': CashClosure.objects.filter(date=today).count(),
-        'total_balance': sum(row['balance'] for row in accounts_with_balance()),
+        'total_balance': sum(row['balance'] for row in cash_rows),
+        'enrollments_to_validate': enrollments_waiting_validation(),
+        'graphiques': pour_comptabilite(),
     }
     context['net_month'] = (
         context['total_revenue_month'] - context['total_expenses_month']
@@ -1126,6 +1233,12 @@ def responsable_pedagogique_dashboard(request):
         'session__course', 'module', 'lesson'
     )
     attendance = Attendance.objects.all()
+    planned_vals = [
+        r.planned_minutes for r in records if r.planned_minutes is not None
+    ]
+    actual_vals = [
+        r.actual_minutes for r in records if r.actual_minutes is not None
+    ]
     context = {
         'courses': Course.objects.filter(active=True),
         'active_sessions': CourseSession.objects.filter(
@@ -1144,12 +1257,8 @@ def responsable_pedagogique_dashboard(request):
         'recent_records': records.filter(
             status=SessionRecord.Status.COMPLETED
         ).order_by('-date')[:8],
-        'hours_planned': round(
-            sum(r.planned_minutes for r in records) / 60, 2
-        ),
-        'hours_actual': round(
-            sum(r.actual_minutes for r in records) / 60, 2
-        ),
+        'minutes_planned': sum(planned_vals) if planned_vals else None,
+        'minutes_actual': sum(actual_vals) if actual_vals else None,
         'attendance_totals': attendance.aggregate(
             total=Count('id'),
             presents=Count('id', filter=Q(status='PRESENT')),
@@ -1159,6 +1268,8 @@ def responsable_pedagogique_dashboard(request):
         'published_resources': Resource.objects.filter(
             status=Resource.Status.PUBLISHED
         ).count(),
+        'enrollments_to_validate': enrollments_waiting_validation(),
+        'graphiques': pour_pedagogie(),
     }
     return render(request, 'dashboard/responsable_pedagogique/index.html', context)
 
@@ -1186,8 +1297,19 @@ def formateur_dashboard(request):
         status=SessionRecord.Status.COMPLETED
     ).order_by('-date')[:8]
 
-    planned_minutes = sum(r.planned_minutes for r in records)
-    actual_minutes = sum(r.actual_minutes for r in records)
+    planned_vals = [
+        r.planned_minutes for r in records if r.planned_minutes is not None
+    ]
+    actual_vals = [
+        r.actual_minutes for r in records if r.actual_minutes is not None
+    ]
+    minutes_planned = sum(planned_vals) if planned_vals else None
+    minutes_actual = sum(actual_vals) if actual_vals else None
+    minutes_remaining = (
+        max(minutes_planned - (minutes_actual or 0), 0)
+        if minutes_planned is not None
+        else None
+    )
 
     recent_absences = Attendance.objects.filter(
         enrollment__session__in=sessions,
@@ -1202,9 +1324,8 @@ def formateur_dashboard(request):
         'today_records': today_records,
         'upcoming_records': upcoming_records,
         'recent_records': recent_records,
-        'hours_planned': round(planned_minutes / 60, 2),
-        'hours_actual': round(actual_minutes / 60, 2),
-        'hours_remaining': round(max(planned_minutes - actual_minutes, 0) / 60, 2),
+        'minutes_actual': minutes_actual,
+        'minutes_remaining': minutes_remaining,
         'recent_absences': recent_absences,
         'published_resources': Resource.objects.filter(
             author=request.user,
@@ -1217,7 +1338,7 @@ def formateur_dashboard(request):
 def formateur_attendance(request, session_id):
     session = get_object_or_404(CourseSession, id=session_id)
     if not session.formateurs.filter(id=request.user.id).exists():
-        return HttpResponseForbidden("Vous n'êtes pas affecté à cette session.")
+        return HttpResponseForbidden(_("Vous n'êtes pas affecté à cette session."))
 
     enrollments = Enrollment.objects.filter(
         session=session, status=Enrollment.Status.ACTIVE
@@ -1240,7 +1361,7 @@ def formateur_attendance(request, session_id):
             request, 'ATTENDANCE_RECORD', 'CourseSession', str(session_id),
             after={'date': date_str}
         )
-        messages.success(request, "Présences enregistrées.")
+        messages.success(request, _("Présences enregistrées."))
 
     return render(request, 'dashboard/formateur/attendance.html', {
         'session': session,
@@ -1309,9 +1430,7 @@ def accueil_dashboard(request):
     form = AccessEventForm()
     if request.method == 'POST':
         if request.user.is_elevated:
-            return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
-            )
+            return HttpResponseForbidden(_("Consultation seule : cette action relève du rôle métier."))
         form = AccessEventForm(request.POST)
         if form.is_valid():
             event = form.save(commit=False)
@@ -1321,7 +1440,7 @@ def accueil_dashboard(request):
                 request, 'ACCESS_EVENT', 'AccessEvent', str(event.id),
                 after={'type': event.event_type}
             )
-            messages.success(request, "Événement enregistré.")
+            messages.success(request, _("Événement enregistré."))
             form = AccessEventForm()
 
     recent_events = AccessEvent.objects.select_related(

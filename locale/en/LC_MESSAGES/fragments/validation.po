@@ -1,0 +1,51 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/_validation_queue.html
+msgid "Inscriptions en attente de validation"
+msgstr "Enrollments awaiting validation"
+
+msgid "dossier(s) ouvert(s) au guichet : à valider avant encaissement."
+msgstr "record(s) opened at the front desk: validate before recording a payment."
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Formation"
+msgstr "Program"
+
+msgid "Net"
+msgstr "Net"
+
+msgid "Créée le"
+msgstr "Created on"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Dossier"
+msgstr "Record"
+
+msgid "Valider"
+msgstr "Validate"
+
+# templates/dashboard/secretaire/enrollment_detail.html
+msgid "Ce dossier a été créé au guichet : il ne peut pas être encaissé avant sa validation."
+msgstr "This record was created at the front desk: no payment can be recorded until it is validated."
+
+msgid "Valider l'inscription"
+msgstr "Validate enrollment"
+
+msgid "Validation requise"
+msgstr "Validation required"
+
+# templates/dashboard/comptabilite/payment_form.html
+msgid "Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé après chaque règlement."
+msgstr "A partial payment does not settle the record: the balance due is recomputed after every payment."
+
+msgid "Seules les inscriptions validées sont encaissables."
+msgstr "Only validated enrollments can be paid into."

@@ -1,7 +1,7 @@
 ﻿{% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Connexion — Universe Academy{% endblock %}
+{% block title %}{% translate "Connexion — Universe Academy" %}{% endblock %}
 
 {% block body %}
 <div class="min-h-screen flex items-center justify-center px-4 py-10 bg-slate-50">
@@ -11,14 +11,14 @@
                 <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
             </div>
             <h1 class="text-2xl font-semibold text-slate-900">Universe Academy</h1>
-            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+            <p class="mt-1 text-sm text-slate-500">{% translate "Centre de Formation en Langues — Brazzaville" %}</p>
         </div>
 
         <div class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
             <div class="px-6 py-8 sm:px-8">
                 <div class="mb-6 text-center">
-                    <h2 class="text-xl font-semibold text-slate-900">Se connecter</h2>
-                    <p class="mt-1 text-sm text-slate-500">Accédez à votre espace de formation</p>
+                    <h2 class="text-xl font-semibold text-slate-900">{% translate "Se connecter" %}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{% translate "Accédez à votre espace de formation" %}</p>
                 </div>
 
                 {% if messages %}
@@ -34,25 +34,25 @@
                 {% if clerk_enabled %}
                 <form method="post" class="space-y-4">
                     {% csrf_token %}
-                    <p class="text-center text-xs text-slate-500">Connexion avec votre e-mail ou votre code interne Univers Academy.</p>
+                    <p class="text-center text-xs text-slate-500">{% translate "Connexion avec votre e-mail ou votre code interne Univers Academy." %}</p>
                     {% for field in form %}
                     <div>
                         <label for="{{ field.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{{ field.label }}</label>
                         {{ field }}
                     </div>
                     {% endfor %}
-                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">{% translate "Se connecter" %}</button>
                 </form>
 
                 <div class="mt-6 flex items-center gap-3">
                     <div class="h-px flex-1 bg-slate-200"></div>
-                    <span class="text-xs uppercase tracking-wide text-slate-400">ou</span>
+                    <span class="text-xs uppercase tracking-wide text-slate-400">{% translate "ou" %}</span>
                     <div class="h-px flex-1 bg-slate-200"></div>
                 </div>
 
                 <div class="mt-6 space-y-4">
                     <div id="clerk-sign-in" class="flex justify-center"></div>
-                    <div id="clerk-loading" class="py-4 text-center text-sm text-slate-400">Chargement de la connexion sécurisée…</div>
+                    <div id="clerk-loading" class="py-4 text-center text-sm text-slate-400">{% translate "Chargement de la connexion sécurisée…" %}</div>
                     <div id="clerk-js-error" class="hidden rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700 ring-1 ring-rose-100"></div>
                 </div>
 
@@ -64,14 +64,14 @@
                 <form method="post" class="space-y-4">
                     {% csrf_token %}
                     {{ form.as_p }}
-                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">Se connecter</button>
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">{% translate "Se connecter" %}</button>
                 </form>
                 {% endif %}
             </div>
         </div>
 
         <p class="mt-6 text-center text-sm text-slate-500">
-            <a href="{% url 'core:home' %}" class="transition hover:text-slate-900">← Retour à l'accueil</a>
+            <a href="{% url 'core:home' %}" class="transition hover:text-slate-900">← {% translate "Retour à l'accueil" %}</a>
         </p>
     </div>
 </div>

@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Présences — {{ record.session.course.title }}{% endblock %}
+{% block title %}{% translate "Présences — Univers Academy" %} — {{ record.session.course.title }}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,18 +9,28 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Présences du {{ record.date|date:"d/m/Y" }}</h1>
+        <h1 class="ua-page-title">{% blocktrans with d=record.date|date:"d/m/Y" %}Présences du {{ d }}{% endblocktrans %}</h1>
         <p class="ua-page-sub">{{ record.session.course.title }} · {{ record.session }}{% if record.topic %} · {{ record.topic }}{% endif %}</p>
     </div>
-    <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Retour à la séance</a>
+    <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">{% translate "Retour à la séance" %}</a>
 </div>
 
+{% translate "Inscrits" as lbl_inscrits %}
+{% translate "Présents" as lbl_presents %}
+{% translate "Absents" as lbl_absents %}
+{% translate "Retards" as lbl_retards %}
+{% translate "Excusés" as lbl_excuses %}
+{% translate "groupe" as hint_groupe %}
+{% translate "validés" as hint_valides %}
+{% translate "sans justification" as hint_sans_justif %}
+{% translate "arrivées tardives" as hint_tardives %}
+{% translate "justifiés" as hint_justifies %}
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
-    {% include "dashboard/_stat.html" with label="Inscrits" value=summary.inscrits icon="users" tone="indigo" hint="groupe" %}
-    {% include "dashboard/_stat.html" with label="Présents" value=summary.presents icon="user-check" tone="green" hint="validés" %}
-    {% include "dashboard/_stat.html" with label="Absents" value=summary.absents icon="close" tone="rose" hint="sans justification" %}
-    {% include "dashboard/_stat.html" with label="Retards" value=summary.retards icon="clock" tone="amber" hint="arrivées tardives" %}
-    {% include "dashboard/_stat.html" with label="Excusés" value=summary.excuses icon="info" tone="sky" hint="justifiés" %}
+    {% include "dashboard/_stat.html" with label=lbl_inscrits value=summary.inscrits icon="users" tone="indigo" hint=hint_groupe %}
+    {% include "dashboard/_stat.html" with label=lbl_presents value=summary.presents icon="user-check" tone="green" hint=hint_valides %}
+    {% include "dashboard/_stat.html" with label=lbl_absents value=summary.absents icon="close" tone="rose" hint=hint_sans_justif %}
+    {% include "dashboard/_stat.html" with label=lbl_retards value=summary.retards icon="clock" tone="amber" hint=hint_tardives %}
+    {% include "dashboard/_stat.html" with label=lbl_excuses value=summary.excuses icon="info" tone="sky" hint=hint_justifies %}
 </div>
 
 <section class="ua-card ua-card-pad">
@@ -28,7 +38,7 @@
         {% csrf_token %}
         <div class="ua-table-wrap">
             <table class="ua-table">
-                <thead><tr><th>Étudiant</th><th>Statut</th><th>Heure d'arrivée</th><th>Motif d'absence</th><th>Observation</th></tr></thead>
+                <thead><tr><th>{% translate "Étudiant" %}</th><th>{% translate "Statut" %}</th><th>{% translate "Heure d'arrivée" %}</th><th>{% translate "Motif d'absence" %}</th><th>{% translate "Observation" %}</th></tr></thead>
                 <tbody>
                     {% for row in rows %}
                     <tr>
@@ -58,15 +68,15 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="ua-empty">Aucun étudiant inscrit à ce groupe.</td></tr>
+                    <tr><td colspan="5" class="ua-empty">{% translate "Aucun étudiant inscrit à ce groupe." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         {% if can_edit %}
         <div class="flex flex-wrap gap-3 mt-5">
-            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer les présences</button>
-            <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Enregistrer les présences" %}</button>
+            <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">{% translate "Annuler" %}</a>
         </div>
         {% endif %}
     </form>

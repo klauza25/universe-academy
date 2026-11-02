@@ -1,8 +1,8 @@
 # Validation métier — Univers Academy
 
 Document de suivi des fonctionnalités implémentées et des tests automatisés.
-Dernière exécution : **31/10/2026** — `python manage.py test core.tests` :
-**242 tests, 0 échec** (19 s sur la base de test).
+Dernière exécution : **01/11/2026** — `python manage.py test core.tests` :
+**263 tests, 0 échec** (11 s sur la base de test).
 
 ## 1. Comment lancer les tests
 
@@ -53,6 +53,27 @@ production.
 - La demande conserve `assigned_role`, le décideur, l'horodatage et la note ;
   `AuditLog` enregistre l'action `ACCESS_APPROVE` / `ACCESS_REJECT` avec le
   demandeur, le rôle demandé, le rôle attribué et le statut avant/après.
+- **Un compte étudiant validé est nécessairement inscrit.** Le formulaire de
+  validation comporte un champ « Formation / groupe » (groupes planifiés ou en
+  cours) : sans groupe, l'approbation d'un rôle ETUDIANT est refusée et la
+  demande reste `PENDING`. Quand le groupe est choisi, l'inscription est créée
+  dans la même transaction (statut ACTIVE, tarif = tarif catalogue du cours,
+  `registered_by` = décideur) et auditée (`ENROLLMENT_CREATE`, source
+  « validation du compte »). L'étudiant apparaît alors dans la liste des
+  inscrits et dans le champ « Inscription » du formulaire d'encaissement.
+- Si le compte possède déjà une inscription active, la validation n'en crée
+  jamais une seconde : le groupe choisi est ignoré et un message le dit ; une
+  deuxième inscription se fait au secrétariat.
+- Même règle à la création directe d'un compte par le SUPER_ADMIN : le champ
+  « Formation / groupe » est obligatoire quand le rôle choisi est étudiant, et
+  l'inscription est créée avec le compte (auditée, source « création du
+  compte »). Les autres rôles n'en demandent pas.
+- Les trois chemins qui peuvent laisser un compte étudiant actif sans
+  inscription — attribution du rôle depuis la fiche, édition du compte,
+  réactivation par changement de statut — affichent le même avertissement :
+  le secrétariat doit inscrire l'étudiant à un groupe pour qu'il paraisse dans
+  la liste des inscrits. Aucun ne bloque l'opération et aucun ne choisit un
+  groupe à la place du métier : le groupe réel ne peut pas être inventé.
 - Un utilisateur ne peut pas examiner sa propre demande (403), ni modifier son
   propre rôle (403 sur `user_role_assign`), ni changer rôle/statut via le POST
   du profil.
@@ -145,6 +166,12 @@ production.
 - Paiement étudiant : création atomique d'un `Payment` et d'une opération de
   caisse validée liée ; contrôle du reste à payer ; anti double-soumission ;
   un paiement partiel ne solde pas le dossier.
+- L'écran d'encaissement liste aussi les **comptes étudiants actifs sans
+  inscription** (« Comptes étudiants sans inscription ») : un paiement exige
+  une inscription, donc ces comptes restent visibles plutôt qu'introuvables.
+  Le secrétariat et la direction y obtiennent le bouton « Inscrire » ; le
+  comptable voit la mention « À inscrire par le secrétariat » (aucun lien
+  mort).
 - Reçu imprimable (HTML) accessible au comptable, au secrétariat, à la
   direction et à l'étudiant propriétaire.
 - Liste des inscrits accessible en consultation à la comptabilité (les
@@ -274,6 +301,16 @@ production.
 - L'interface masque les boutons et formulaires concernés et affiche une
   mention de consultation ; la navigation et le rendu existants ne changent
   pas pour les rôles métier.
+- Aucun formulaire affiché ne mène à un refus serveur : les contrôles visibles
+  sont alignés sur les décorateurs des vues. Trois impasses ont été corrigées
+  (le formulaire d'ajout de document de la fiche étudiant est masqué au
+  `COMPTABLE`, qui consulte la fiche ; le bouton « Convertir en étudiant »
+  d'une fiche prospect n'est plus proposé à l'`ACCUEIL`, la création de dossier
+  étudiant restant au secrétariat ; le raccourci « Planifier une séance » de la
+  liste des séances est réservé aux gestionnaires pédagogiques
+  `FORMATEUR`/`RESP_PEDA`/`DIRECTION` et disparaît pour le secrétariat comme
+  pour les rôles élevés). Audit de la couverture : aucune action de formulaire
+  hors route, aucun POST sans `csrf_token`, aucune vue ciblée en GET only.
 - Chaque fiche métier expose un historique d'audit « qui a fait quoi et
   quand » : étudiant, inscription, séance, visite, prospect, opération de
   caisse. Le journal global propose les mêmes liens vers ces fiches.
@@ -283,18 +320,18 @@ production.
 | Fichier | Tests | Périmètre |
 |---|---:|---|
 | `core/tests/test_public.py` | 16 | Landing, login local prioritaire devant Clerk, code interne, inscription avec rôle demandé, refus d'un rôle élevé, comptes en attente/suspendus, déconnexion |
-| `core/tests/test_auth_roles.py` | 27 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus par SUPER_ADMIN et ADMIN (rôle suggéré présélectionné, modifiable ; rôles élevés refusés), étudiant approuvé listé dans les inscrits côté comptable, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
+| `core/tests/test_auth_roles.py` | 31 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus par SUPER_ADMIN et ADMIN (rôle suggéré présélectionné, modifiable ; rôles élevés refusés), étudiant validé automatiquement inscrit au groupe choisi (groupe obligatoire à la validation, jamais de doublon, apparu dans le formulaire de paiement), étudiant approuvé listé dans les inscrits côté comptable, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
 | `core/tests/test_profile.py` | 13 | Profil, avatar (upload, suppression, service protégé, fichier absent), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
-| `core/tests/test_accueil.py` | 14 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche |
+| `core/tests/test_accueil.py` | 16 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche ; « Convertir en étudiant » proposé au secrétariat et masqué à l'accueil |
 | `core/tests/test_secretariat.py` | 15 | Étudiants, conversion prospect, inscriptions, remises, doublons, documents |
-| `core/tests/test_pedagogie.py` | 53 | Modules/leçons (création et modification par formateur, resp. pédagogique et direction ; rôles élevés en lecture), groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances, validations, présences, non-écrasement, ressources, accès étudiant, retour étudiant sur ressource (soumission, mise à jour sans doublon, validation, lecture par formateur/admin, refus formateur et rôles élevés en écriture), fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
-| `core/tests/test_comptabilite.py` | 31 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, liste des inscrits en consultation (nav, fiche en lecture, écritures refusées), source unique des soldes et indicateurs |
+| `core/tests/test_pedagogie.py` | 56 | Modules/leçons (création et modification par formateur, resp. pédagogique et direction ; rôles élevés en lecture), groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances (raccourci « Planifier une séance » réservé aux rôles gestionnaires, masqué au secrétariat et aux rôles élevés), validations, présences, non-écrasement, ressources, accès étudiant, retour étudiant sur ressource (soumission, mise à jour sans doublon, validation, lecture par formateur/admin, refus formateur et rôles élevés en écriture), fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
+| `core/tests/test_comptabilite.py` | 35 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, liste des inscrits en consultation (nav, fiche en lecture, écritures et formulaire de document refusés), comptes étudiants sans inscription signalés sur l'écran d'encaissement, source unique des soldes et indicateurs |
 | `core/tests/test_permissions.py` | 29 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier (exception : édition d'inscription ouverte aux rôles élevés), décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
 | `core/tests/test_supervision.py` | 10 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, calcul du reste à recouvrer dossier par dossier, historique de transaction, filtres et rendu du journal d'audit |
 | `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources, revue des demandes d'accès ; refus (403) sur création/édition de comptes et attribution de rôles |
 | `core/tests/test_audit_finances.py` | 3 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse |
-| `core/tests/test_user_access.py` | 22 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif |
-| **Total** | **242** | |
+| `core/tests/test_user_access.py` | 30 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, génération automatique du code interne à l'attribution, avertissement quand un compte étudiant reste sans inscription (attribution de rôle, édition du compte, réactivation par changement de statut — un étudiant déjà inscrit ne reçoit pas l'avertissement), rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif, compte étudiant créé directement inscrit au groupe choisi (groupe exigé, créé sinon) |
+| **Total** | **263** | |
 
 Points explicitement vérifiés :
 
@@ -468,12 +505,17 @@ Ces points ne sont pas déclarés terminés :
   deux présences distinctes pour un même étudiant ; la feuille ignore la
   seconde saisie plutôt que de l'écraser.
 - **Anomalie de données constatée le 29/10/2026** : le dossier
-  `etudiant@univers.academy` / « Anglais B2 » (net 75 000 FCFA) porte quatre
+  `etudiant@univers.academy` / « Les langues étrangères » (ex-« Anglais B2 »,
+  net 75 000 FCFA) porte quatre
   paiements validés pour 135 000 FCFA, soit 60 000 FCFA de trop-perçu. Le
   formulaire actuel refuse un montant supérieur au reste à payer ; ces
   encaissements proviennent d'une saisie antérieure au garde-fou. Aucune
   correction automatique n'a été faite : à régulariser manuellement
   (remboursement ou annulation tracée). `manage.py audit_finances` le signale.
+- **Solde de caisse négatif constaté le 01/11/2026** : la caisse « Mobile
+  Money » affiche −5 100 FCFA ; `manage.py audit_finances` le signale. Aucune
+  écriture de correction n'a été passée automatiquement : une entrée justifiée
+  ou une régularisation tracée reste à faire.
 - **Sécurité de déploiement** : le `.env` de développement laisse `DEBUG=True`,
   `SECRET_KEY` ne fait que 23 caractères et `SECURE_HSTS_SECONDS` n'est pas
   défini. Les comptes de démonstration (`admin@univers.academy`, superuser,
@@ -482,3 +524,29 @@ Ces points ne sont pas déclarés terminés :
 - **Compte Clerk privilégié** : `japhetsamba52@gmail.com` possède le rôle
   SUPER_ADMIN tout en étant lié à Clerk ; `manage.py audit_privileges` demande
   de vérifier que cette attribution était volontaire.
+
+## 6. Livrable documentaire
+
+Le document d'architecture métier est généré par script afin de rester aligné
+sur le code :
+
+```powershell
+env\Scripts\python.exe docs\generate_architecture_docx.py
+```
+
+- Fichier produit : `docs/Architecture_metier_Univers_Academy.docx`.
+- Générateur : `docs/generate_architecture_docx.py` (`python-docx` 1.2.0).
+- Contenu : 14 chapitres et 6 annexes, 107 tableaux, 35 modèles décrits champ
+  par champ, 96 routes nommées, 59 actions d'audit.
+- Les tableaux des annexes B (routes) et D (modèles) sont introspectés depuis
+  Django à chaque génération ; le catalogue d'audit a été confronté aux appels
+  `log_audit` du code (59 codes dans le code, 59 dans le document).
+- Contrôles effectués sur le fichier généré : aucun champ « None », titres
+  d'annexes non redondants, dates et compteurs de tests cohérents avec la
+  présente validation.
+- Contrôle HTTP en lecture (formateur, étudiant, ADMIN, SUPER_ADMIN) : cahier
+  de texte, impression, fiches de cours, feuille de suivi, demandes d'accès,
+  utilisateurs, journal d'audit et supervision répondent en 200 ; l'étudiant
+  reçoit 403 sur le cahier de texte, l'ADMIN 403 sur les écritures du cahier de
+  texte, et un visiteur anonyme est redirigé vers la connexion.
+

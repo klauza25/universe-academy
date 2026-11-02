@@ -6,26 +6,27 @@ from django.core.validators import (
     FileExtensionValidator, MaxValueValidator, MinValueValidator, RegexValidator
 )
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class AccountStatus(models.TextChoices):
-    PENDING_APPROVAL = 'PENDING_APPROVAL', 'En attente d\'approbation'
-    ACTIVE = 'ACTIVE', 'Actif'
-    SUSPENDED = 'SUSPENDED', 'Suspendu'
-    DISABLED = 'DISABLED', 'Désactivé'
-    REJECTED = 'REJECTED', 'Refusé'
+    PENDING_APPROVAL = 'PENDING_APPROVAL', _("En attente d'approbation")
+    ACTIVE = 'ACTIVE', _("Actif")
+    SUSPENDED = 'SUSPENDED', _("Suspendu")
+    DISABLED = 'DISABLED', _("Désactivé")
+    REJECTED = 'REJECTED', _("Refusé")
 
 
 class RoleKey(models.TextChoices):
-    SUPER_ADMIN = 'SUPER_ADMIN', 'Super Administrateur'
-    ADMIN = 'ADMIN', 'Administrateur'
-    DIRECTION = 'DIRECTION', 'Direction'
-    SECRETAIRE = 'SECRETAIRE', 'Secrétaire'
-    COMPTABLE = 'COMPTABLE', 'Comptable'
-    RESPONSABLE_PEDAGOGIQUE = 'RESP_PEDA', 'Responsable pédagogique'
-    FORMATEUR = 'FORMATEUR', 'Formateur'
-    ETUDIANT = 'ETUDIANT', 'Étudiant'
-    ACCUEIL = 'ACCUEIL', 'Accueil / Contrôle'
+    SUPER_ADMIN = 'SUPER_ADMIN', _("Super Administrateur")
+    ADMIN = 'ADMIN', _("Administrateur")
+    DIRECTION = 'DIRECTION', _("Direction")
+    SECRETAIRE = 'SECRETAIRE', _("Secrétaire")
+    COMPTABLE = 'COMPTABLE', _("Comptable")
+    RESPONSABLE_PEDAGOGIQUE = 'RESP_PEDA', _("Responsable pédagogique")
+    FORMATEUR = 'FORMATEUR', _("Formateur")
+    ETUDIANT = 'ETUDIANT', _("Étudiant")
+    ACCUEIL = 'ACCUEIL', _("Accueil / Contrôle")
 
 
 ROLE_DASHBOARD_ROUTES = {
@@ -79,7 +80,7 @@ def avatar_path(instance, filename):
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("L'email est obligatoire")
+            raise ValueError(_("L'email est obligatoire"))
         email = self.normalize_email(email)
         extra_fields.setdefault('username', email)
         user = self.model(email=email, **extra_fields)
@@ -93,7 +94,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('account_status', AccountStatus.ACTIVE)
         user = self.create_user(email, password, **extra_fields)
-        role, _ = Role.objects.using(self._db).get_or_create(
+        role, _role_cree = Role.objects.using(self._db).get_or_create(
             key=RoleKey.SUPER_ADMIN,
             defaults={
                 'label': RoleKey.SUPER_ADMIN.label,
@@ -110,7 +111,7 @@ class User(AbstractUser):
     internal_code = models.CharField(
         max_length=20, unique=True, null=True, blank=True,
         db_index=True,
-        help_text="Code interne ex: UA-ETU-0001"
+        help_text=_("Code interne ex: UA-ETU-0001")
     )
     account_status = models.CharField(
         max_length=20,
@@ -124,16 +125,16 @@ class User(AbstractUser):
     disabled_at = models.DateTimeField(null=True, blank=True)
     clerk_user_id = models.CharField(
         max_length=64, unique=True, null=True, blank=True, db_index=True,
-        help_text="Identifiant utilisateur Clerk (user_...) lié à ce compte"
+        help_text=_("Identifiant utilisateur Clerk (user_...) lié à ce compte")
     )
     display_name = models.CharField(
         max_length=150, blank=True,
-        help_text="Nom affiché dans l'interface (facultatif)"
+        help_text=_("Nom affiché dans l'interface (facultatif)")
     )
     avatar = models.ImageField(
         upload_to=avatar_path, null=True, blank=True,
         validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp'])],
-        help_text="Photo de profil (JPG, PNG ou WebP, 2 Mo max)"
+        help_text=_("Photo de profil (JPG, PNG ou WebP, 2 Mo max)")
     )
 
     roles = models.ManyToManyField(
@@ -151,7 +152,7 @@ class User(AbstractUser):
         ordering = ['-date_joined']
 
     def __str__(self):
-        return f"{self.get_full_name()} ({self.internal_code or self.email})"
+        return f"{self.get_full_name()} ({self.internal_code or self.email})"  # i18n-exempt: interpolation de données seule, aucun texte à traduire
 
     @property
     def is_active_account(self):
@@ -286,16 +287,16 @@ class RolePermission(models.Model):
 
 class AccessRequest(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'PENDING', 'En attente'
-        APPROVED = 'APPROVED', 'Approuvée'
-        REJECTED = 'REJECTED', 'Refusée'
+        PENDING = 'PENDING', _("En attente")
+        APPROVED = 'APPROVED', _("Approuvée")
+        REJECTED = 'REJECTED', _("Refusée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='access_requests')
     requested_role = models.CharField(max_length=20, choices=RoleKey.choices, blank=True)
     assigned_role = models.CharField(
         max_length=20, choices=RoleKey.choices, blank=True,
-        help_text="Rôle effectif attribué lors de l'approbation",
+        help_text=_("Rôle effectif attribué lors de l'approbation"),
     )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PENDING
@@ -319,7 +320,7 @@ class Course(models.Model):
     description = models.TextField(blank=True)
     duration_months = models.PositiveIntegerField(default=3)
     fee_amount = models.PositiveIntegerField(
-        help_text="Montant en FCFA",
+        help_text=_("Montant en FCFA"),
         validators=[MinValueValidator(0)]
     )
     currency = models.CharField(max_length=5, default='XAF')
@@ -337,10 +338,10 @@ class Course(models.Model):
 
 class CourseSession(models.Model):
     class Status(models.TextChoices):
-        PLANNED = 'PLANNED', 'Planifiée'
-        ACTIVE = 'ACTIVE', 'En cours'
-        COMPLETED = 'COMPLETED', 'Terminée'
-        CANCELLED = 'CANCELLED', 'Annulée'
+        PLANNED = 'PLANNED', _("Planifiée")
+        ACTIVE = 'ACTIVE', _("En cours")
+        COMPLETED = 'COMPLETED', _("Terminée")
+        CANCELLED = 'CANCELLED', _("Annulée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='sessions')
@@ -348,7 +349,7 @@ class CourseSession(models.Model):
     ends_at = models.DateField()
     schedule = models.CharField(
         max_length=100, blank=True,
-        help_text="Ex: Lun-Ven 13h-15h"
+        help_text=_("Ex: Lun-Ven 13h-15h")
     )
     capacity = models.PositiveIntegerField(default=30)
     status = models.CharField(
@@ -380,11 +381,11 @@ class CourseSession(models.Model):
 
 class Enrollment(models.Model):
     class Status(models.TextChoices):
-        PENDING = 'PENDING', 'En attente'
-        ACTIVE = 'ACTIVE', 'Active'
-        COMPLETED = 'COMPLETED', 'Terminée'
-        CANCELLED = 'CANCELLED', 'Annulée'
-        SUSPENDED = 'SUSPENDED', 'Suspendue'
+        PENDING = 'PENDING', _("En attente")
+        ACTIVE = 'ACTIVE', _("Active")
+        COMPLETED = 'COMPLETED', _("Terminée")
+        CANCELLED = 'CANCELLED', _("Annulée")
+        SUSPENDED = 'SUSPENDED', _("Suspendue")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(
@@ -403,17 +404,17 @@ class Enrollment(models.Model):
     # --- Dossier administratif et financier (secrétariat) -------------------
     start_date = models.DateField(null=True, blank=True)
     tariff_amount = models.PositiveIntegerField(
-        default=0, help_text="Tarif catalogue appliqué (FCFA)"
+        default=0, help_text=_("Tarif catalogue appliqué (FCFA)")
     )
     discount_amount = models.PositiveIntegerField(
-        default=0, help_text="Remise autorisée (FCFA)"
+        default=0, help_text=_("Remise autorisée (FCFA)")
     )
     net_amount = models.PositiveIntegerField(
-        default=0, help_text="Montant net dû (FCFA)"
+        default=0, help_text=_("Montant net dû (FCFA)")
     )
     payment_plan = models.CharField(
         max_length=200, blank=True,
-        help_text="Ex: 2 versements — 50 % à l'inscription"
+        help_text=_("Ex: 2 versements — 50 % à l'inscription")
     )
     registered_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -452,10 +453,10 @@ class Enrollment(models.Model):
 
 class Attendance(models.Model):
     class Status(models.TextChoices):
-        PRESENT = 'PRESENT', 'Présent'
-        ABSENT = 'ABSENT', 'Absent'
-        LATE = 'LATE', 'En retard'
-        EXCUSED = 'EXCUSED', 'Excusé'
+        PRESENT = 'PRESENT', _("Présent")
+        ABSENT = 'ABSENT', _("Absent")
+        LATE = 'LATE', _("En retard")
+        EXCUSED = 'EXCUSED', _("Excusé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     enrollment = models.ForeignKey(
@@ -496,19 +497,19 @@ class StudentSessionNote(models.Model):
         'SessionRecord', on_delete=models.CASCADE, related_name='student_notes'
     )
     notions_learned = models.TextField(
-        "Notions retenues",
-        help_text="Ce que j'ai appris pendant cette séance",
+        _("Notions retenues"),
+        help_text=_("Ce que j'ai appris pendant cette séance"),
     )
-    difficulties = models.TextField("Difficultés", blank=True)
-    observations = models.TextField("Observations", blank=True)
+    difficulties = models.TextField(_("Difficultés"), blank=True)
+    observations = models.TextField(_("Observations"), blank=True)
     attended = models.BooleanField(
-        "J'étais présent à cette séance", default=True,
+        _("J'étais présent à cette séance"), default=True,
     )
     followed_start = models.TimeField(
-        "Heure de début suivie", null=True, blank=True,
+        _("Heure de début suivie"), null=True, blank=True,
     )
     followed_end = models.TimeField(
-        "Heure de fin suivie", null=True, blank=True,
+        _("Heure de fin suivie"), null=True, blank=True,
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -516,10 +517,10 @@ class StudentSessionNote(models.Model):
     class Meta:
         db_table = 'student_session_notes'
         unique_together = ('enrollment', 'session_record')
-        ordering = ['-session_record__date', '-created_at']
+        ordering = ['-session_record__date', '-created_at']  # i18n-exempt: lookup ORM
 
     def __str__(self):
-        return f"{self.enrollment.student} — {self.session_record.date}"
+        return f"{self.enrollment.student} — {self.session_record.date}"  # i18n-exempt: interpolation de données seule, aucun texte à traduire
 
     @property
     def student(self):
@@ -528,16 +529,16 @@ class StudentSessionNote(models.Model):
 
 class Payment(models.Model):
     class Method(models.TextChoices):
-        CASH = 'CASH', 'Espèces'
-        MOBILE_MONEY = 'MOBILE_MONEY', 'Mobile Money'
-        BANK_TRANSFER = 'BANK_TRANSFER', 'Virement bancaire'
-        OTHER = 'OTHER', 'Autre'
+        CASH = 'CASH', _("Espèces")
+        MOBILE_MONEY = 'MOBILE_MONEY', _("Mobile Money")
+        BANK_TRANSFER = 'BANK_TRANSFER', _("Virement bancaire")
+        OTHER = 'OTHER', _("Autre")
 
     class Status(models.TextChoices):
-        COMPLETED = 'COMPLETED', 'Effectué'
-        PENDING = 'PENDING', 'En attente'
-        CANCELLED = 'CANCELLED', 'Annulé'
-        REFUNDED = 'REFUNDED', 'Remboursé'
+        COMPLETED = 'COMPLETED', _("Effectué")
+        PENDING = 'PENDING', _("En attente")
+        CANCELLED = 'CANCELLED', _("Annulé")
+        REFUNDED = 'REFUNDED', _("Remboursé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     enrollment = models.ForeignKey(
@@ -612,12 +613,12 @@ class Destination(models.Model):
 
 class ScholarshipApplication(models.Model):
     class Status(models.TextChoices):
-        SUBMITTED = 'SUBMITTED', 'Soumise'
-        UNDER_REVIEW = 'UNDER_REVIEW', 'En cours d\'examen'
-        DOCUMENTS_REQUESTED = 'DOCS_REQUESTED', 'Documents demandés'
-        APPROVED = 'APPROVED', 'Approuvée'
-        REJECTED = 'REJECTED', 'Rejetée'
-        WITHDRAWN = 'WITHDRAWN', 'Retirée'
+        SUBMITTED = 'SUBMITTED', _("Soumise")
+        UNDER_REVIEW = 'UNDER_REVIEW', _("En cours d'examen")
+        DOCUMENTS_REQUESTED = 'DOCS_REQUESTED', _("Documents demandés")
+        APPROVED = 'APPROVED', _("Approuvée")
+        REJECTED = 'REJECTED', _("Rejetée")
+        WITHDRAWN = 'WITHDRAWN', _("Retirée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=30, unique=True, db_index=True)
@@ -632,8 +633,8 @@ class ScholarshipApplication(models.Model):
     destination = models.ForeignKey(
         Destination, on_delete=models.PROTECT, related_name='applications'
     )
-    program = models.CharField(max_length=200, help_text="Ex: Licence, Master")
-    study_domain = models.CharField(max_length=200, help_text="Ex: Informatique, Médecine")
+    program = models.CharField(max_length=200, help_text=_("Ex: Licence, Master"))
+    study_domain = models.CharField(max_length=200, help_text=_("Ex: Informatique, Médecine"))
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.SUBMITTED
     )
@@ -671,11 +672,11 @@ def scholarship_doc_path(instance, filename):
 
 class ScholarshipDocument(models.Model):
     class DocType(models.TextChoices):
-        IDENTITY = 'IDENTITY', 'Pièce d\'identité'
-        DIPLOMA = 'DIPLOMA', 'Diplômes'
-        TRANSCRIPT = 'TRANSCRIPT', 'Relevés de notes'
-        PHOTO = 'PHOTO', 'Photo d\'identité'
-        MOTIVATION = 'MOTIVATION', 'Lettre de motivation'
+        IDENTITY = 'IDENTITY', _("Pièce d'identité")
+        DIPLOMA = 'DIPLOMA', _("Diplômes")
+        TRANSCRIPT = 'TRANSCRIPT', _("Relevés de notes")
+        PHOTO = 'PHOTO', _("Photo d'identité")
+        MOTIVATION = 'MOTIVATION', _("Lettre de motivation")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(
@@ -702,8 +703,8 @@ class ScholarshipDocument(models.Model):
 
 class AccessEvent(models.Model):
     class EventType(models.TextChoices):
-        ENTRY = 'ENTRY', 'Entrée'
-        EXIT = 'EXIT', 'Sortie'
+        ENTRY = 'ENTRY', _("Entrée")
+        EXIT = 'EXIT', _("Sortie")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     person = models.ForeignKey(
@@ -725,11 +726,11 @@ class AccessEvent(models.Model):
 
 class Notification(models.Model):
     class Type(models.TextChoices):
-        ACCOUNT_APPROVED = 'ACCOUNT_APPROVED', 'Compte approuvé'
-        ACCOUNT_REJECTED = 'ACCOUNT_REJECTED', 'Compte refusé'
-        SCHOLARSHIP_STATUS = 'SCHOLARSHIP_STATUS', 'Statut bourse'
-        PAYMENT_RECEIVED = 'PAYMENT_RECEIVED', 'Paiement reçu'
-        GENERAL = 'GENERAL', 'Général'
+        ACCOUNT_APPROVED = 'ACCOUNT_APPROVED', _("Compte approuvé")
+        ACCOUNT_REJECTED = 'ACCOUNT_REJECTED', _("Compte refusé")
+        SCHOLARSHIP_STATUS = 'SCHOLARSHIP_STATUS', _("Statut bourse")
+        PAYMENT_RECEIVED = 'PAYMENT_RECEIVED', _("Paiement reçu")
+        GENERAL = 'GENERAL', _("Général")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
@@ -767,13 +768,13 @@ class AuditLog(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.action} on {self.entity_type}:{self.entity_id}"
+        return f"{self.action} on {self.entity_type}:{self.entity_id}"  # i18n-exempt: contenu technique du journal d'audit
 
 
 class Certificate(models.Model):
     class Status(models.TextChoices):
-        ISSUED = 'ISSUED', 'Délivré'
-        REVOKED = 'REVOKED', 'Révoqué'
+        ISSUED = 'ISSUED', _("Délivré")
+        REVOKED = 'REVOKED', _("Révoqué")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     enrollment = models.OneToOneField(
@@ -869,17 +870,17 @@ class Contact(models.Model):
 
 class Visit(models.Model):
     class Status(models.TextChoices):
-        WAITING = 'WAITING', 'En attente'
-        IN_PROGRESS = 'IN_PROGRESS', 'En cours'
-        COMPLETED = 'COMPLETED', 'Terminée'
-        CANCELLED = 'CANCELLED', 'Annulée'
+        WAITING = 'WAITING', _("En attente")
+        IN_PROGRESS = 'IN_PROGRESS', _("En cours")
+        COMPLETED = 'COMPLETED', _("Terminée")
+        CANCELLED = 'CANCELLED', _("Annulée")
 
     class VisitorType(models.TextChoices):
-        PROSPECT = 'PROSPECT', 'Prospect'
-        STUDENT = 'STUDENT', 'Étudiant'
-        PARENT = 'PARENT', 'Parent / tuteur'
-        PARTNER = 'PARTNER', 'Partenaire'
-        OTHER = 'OTHER', 'Autre'
+        PROSPECT = 'PROSPECT', _("Prospect")
+        STUDENT = 'STUDENT', _("Étudiant")
+        PARENT = 'PARENT', _("Parent / tuteur")
+        PARTNER = 'PARTNER', _("Partenaire")
+        OTHER = 'OTHER', _("Autre")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=30, unique=True, db_index=True)
@@ -928,31 +929,31 @@ class Visit(models.Model):
 
 class Prospect(models.Model):
     class Status(models.TextChoices):
-        NEW = 'NEW', 'Nouveau'
-        TO_CONTACT = 'TO_CONTACT', 'À contacter'
-        CONTACTED = 'CONTACTED', 'Contact établi'
-        INFO_GIVEN = 'INFO_GIVEN', 'Renseignements fournis'
-        FOLLOW_UP = 'FOLLOW_UP', 'Relance nécessaire'
-        INTERESTED = 'INTERESTED', 'Intéressé'
-        ENROLLING = 'ENROLLING', 'Inscription en cours'
-        ENROLLED = 'ENROLLED', 'Inscrit'
-        NOT_INTERESTED = 'NOT_INTERESTED', 'Non intéressé'
-        UNREACHABLE = 'UNREACHABLE', 'Injoignable'
-        ARCHIVED = 'ARCHIVED', 'Archivé'
+        NEW = 'NEW', _("Nouveau")
+        TO_CONTACT = 'TO_CONTACT', _("À contacter")
+        CONTACTED = 'CONTACTED', _("Contact établi")
+        INFO_GIVEN = 'INFO_GIVEN', _("Renseignements fournis")
+        FOLLOW_UP = 'FOLLOW_UP', _("Relance nécessaire")
+        INTERESTED = 'INTERESTED', _("Intéressé")
+        ENROLLING = 'ENROLLING', _("Inscription en cours")
+        ENROLLED = 'ENROLLED', _("Inscrit")
+        NOT_INTERESTED = 'NOT_INTERESTED', _("Non intéressé")
+        UNREACHABLE = 'UNREACHABLE', _("Injoignable")
+        ARCHIVED = 'ARCHIVED', _("Archivé")
 
     class Source(models.TextChoices):
-        VISIT = 'VISIT', 'Visite au centre'
-        CALL = 'CALL', 'Appel téléphonique'
-        REFERRAL = 'REFERRAL', 'Recommandation'
-        SOCIAL = 'SOCIAL', 'Réseaux sociaux'
-        WEBSITE = 'WEBSITE', 'Site internet'
-        OTHER = 'OTHER', 'Autre'
+        VISIT = 'VISIT', _("Visite au centre")
+        CALL = 'CALL', _("Appel téléphonique")
+        REFERRAL = 'REFERRAL', _("Recommandation")
+        SOCIAL = 'SOCIAL', _("Réseaux sociaux")
+        WEBSITE = 'WEBSITE', _("Site internet")
+        OTHER = 'OTHER', _("Autre")
 
     class ContactMethod(models.TextChoices):
-        PHONE = 'PHONE', 'Téléphone'
-        EMAIL = 'EMAIL', 'Email'
-        WHATSAPP = 'WHATSAPP', 'WhatsApp'
-        VISIT = 'VISIT', 'Visite'
+        PHONE = 'PHONE', _("Téléphone")
+        EMAIL = 'EMAIL', _("Email")
+        WHATSAPP = 'WHATSAPP', _("WhatsApp")
+        VISIT = 'VISIT', _("Visite")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reference = models.CharField(max_length=30, unique=True, db_index=True)
@@ -1024,10 +1025,10 @@ class Prospect(models.Model):
 
 class ProspectFollowUp(models.Model):
     class ContactType(models.TextChoices):
-        CALL = 'CALL', 'Appel'
-        MESSAGE = 'MESSAGE', 'Message'
-        VISIT = 'VISIT', 'Visite'
-        OTHER = 'OTHER', 'Autre'
+        CALL = 'CALL', _("Appel")
+        MESSAGE = 'MESSAGE', _("Message")
+        VISIT = 'VISIT', _("Visite")
+        OTHER = 'OTHER', _("Autre")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     prospect = models.ForeignKey(
@@ -1105,10 +1106,10 @@ class SessionRecord(models.Model):
     """Séance planifiée puis réalisée (compte rendu pédagogique)."""
 
     class Status(models.TextChoices):
-        PLANNED = 'PLANNED', 'Planifiée'
-        COMPLETED = 'COMPLETED', 'Réalisée'
-        CANCELLED = 'CANCELLED', 'Annulée'
-        POSTPONED = 'POSTPONED', 'Reportée'
+        PLANNED = 'PLANNED', _("Planifiée")
+        COMPLETED = 'COMPLETED', _("Réalisée")
+        CANCELLED = 'CANCELLED', _("Annulée")
+        POSTPONED = 'POSTPONED', _("Reportée")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     session = models.ForeignKey(
@@ -1137,7 +1138,7 @@ class SessionRecord(models.Model):
     notes = models.TextField(blank=True)
     attendee_count = models.PositiveIntegerField(
         null=True, blank=True,
-        help_text="Nombre d'apprenants présents relevé sur le cahier de texte",
+        help_text=_("Nombre d'apprenants présents relevé sur le cahier de texte"),
     )
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PLANNED
@@ -1155,12 +1156,14 @@ class SessionRecord(models.Model):
         unique_together = ('session', 'date', 'planned_start')
 
     def __str__(self):
-        return f"{self.session.course.title} — {self.date}"
+        return f"{self.session.course.title} — {self.date}"  # i18n-exempt: interpolation de données seule, aucun texte à traduire
 
     @staticmethod
     def _minutes(start, end):
+        # Une durée n'est connue que si les deux horaires sont renseignés :
+        # à défaut elle reste vide (None) plutôt que comptée comme zéro.
         if not start or not end:
-            return 0
+            return None
         return max(
             (end.hour * 60 + end.minute) - (start.hour * 60 + start.minute), 0
         )
@@ -1172,14 +1175,6 @@ class SessionRecord(models.Model):
     @property
     def actual_minutes(self):
         return self._minutes(self.actual_start, self.actual_end)
-
-    @property
-    def planned_hours(self):
-        return round(self.planned_minutes / 60, 2)
-
-    @property
-    def actual_hours(self):
-        return round(self.actual_minutes / 60, 2)
 
     # -- Cahier de texte -------------------------------------------------
     @property
@@ -1212,21 +1207,25 @@ class SessionRecord(models.Model):
         return self.actual_end or self.planned_end
 
     @property
-    def display_hours(self):
-        return self.actual_hours or self.planned_hours
+    def display_minutes(self):
+        return (
+            self.actual_minutes
+            if self.actual_minutes is not None
+            else self.planned_minutes
+        )
 
 
 class Resource(models.Model):
     class Kind(models.TextChoices):
-        COURSE = 'COURSE', 'Support de cours'
-        EXERCISE = 'EXERCISE', 'Exercice'
-        HOMEWORK = 'HOMEWORK', 'Devoir'
-        RESOURCE = 'RESOURCE', 'Ressource'
+        COURSE = 'COURSE', _("Support de cours")
+        EXERCISE = 'EXERCISE', _("Exercice")
+        HOMEWORK = 'HOMEWORK', _("Devoir")
+        RESOURCE = 'RESOURCE', _("Ressource")
 
     class Status(models.TextChoices):
-        DRAFT = 'DRAFT', 'Brouillon'
-        PUBLISHED = 'PUBLISHED', 'Publié'
-        ARCHIVED = 'ARCHIVED', 'Archivé'
+        DRAFT = 'DRAFT', _("Brouillon")
+        PUBLISHED = 'PUBLISHED', _("Publié")
+        ARCHIVED = 'ARCHIVED', _("Archivé")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
@@ -1245,7 +1244,7 @@ class Resource(models.Model):
     session = models.ForeignKey(
         CourseSession, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='resources',
-        help_text="Groupe destinataire (facultatif)"
+        help_text=_("Groupe destinataire (facultatif)")
     )
     kind = models.CharField(
         max_length=20, choices=Kind.choices, default=Kind.COURSE
@@ -1257,7 +1256,7 @@ class Resource(models.Model):
         )]
     )
     html_content = models.TextField(
-        blank=True, help_text="Contenu HTML optionnel (assaini à l'affichage)"
+        blank=True, help_text=_("Contenu HTML optionnel (assaini à l'affichage)")
     )
     published_at = models.DateTimeField(null=True, blank=True)
     due_date = models.DateTimeField(null=True, blank=True)
@@ -1296,7 +1295,7 @@ class ResourceFeedback(models.Model):
     rating = models.PositiveSmallIntegerField(
         null=True, blank=True,
         validators=[MinValueValidator(1), MaxValueValidator(5)],
-        help_text="Note de 1 à 5"
+        help_text=_("Note de 1 à 5")
     )
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1324,12 +1323,12 @@ def student_doc_path(instance, filename):
 
 class StudentDocument(models.Model):
     class DocType(models.TextChoices):
-        IDENTITY = 'IDENTITY', "Pièce d'identité"
-        DIPLOMA = 'DIPLOMA', 'Diplôme'
-        TRANSCRIPT = 'TRANSCRIPT', 'Relevé de notes'
-        PHOTO = 'PHOTO', "Photo d'identité"
-        CERTIFICATE = 'CERTIFICATE', 'Certificat'
-        OTHER = 'OTHER', 'Autre document'
+        IDENTITY = 'IDENTITY', _("Pièce d'identité")
+        DIPLOMA = 'DIPLOMA', _("Diplôme")
+        TRANSCRIPT = 'TRANSCRIPT', _("Relevé de notes")
+        PHOTO = 'PHOTO', _("Photo d'identité")
+        CERTIFICATE = 'CERTIFICATE', _("Certificat")
+        OTHER = 'OTHER', _("Autre document")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     student = models.ForeignKey(
@@ -1370,9 +1369,9 @@ class StudentDocument(models.Model):
 
 class CashAccount(models.Model):
     class Kind(models.TextChoices):
-        CASH = 'CASH', 'Caisse (espèces)'
-        MOBILE_MONEY = 'MOBILE_MONEY', 'Mobile Money'
-        BANK = 'BANK', 'Compte bancaire'
+        CASH = 'CASH', _("Caisse (espèces)")
+        MOBILE_MONEY = 'MOBILE_MONEY', _("Mobile Money")
+        BANK = 'BANK', _("Compte bancaire")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
@@ -1423,9 +1422,9 @@ class CashAccount(models.Model):
 
 class TransactionCategory(models.Model):
     class Direction(models.TextChoices):
-        IN = 'IN', 'Entrée'
-        OUT = 'OUT', 'Sortie'
-        TRANSFER = 'TRANSFER', 'Transfert'
+        IN = 'IN', _("Entrée")
+        OUT = 'OUT', _("Sortie")
+        TRANSFER = 'TRANSFER', _("Transfert")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120)
@@ -1438,19 +1437,19 @@ class TransactionCategory(models.Model):
         unique_together = ('name', 'direction')
 
     def __str__(self):
-        return f"{self.name} ({self.get_direction_display()})"
+        return f"{self.name} ({self.get_direction_display()})"  # i18n-exempt: nom stocké + libellé de choix déjà traduit
 
 
 class CashTransaction(models.Model):
     class Type(models.TextChoices):
-        IN = 'IN', 'Entrée'
-        OUT = 'OUT', 'Sortie'
-        TRANSFER = 'TRANSFER', 'Transfert'
+        IN = 'IN', _("Entrée")
+        OUT = 'OUT', _("Sortie")
+        TRANSFER = 'TRANSFER', _("Transfert")
 
     class Status(models.TextChoices):
-        DRAFT = 'DRAFT', 'En attente'
-        VALIDATED = 'VALIDATED', 'Validée'
-        CANCELLED = 'CANCELLED', 'Annulée'
+        DRAFT = 'DRAFT', _("En attente")
+        VALIDATED = 'VALIDATED', _("Validée")
+        CANCELLED = 'CANCELLED', _("Annulée")
 
     Method = Payment.Method
 
@@ -1539,7 +1538,7 @@ class CashClosure(models.Model):
         unique_together = ('account', 'date')
 
     def __str__(self):
-        return f"{self.account} — {self.date}"
+        return f"{self.account} — {self.date}"  # i18n-exempt: interpolation de données seule, aucun texte à traduire
 
 
 

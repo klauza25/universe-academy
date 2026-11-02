@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}{{ resource.title }} — Ressource{% endblock %}
+{% block title %}{{ resource.title }} — {% translate "Ressource" %}{% endblock %}
 
 {% block sidebar_nav %}{% if is_student %}{% include "dashboard/etudiant/_nav.html" %}{% else %}{% include "dashboard/pedagogie/_nav.html" %}{% endif %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -14,12 +14,12 @@
     </div>
     <div class="flex flex-wrap gap-2">
         {% if resource.file %}
-        <a href="{% url 'core:dashboard:resource-download' resource.id %}" class="ua-btn ua-btn-primary">{% icon "file-text" %} Télécharger le fichier</a>
+        <a href="{% url 'core:dashboard:resource-download' resource.id %}" class="ua-btn ua-btn-primary">{% icon "file-text" %} {% translate "Télécharger le fichier" %}</a>
         {% endif %}
         {% if is_student %}
-        <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost">{% translate "Retour" %}</a>
         {% else %}
-        <a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:resources' %}" class="ua-btn ua-btn-ghost">{% translate "Retour" %}</a>
         {% endif %}
     </div>
 </div>
@@ -30,20 +30,20 @@
 
 <section class="ua-card overflow-hidden">
     <div class="ua-card-pad">
-        <h2 class="ua-section-title">Contenu</h2>
+        <h2 class="ua-section-title">{% translate "Contenu" %}</h2>
     </div>
     {% if resource.html_content %}
     <iframe sandbox srcdoc="{{ resource.html_content }}" title="{{ resource.title }}"
             style="width:100%;height:70vh;border:0;background:#fff;"></iframe>
     {% else %}
-    <p class="ua-empty">Aucun contenu HTML. Téléchargez le fichier joint.</p>
+    <p class="ua-empty">{% translate "Aucun contenu HTML. Téléchargez le fichier joint." %}</p>
     {% endif %}
 </section>
 
 <section class="ua-card ua-card-pad mt-5">
     <div class="flex items-center justify-between mb-4">
-        <h2 class="ua-section-title">Retours des étudiants</h2>
-        <span class="ua-badge ua-badge-indigo">{{ feedback|length }} retour{{ feedback|length|pluralize }}</span>
+        <h2 class="ua-section-title">{% translate "Retours des étudiants" %}</h2>
+        <span class="ua-badge ua-badge-indigo">{% blocktrans with n=feedback|length %}{{ n }} retour(s){% endblocktrans %}</span>
     </div>
 
     {% if is_student %}
@@ -55,7 +55,7 @@
         </div>
         {% endif %}
         {% if my_feedback %}
-        <p class="text-xs ua-muted mb-2">Vous avez déjà donné votre retour le {{ my_feedback.created_at|date:"d/m/Y à H:i" }} — le renvoyer le met à jour.</p>
+        <p class="text-xs ua-muted mb-2">{% blocktrans with d=my_feedback.created_at|date:"d/m/Y à H:i" %}Vous avez déjà donné votre retour le {{ d }} — le renvoyer le met à jour.{% endblocktrans %}</p>
         {% endif %}
         <div class="mb-4">
             <label for="{{ feedback_form.rating.id_for_label }}">{{ feedback_form.rating.label }}</label>
@@ -67,7 +67,7 @@
             {{ feedback_form.comment }}
             {{ feedback_form.comment.errors }}
         </div>
-        <button type="submit" class="ua-btn ua-btn-primary">{% icon "mail" %} Envoyer mon retour</button>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "mail" %} {% translate "Envoyer mon retour" %}</button>
     </form>
     {% endif %}
 
@@ -77,14 +77,15 @@
             <p class="text-sm font-semibold" style="color:#1e2044;">
                 {{ entry.student.get_full_name|default:entry.student.email }}
                 {% if entry.rating %}<span class="ua-badge ua-badge-amber ml-1">{{ entry.rating }} / 5</span>{% endif %}
-                {% if my_feedback and entry.id == my_feedback.id %}<span class="ua-badge ua-badge-green ml-1">Vous</span>{% endif %}
+                {% if my_feedback and entry.id == my_feedback.id %}<span class="ua-badge ua-badge-green ml-1">{% translate "Vous" %}</span>{% endif %}
             </p>
-            <p class="text-sm ua-muted mt-1">{{ entry.comment|default:"(aucun commentaire)"|linebreaksbr }}</p>
+            {% translate "(aucun commentaire)" as lbl_aucun_commentaire %}
+            <p class="text-sm ua-muted mt-1">{{ entry.comment|default:lbl_aucun_commentaire|linebreaksbr }}</p>
             <p class="text-xs ua-muted mt-1">{{ entry.created_at|date:"d/m/Y H:i" }}</p>
         </div>
     </div>
     {% empty %}
-    <p class="ua-empty">Aucun retour pour le moment.{% if is_student %} Soyez le premier à partager votre avis.{% endif %}</p>
+    <p class="ua-empty">{% translate "Aucun retour pour le moment." %}{% if is_student %} {% translate "Soyez le premier à partager votre avis." %}{% endif %}</p>
     {% endfor %}
 </section>
 {% endblock %}

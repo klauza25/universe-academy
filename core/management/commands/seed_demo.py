@@ -23,10 +23,12 @@ DEMO_USERS = [
 DESTINATIONS = ['France', 'Canada', 'Belgique', 'Maroc', 'Chine']
 
 COURSES = [
-    ('Anglais B2', 'Langues', 3, 75000, True),
-    ('Francais A2', 'Langues', 2, 50000, True),
-    ('Espagnol A1', 'Langues', 3, 60000, True),
-    ('Bureautique et Internet', 'Informatique', 1, 35000, False),
+    # durée en mois, frais = 20 000 FCFA par mois de formation
+    ('Informatique générale', 'Informatique', 6, 120000, True),
+    ('Informatique de gestion', 'Informatique', 6, 120000, True),
+    ('Maintenance informatique', 'Informatique', 6, 120000, True),
+    ('Excel avancé', 'Informatique', 3, 60000, False),
+    ('Les langues étrangères', 'Langues', 3, 60000, True),
 ]
 
 
@@ -91,7 +93,7 @@ class Command(BaseCommand):
 
         formateur = users[RoleKey.FORMATEUR.value]
         session, _ = CourseSession.objects.get_or_create(
-            course=course_objs['Anglais B2'],
+            course=course_objs['Les langues étrangères'],
             starts_at=date.today() - timedelta(days=14),
             defaults={
                 'ends_at': date.today() + timedelta(days=76),
@@ -103,10 +105,10 @@ class Command(BaseCommand):
         session.formateurs.add(formateur)
 
         session2, _ = CourseSession.objects.get_or_create(
-            course=course_objs['Bureautique et Internet'],
+            course=course_objs['Excel avancé'],
             starts_at=date.today() + timedelta(days=10),
             defaults={
-                'ends_at': date.today() + timedelta(days=40),
+                'ends_at': date.today() + timedelta(days=100),
                 'schedule': 'Sam 09h-12h',
                 'capacity': 15,
                 'status': CourseSession.Status.PLANNED,

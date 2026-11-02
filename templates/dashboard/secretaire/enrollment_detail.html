@@ -1,53 +1,86 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Inscription — {{ enrollment.student.get_full_name }}{% endblock %}
+{% block title %}{% blocktrans with n=enrollment.student.get_full_name %}Inscription — {{ n }}{% endblocktrans %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
+{% translate "Fiche étudiant" as act_fiche %}
+{% translate "Modifier" as act_modifier %}
+{% translate "Retour" as act_retour %}
+{% translate "Historique de l'inscription" as audit_titre_inscription %}
+{% translate "Création et modifications de l'inscription." as audit_sous_titre_inscription %}
+{% translate "Aucun événement d'audit pour cette inscription." as audit_vide_inscription %}
+{% translate "Tarif" as lbl_tarif %}
+{% translate "Remise" as lbl_remise %}
+{% translate "Net dû" as lbl_net %}
+{% translate "Solde restant" as lbl_solde %}
 <div class="ua-page-head">
     <div>
         <h1 class="ua-page-title">{{ enrollment.session.course.title }}</h1>
         <p class="ua-page-sub">{{ enrollment.student.get_full_name|default:enrollment.student.email }} · {{ enrollment.session.starts_at|date:"d/m/Y" }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        <a href="{% url 'core:dashboard:student-detail' enrollment.student.id %}" class="ua-btn ua-btn-light">{% icon "graduation" %} Fiche étudiant</a>
+        <a href="{% url 'core:dashboard:student-detail' enrollment.student.id %}" class="ua-btn ua-btn-light">{% icon "graduation" %} {{ act_fiche }}</a>
         {% if is_elevated or 'SECRETAIRE' in user_roles or 'DIRECTION' in user_roles %}
-        <a href="{% url 'core:dashboard:enrollment-edit' enrollment.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} Modifier</a>
+        <a href="{% url 'core:dashboard:enrollment-edit' enrollment.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} {{ act_modifier }}</a>
         {% endif %}
-        <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">{{ act_retour }}</a>
     </div>
 </div>
 
+{% if enrollment.status == 'PENDING' %}
+<section class="ua-card ua-card-pad mb-5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h2 class="ua-section-title">{% translate "Inscription en attente de validation" %}</h2>
+            <p class="ua-muted text-sm mt-1">
+                {% translate "Ce dossier a été créé au guichet : il ne peut pas être encaissé avant sa validation." %}
+            </p>
+        </div>
+        {% if can_validate_enrollment %}
+        <form method="post" action="{% url 'core:dashboard:enrollment-validate' enrollment.id %}">
+            {% csrf_token %}
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Valider l'inscription" %}</button>
+        </form>
+        {% else %}
+        <span class="ua-badge ua-badge-amber">{% translate "Validation requise" %}</span>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
-    {% include "dashboard/_stat.html" with label="Tarif" value=enrollment.tariff_amount icon="wallet" tone="indigo" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Remise" value=enrollment.discount_amount icon="trending-up" tone="amber" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Net dû" value=enrollment.net_amount icon="credit-card" tone="sky" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Solde restant" value=enrollment.balance_due icon="chart" tone="rose" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_tarif value=enrollment.tariff_amount icon="wallet" tone="indigo" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_remise value=enrollment.discount_amount icon="trending-up" tone="amber" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_net value=enrollment.net_amount icon="credit-card" tone="sky" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_solde value=enrollment.balance_due icon="chart" tone="rose" hint="FCFA" %}
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Dossier</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Dossier" %}</h2>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-xs ua-muted">Statut</dt><dd>{{ enrollment.get_status_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Paiement</dt><dd>{{ enrollment.payment_state }}</dd></div>
-            <div><dt class="text-xs ua-muted">Date d'inscription</dt><dd>{{ enrollment.enrolled_at|date:"d/m/Y H:i" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Date de début</dt><dd>{{ enrollment.start_date|date:"d/m/Y"|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Modalités</dt><dd>{{ enrollment.payment_plan|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Enregistré par</dt><dd>{{ enrollment.registered_by.display_label|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Observations</dt><dd>{{ enrollment.notes|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Statut" %}</dt><dd>{{ enrollment.get_status_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Paiement" %}</dt><dd>{{ enrollment.payment_state }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Date d'inscription" %}</dt><dd>{{ enrollment.enrolled_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Date de début" %}</dt><dd>{{ enrollment.start_date|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Modalités" %}</dt><dd>{{ enrollment.payment_plan|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Enregistré par" %}</dt><dd>{{ enrollment.registered_by.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Observations" %}</dt><dd>{{ enrollment.notes|default:"—"|linebreaksbr }}</dd></div>
         </dl>
     </section>
 
     <section class="ua-card ua-card-pad">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="ua-section-title">Paiements</h2>
+            <h2 class="ua-section-title">{% translate "Paiements" %}</h2>
             {% if not is_elevated %}
             {% if 'COMPTABLE' in user_roles or 'DIRECTION' in user_roles %}
-            <a href="{% url 'core:dashboard:payment-create' %}?enrollment={{ enrollment.id }}" class="ua-btn ua-btn-primary ua-btn-sm">{% icon "credit-card" %} Encaisser</a>
+            {% if enrollment.status == 'ACTIVE' or enrollment.status == 'COMPLETED' %}
+            <a href="{% url 'core:dashboard:payment-create' %}?enrollment={{ enrollment.id }}" class="ua-btn ua-btn-primary ua-btn-sm">{% icon "credit-card" %} {% translate "Encaisser" %}</a>
+            {% endif %}
             {% endif %}
             {% endif %}
         </div>
@@ -57,28 +90,28 @@
                 <span class="ua-cell-title">{{ payment.reference }} · {{ payment.amount }} FCFA</span>
                 <span class="ua-cell-sub block">{{ payment.get_method_display }} · {{ payment.paid_at|date:"d/m/Y H:i" }}</span>
             </div>
-            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">Reçu</a>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">{% translate "Reçu" %}</a>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucun paiement. Les règlements sont enregistrés par la comptabilité.</p>
+        <p class="ua-empty">{% translate "Aucun paiement. Les règlements sont enregistrés par la comptabilité." %}</p>
         {% endfor %}
     </section>
 </div>
 
 {% if documents %}
 <section class="ua-card ua-card-pad mt-5">
-    <h2 class="ua-section-title mb-4">Documents liés</h2>
+    <h2 class="ua-section-title mb-4">{% translate "Documents liés" %}</h2>
     {% for document in documents %}
     <div class="ua-list-row">
         <div>
             <span class="ua-cell-title">{{ document.get_doc_type_display }}</span>
             <span class="ua-cell-sub block">{{ document.original_name }}</span>
         </div>
-        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:student-document-download' document.id %}">Télécharger</a>
+        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:student-document-download' document.id %}">{% translate "Télécharger" %}</a>
     </div>
     {% endfor %}
 </section>
 {% endif %}
 
-{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de l'inscription" audit_subtitle="Création et modifications de l'inscription." audit_empty="Aucun événement d'audit pour cette inscription." %}
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title=audit_titre_inscription audit_subtitle=audit_sous_titre_inscription audit_empty=audit_vide_inscription %}
 {% endblock %}

@@ -76,6 +76,7 @@ dashboard_urlpatterns = [
     path('secretaire/inscriptions/nouvelle/', views_secretariat.enrollment_create, name='enrollment-create'),
     path('secretaire/inscriptions/<uuid:enrollment_id>/', views_secretariat.enrollment_detail, name='enrollment-detail'),
     path('secretaire/inscriptions/<uuid:enrollment_id>/modifier/', views_secretariat.enrollment_edit, name='enrollment-edit'),
+    path('secretaire/inscriptions/<uuid:enrollment_id>/valider/', views_secretariat.enrollment_validate, name='enrollment-validate'),
 
     # Pédagogie --------------------------------------------------------------
     path('pedagogie/programmes/', views_pedagogie.program_list, name='programs'),

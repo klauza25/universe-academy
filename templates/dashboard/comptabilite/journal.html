@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui core_tags %}
+{% load ui core_tags i18n %}
 
-{% block title %}Journal comptable — Univers Academy{% endblock %}
+{% block title %}{% translate "Journal comptable — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,57 +9,61 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Journal comptable</h1>
-        <p class="ua-page-sub">Toutes les opérations financières, validées ou en attente.</p>
+        <h1 class="ua-page-title">{% translate "Journal comptable" %}</h1>
+        <p class="ua-page-sub">{% translate "Toutes les opérations financières, validées ou en attente." %}</p>
     </div>
     <div class="flex flex-wrap gap-2">
         {% if not is_elevated %}
-        <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-primary">{% icon "wallet" %} Nouvelle opération</a>
+        <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-primary">{% icon "wallet" %} {% translate "Nouvelle opération" %}</a>
         {% endif %}
-        <a href="?{% query_replace export='csv' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} Export CSV</a>
+        <a href="?{% query_replace export='csv' %}" class="ua-btn ua-btn-light">{% icon "file-text" %} {% translate "Export CSV" %}</a>
     </div>
 </div>
 
+{% translate "Entrées validées (filtre)" as lbl_entrees_filtre %}
+{% translate "Sorties validées (filtre)" as lbl_sorties_filtre %}
+{% translate "Opérations affichées" as lbl_operations %}
+{% translate "lignes" as hint_lignes %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-5">
-    {% include "dashboard/_stat.html" with label="Entrées validées (filtre)" value=totals.incoming|default:0 icon="trending-up" tone="green" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Sorties validées (filtre)" value=totals.outgoing|default:0 icon="wallet" tone="rose" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Opérations affichées" value=page.paginator.count icon="file-text" tone="indigo" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label=lbl_entrees_filtre value=totals.incoming|default:0 icon="trending-up" tone="green" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_sorties_filtre value=totals.outgoing|default:0 icon="wallet" tone="rose" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_operations value=page.paginator.count icon="file-text" tone="indigo" hint=hint_lignes %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
         <div class="md:col-span-2">
-            <label class="text-xs ua-muted block mb-1">Recherche</label>
-            <input type="search" name="q" value="{{ query }}" placeholder="Référence, libellé, bénéficiaire…"
+            <label class="text-xs ua-muted block mb-1">{% translate "Recherche" %}</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Référence, libellé, bénéficiaire…' %}"
                    class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Type</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Type" %}</label>
             <select name="type" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for value, label in type_choices %}
                 <option value="{{ value }}" {% if type_filter == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Caisse</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Caisse" %}</label>
             <select name="account" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
+                <option value="">{% translate "Toutes" %}</option>
                 {% for account in accounts %}
                 <option value="{{ account.id }}" {% if account_filter == account.id|stringformat:'s' %}selected{% endif %}>{{ account.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Du</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Du" %}</label>
             <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Au</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Au" %}</label>
             <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
-        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} {% translate "Filtrer" %}</button>
     </form>
 </section>
 
@@ -68,9 +72,9 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Référence</th><th>Date effective</th><th>Type</th><th>Catégorie</th>
-                    <th>Libellé</th><th>Bénéf. / payeur</th><th>Entrée</th><th>Sortie</th>
-                    <th>Caisse</th><th>Auteur</th><th>Statut</th>
+                    <th>{% translate "Référence" %}</th><th>{% translate "Date effective" %}</th><th>{% translate "Type" %}</th><th>{% translate "Catégorie" %}</th>
+                    <th>{% translate "Libellé" %}</th><th>{% translate "Bénéf. / payeur" %}</th><th>{% translate "Entrée" %}</th><th>{% translate "Sortie" %}</th>
+                    <th>{% translate "Caisse" %}</th><th>{% translate "Auteur" %}</th><th>{% translate "Statut" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -93,7 +97,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="11" class="ua-empty">Aucune opération pour ces critères.</td></tr>
+                <tr><td colspan="11" class="ua-empty">{% translate "Aucune opération pour ces critères." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

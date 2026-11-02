@@ -1,66 +1,67 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui core_tags %}
+{% load ui core_tags i18n %}
 
-{% block title %}Journal d'audit — Univers Academy{% endblock %}
+{% block title %}{% translate "Journal d'audit — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
+{% translate "Système" as var_systeme %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Journal d'audit</h1>
-        <p class="ua-page-sub">{{ page.paginator.count }} événement{{ page.paginator.count|pluralize }} correspondant aux critères</p>
+        <h1 class="ua-page-title">{% translate "Journal d'audit" %}</h1>
+        <p class="ua-page-sub">{% blocktrans with c=page.paginator.count %}{{ c }} événement(s) correspondant aux critères{% endblocktrans %}</p>
     </div>
-    <span class="ua-chip">{% icon "shield" %} Traçabilité complète</span>
+    <span class="ua-chip">{% icon "shield" %} {% translate "Traçabilité complète" %}</span>
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
         <div class="md:col-span-2">
-            <label class="text-xs ua-muted block mb-1">Recherche</label>
-            <input type="search" name="q" value="{{ query }}" placeholder="Action, entité, identifiant, acteur…"
+            <label class="text-xs ua-muted block mb-1">{% translate "Recherche" %}</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Action, entité, identifiant, acteur…' %}"
                    class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Action</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Action" %}</label>
             <select name="action" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
+                <option value="">{% translate "Toutes" %}</option>
                 {% for action in actions %}
                 <option value="{{ action }}" {% if action_filter == action %}selected{% endif %}>{{ action }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Entité</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Entité" %}</label>
             <select name="entity" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
+                <option value="">{% translate "Toutes" %}</option>
                 {% for entity in entities %}
                 <option value="{{ entity }}" {% if entity_filter == entity %}selected{% endif %}>{{ entity }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Acteur</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Acteur" %}</label>
             <select name="actor" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for u in actors %}
                 <option value="{{ u.id }}" {% if actor_filter == u.id|stringformat:'s' %}selected{% endif %}>{{ u.display_label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Du</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Du" %}</label>
             <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Au</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Au" %}</label>
             <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div class="flex gap-2">
-            <button type="submit" class="ua-btn ua-btn-primary justify-center flex-1">{% icon "search" %} Filtrer</button>
-            <a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost">Réinitialiser</a>
+            <button type="submit" class="ua-btn ua-btn-primary justify-center flex-1">{% icon "search" %} {% translate "Filtrer" %}</button>
+            <a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost">{% translate "Réinitialiser" %}</a>
         </div>
     </form>
 </section>
@@ -70,12 +71,12 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Acteur</th>
-                    <th>Action</th>
-                    <th>Entité</th>
-                    <th>Détails (avant / après)</th>
-                    <th>IP</th>
+                    <th>{% translate "Date" %}</th>
+                    <th>{% translate "Acteur" %}</th>
+                    <th>{% translate "Action" %}</th>
+                    <th>{% translate "Entité" %}</th>
+                    <th>{% translate "Détails (avant / après)" %}</th>
+                    <th>{% translate "IP" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -83,7 +84,7 @@
                 <tr>
                     <td class="ua-muted whitespace-nowrap">{{ entry.created_at|date:"d/m/Y H:i:s" }}</td>
                     <td>
-                        <p class="ua-cell-title">{{ entry.actor.display_label|default:"Système" }}</p>
+                        <p class="ua-cell-title">{{ entry.actor.display_label|default:var_systeme }}</p>
                         {% if entry.actor %}
                         <p class="ua-cell-sub">{{ entry.actor.email }}</p>
                         {% for role in entry.actor.roles.all %}
@@ -104,17 +105,17 @@
                     <td>
                         {% if entry.before_summary or entry.after_summary %}
                         <details>
-                            <summary class="cursor-pointer text-xs font-semibold" style="color:#5b5bf6;">Voir les valeurs</summary>
+                            <summary class="cursor-pointer text-xs font-semibold" style="color:#5b5bf6;">{% translate "Voir les valeurs" %}</summary>
                             <div class="mt-2 space-y-2">
                                 {% if entry.before_summary %}
                                 <div>
-                                    <p class="text-xs ua-muted mb-1">Avant</p>
+                                    <p class="text-xs ua-muted mb-1">{% translate "Avant" %}</p>
                                     <pre style="white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;background:#f8f8fd;padding:8px;border-radius:8px;max-height:220px;overflow:auto;margin:0;">{{ entry.before_summary|pretty_json }}</pre>
                                 </div>
                                 {% endif %}
                                 {% if entry.after_summary %}
                                 <div>
-                                    <p class="text-xs ua-muted mb-1">Après</p>
+                                    <p class="text-xs ua-muted mb-1">{% translate "Après" %}</p>
                                     <pre style="white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:11px;background:#f8f8fd;padding:8px;border-radius:8px;max-height:220px;overflow:auto;margin:0;">{{ entry.after_summary|pretty_json }}</pre>
                                 </div>
                                 {% endif %}
@@ -127,7 +128,7 @@
                     <td class="ua-muted text-xs">{{ entry.ip_address|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6" class="ua-empty">Aucun événement enregistré pour ces critères</td></tr>
+                <tr><td colspan="6" class="ua-empty">{% translate "Aucun événement enregistré pour ces critères" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

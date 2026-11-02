@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Gestion des utilisateurs — Univers Academy{% endblock %}
+{% block title %}{% translate "Gestion des utilisateurs — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
@@ -10,14 +10,14 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Utilisateurs</h1>
+        <h1 class="ua-page-title">{% translate "Utilisateurs" %}</h1>
         <p class="ua-page-sub">
-            {{ page.paginator.count }} compte{{ page.paginator.count|pluralize }} enregistré{{ page.paginator.count|pluralize }}
+            {% blocktrans with c=page.paginator.count %}{{ c }} compte(s) enregistré(s){% endblocktrans %}
         </p>
     </div>
     {% if 'SUPER_ADMIN' in user_roles %}
     <a href="{% url 'core:dashboard:user-create' %}" class="ua-btn ua-btn-primary">
-        {% icon "user-plus" %} Créer un compte
+        {% icon "user-plus" %} {% translate "Créer un compte" %}
     </a>
     {% endif %}
 </div>
@@ -25,33 +25,33 @@
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[180px]">
-            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Recherche</label>
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Recherche" %}</label>
             <input type="text" name="q" value="{{ query }}"
                    class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300"
-                   placeholder="Nom, email, code…">
+                   placeholder="{% translate 'Nom, email, code…' %}">
         </div>
         <div class="min-w-[150px]">
-            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Statut</label>
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Statut" %}</label>
             <select name="status"
                     class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for val, label in status_choices %}
                 <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="min-w-[150px]">
-            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Rôle</label>
+            <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Rôle" %}</label>
             <select name="role"
                     class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for val, label in role_choices %}
                 <option value="{{ val }}" {% if role_filter == val %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <button type="submit" class="ua-btn ua-btn-ghost">
-            {% icon "search" %} Filtrer
+            {% icon "search" %} {% translate "Filtrer" %}
         </button>
     </form>
 </section>
@@ -61,11 +61,11 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Code</th>
-                    <th>Utilisateur</th>
-                    <th>Rôle(s)</th>
-                    <th>Statut</th>
-                    <th class="text-right">Actions</th>
+                    <th>{% translate "Code" %}</th>
+                    <th>{% translate "Utilisateur" %}</th>
+                    <th>{% translate "Rôle(s)" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th class="text-right">{% translate "Actions" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -88,7 +88,7 @@
                             {% for role in u.roles.all %}
                             <span class="ua-badge ua-badge-indigo">{{ role.label }}</span>
                             {% empty %}
-                            <span class="ua-muted text-xs">Aucun</span>
+                            <span class="ua-muted text-xs">{% translate "Aucun" %}</span>
                             {% endfor %}
                         </div>
                     </td>
@@ -104,21 +104,21 @@
                     <td>
                         <div class="flex items-center justify-end gap-2">
                             <a href="{% url 'core:dashboard:user-detail' u.id %}"
-                               class="ua-btn ua-btn-ghost ua-btn-sm">Détail</a>
+                               class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Détail" %}</a>
                             {% if 'SUPER_ADMIN' in user_roles and u.id != user.id %}
                             <a href="{% url 'core:dashboard:user-detail' u.id %}#acces"
-                               class="ua-btn ua-btn-sm" style="background:#eef2ff;color:#4338ca;">Rôles &amp; accès</a>
+                               class="ua-btn ua-btn-sm" style="background:#eef2ff;color:#4338ca;">{% translate "Rôles & accès" %}</a>
                             {% endif %}
                             {% if 'SUPER_ADMIN' in user_roles %}
                             <a href="{% url 'core:dashboard:user-edit' u.id %}"
-                               class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">Modifier</a>
+                               class="ua-btn ua-btn-sm" style="background:#f7f7fe;color:#5b5f85;">{% translate "Modifier" %}</a>
                             {% endif %}
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="ua-empty">Aucun utilisateur trouvé</td>
+                    <td colspan="5" class="ua-empty">{% translate "Aucun utilisateur trouvé" %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -130,12 +130,12 @@
 <div class="flex items-center justify-center gap-2 mt-5">
     {% if page.has_previous %}
     <a href="?page={{ page.previous_page_number }}&q={{ query }}&status={{ status_filter }}&role={{ role_filter }}"
-       class="ua-btn ua-btn-ghost ua-btn-sm">{% icon "arrow-right" %} Précédent</a>
+       class="ua-btn ua-btn-ghost ua-btn-sm">{% icon "arrow-right" %} {% translate "Précédent" %}</a>
     {% endif %}
-    <span class="ua-badge ua-badge-indigo">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    <span class="ua-badge ua-badge-indigo">{% blocktrans with p=page.number t=page.paginator.num_pages %}Page {{ p }} / {{ t }}{% endblocktrans %}</span>
     {% if page.has_next %}
     <a href="?page={{ page.next_page_number }}&q={{ query }}&status={{ status_filter }}&role={{ role_filter }}"
-       class="ua-btn ua-btn-ghost ua-btn-sm">Suivant {% icon "arrow-right" %}</a>
+       class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Suivant" %} {% icon "arrow-right" %}</a>
     {% endif %}
 </div>
 {% endif %}

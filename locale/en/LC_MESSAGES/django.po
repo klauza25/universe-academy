@@ -1,0 +1,4187 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Report-Msgid-Bugs-To: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Bienvenue sur votre espace"
+msgstr "Welcome to your workspace"
+
+msgid "Changer de thème"
+msgstr "Change theme"
+
+msgid "Déconnexion"
+msgstr "Sign out"
+
+msgid "Langue de l’interface"
+msgstr "Interface language"
+
+msgid "Mon espace"
+msgstr "My workspace"
+
+msgid "Mon profil"
+msgstr "My profile"
+
+msgid "Navigation"
+msgstr "Navigation"
+
+msgid "Navigation principale"
+msgstr "Main navigation"
+
+msgid "Ouvrir le menu"
+msgstr "Open menu"
+
+msgid "Pilotage général"
+msgstr "Administration"
+
+msgid "Rechercher un utilisateur"
+msgstr "Search for a user"
+
+msgid "Rechercher un utilisateur…"
+msgstr "Search for a user…"
+
+msgid "Site public"
+msgstr "Public site"
+
+msgid "Univers Academy — plateforme de gestion académique"
+msgstr "Univers Academy — academic management platform"
+
+msgid "Voici l’essentiel de votre activité aujourd’hui."
+msgstr "Here is your activity at a glance."
+
+msgid "Thème clair ou sombre"
+msgstr "Light or dark theme"
+
+msgid "Identifiant"
+msgstr "Username"
+
+msgid "Email ou code interne"
+msgstr "Email or internal code"
+
+msgid "Mot de passe"
+msgstr "Password"
+
+msgid "Minimum 8 caractères"
+msgstr "Minimum 8 characters"
+
+msgid "Confirmer le mot de passe"
+msgstr "Confirm password"
+
+msgid "Rôle demandé"
+msgstr "Requested role"
+
+msgid "-- Choisir un rôle --"
+msgstr "-- Select a role --"
+
+msgid ""
+"Votre demande sera examinée : aucun accès n'est accordé avant validation."
+msgstr "Your request will be reviewed: no access is granted before approval."
+
+msgid "Prénom"
+msgstr "First name"
+
+msgid "Nom"
+msgstr "Last name"
+
+msgid "email@exemple.com"
+msgstr "email@example.com"
+
+msgid "Les mots de passe ne correspondent pas."
+msgstr "The passwords do not match."
+
+msgid "Rôle"
+msgstr "Role"
+
+msgid ""
+"Les rôles SUPER_ADMIN et ADMIN s'attribuent ensuite depuis la fiche "
+"utilisateur, par un super administrateur."
+msgstr ""
+"SUPER_ADMIN and ADMIN roles are assigned later from the user profile, by a "
+"super administrator."
+
+msgid "Formation / groupe"
+msgstr "Program / class group"
+
+msgid "-- Choisir un groupe --"
+msgstr "-- Select a class group --"
+
+msgid "Obligatoire pour un étudiant : le compte est inscrit dès sa création."
+msgstr ""
+"Required for a student: the account is enrolled as soon as it is created."
+
+msgid "Laisser vide pour envoyer une invitation par email"
+msgstr "Leave blank to send an invitation by email"
+
+msgid "Un compte étudiant doit être inscrit à un groupe."
+msgstr "A student account must be enrolled in a class group."
+
+msgid "Ex: Licence, Master"
+msgstr "Ex: Bachelor, Master"
+
+msgid "Ex: Informatique, Médecine"
+msgstr "Ex: Computer science, Medicine"
+
+msgid "Pièce d'identité"
+msgstr "ID document"
+
+msgid "Diplômes"
+msgstr "Diplomas"
+
+msgid "Relevés de notes"
+msgstr "Transcripts"
+
+msgid "Photo d'identité"
+msgstr "ID photo"
+
+msgid "Lettre de motivation"
+msgstr "Motivation letter"
+
+msgid "Nom du visiteur (si pas inscrit)"
+msgstr "Visitor name (if not registered)"
+
+msgid "Motif (optionnel)"
+msgstr "Reason (optional)"
+
+msgid "Nom affiché dans l'interface"
+msgstr "Name displayed in the interface"
+
+msgid "Photo de profil"
+msgstr "Profile photo"
+
+msgid "L'image ne doit pas dépasser 2 Mo."
+msgstr "The image must not exceed 2 MB."
+
+msgid "Nouvelle adresse e-mail"
+msgstr "New email address"
+
+msgid "Mot de passe actuel"
+msgstr "Current password"
+
+msgid "Cette adresse est déjà utilisée."
+msgstr "This address is already in use."
+
+msgid "Mot de passe incorrect."
+msgstr "Incorrect password."
+
+msgid "Téléphone"
+msgstr "Phone"
+
+msgid "Téléphone secondaire"
+msgstr "Secondary phone"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Le départ ne peut pas précéder l'arrivée."
+msgstr "Departure cannot precede arrival."
+
+msgid "Téléphone principal"
+msgstr "Main phone"
+
+msgid "Ex: janvier 2027"
+msgstr "Ex: January 2027"
+
+msgid "Mot de passe initial"
+msgstr "Initial password"
+
+msgid "Laisser vide pour créer un compte sans mot de passe (invitation)."
+msgstr "Leave blank to create an account without a password (invitation)."
+
+msgid "Un compte utilise déjà cette adresse."
+msgstr "An account already uses this address."
+
+msgid "La remise ne peut pas dépasser le tarif."
+msgstr "The discount cannot exceed the fee."
+
+msgid "Statut de l'inscription"
+msgstr "Enrollment status"
+
+msgid "Date de début"
+msgstr "Start date"
+
+msgid "Frais de formation prévus (FCFA)"
+msgstr "Expected program fees (FCFA)"
+
+msgid "Remise (FCFA)"
+msgstr "Discount (FCFA)"
+
+msgid "Modalités de paiement"
+msgstr "Payment terms"
+
+msgid "Ex: 2 versements — 50 % à l'inscription"
+msgstr "Ex: 2 installments — 50% at enrollment"
+
+msgid "Observations"
+msgstr "Notes"
+
+msgid "Formation"
+msgstr "Program"
+
+msgid "Date de fin"
+msgstr "End date"
+
+msgid "Horaires"
+msgstr "Schedule"
+
+msgid "Capacité"
+msgstr "Capacity"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Formateurs"
+msgstr "Trainers"
+
+msgid "Ex: Lun-Ven 13h-15h"
+msgstr "Ex: Mon-Fri 1pm-3pm"
+
+msgid "Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs formateurs."
+msgstr "Hold Ctrl (or Cmd) to select multiple trainers."
+
+msgid "La date de fin doit suivre la date de début."
+msgstr "The end date must be after the start date."
+
+msgid "L'heure de fin doit suivre le début."
+msgstr "The end time must be after the start time."
+
+msgid "Renseignez l'heure réelle de début pour une séance réalisée."
+msgstr "Enter the actual start time for a completed session."
+
+msgid "Cette leçon n'appartient pas au module choisi."
+msgstr "This lesson does not belong to the selected module."
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Heure de début"
+msgstr "Start time"
+
+msgid "Heure de fin"
+msgstr "End time"
+
+msgid "Notions enseignées"
+msgstr "Topics taught"
+
+msgid "Nombre d'apprenants"
+msgstr "Number of learners"
+
+msgid "Statut de la séance"
+msgstr "Session status"
+
+msgid "Ex : les composants d'un ordinateur"
+msgstr "Ex: the components of a computer"
+
+msgid "Observations, matériel, incident…"
+msgstr "Notes, equipment, incident…"
+
+msgid ""
+"Une séance est déjà enregistrée à cette date et à cette heure pour ce "
+"groupe."
+msgstr ""
+"A session is already recorded at this date and time for this class group."
+
+msgid "Notions retenues"
+msgstr "Topics learned"
+
+msgid "Difficultés rencontrées"
+msgstr "Difficulties encountered"
+
+msgid "J'étais présent à cette séance"
+msgstr "I attended this session"
+
+msgid "Heure de début suivie"
+msgstr "Start time attended"
+
+msgid "Heure de fin suivie"
+msgstr "End time attended"
+
+msgid "Ce que j'ai appris pendant cette séance"
+msgstr "What I learned during this session"
+
+msgid "Ce que je n'ai pas compris"
+msgstr "What I did not understand"
+
+msgid "Remarque, question pour le formateur…"
+msgstr "Remark, question for the trainer…"
+
+msgid "L'heure de fin suivie doit être après l'heure de début."
+msgstr "The end time attended must be after the start time."
+
+msgid "Joignez un fichier ou saisissez un contenu HTML."
+msgstr "Attach a file or enter HTML content."
+
+msgid "Le fichier ne doit pas dépasser 10 Mo."
+msgstr "The file must not exceed 10 MB."
+
+msgid "Ma note"
+msgstr "My rating"
+
+msgid "— Sans note —"
+msgstr "— No rating —"
+
+msgid "Mon retour"
+msgstr "My feedback"
+
+msgid "Ce que j'ai compris, ce qui m'a aidé, mes questions au formateur…"
+msgstr "What I understood, what helped me, my questions for the trainer…"
+
+msgid "Donnez une note ou écrivez un retour."
+msgstr "Give a rating or write a feedback."
+
+msgid "Choisissez le compte destinataire."
+msgstr "Choose the destination account."
+
+msgid "Le compte destinataire doit être différent."
+msgstr "The destination account must be different."
+
+msgid "Cette catégorie ne correspond pas au type."
+msgstr "This category does not match the transaction type."
+
+msgid "montant net à définir"
+msgstr "net amount to be set"
+
+msgid "soldé"
+msgstr "paid in full"
+
+msgid "reste %(amount)s FCFA"
+msgstr "balance due %(amount)s FCFA"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "— Choisir un étudiant —"
+msgstr "— Select a student —"
+
+msgid ""
+"La liste des inscriptions se filtre sur l'étudiant choisi. Un étudiant "
+"absent de cette liste n'a pas encore de compte actif."
+msgstr ""
+"The enrollment list is filtered by the selected student. A student missing "
+"from this list does not have an active account yet."
+
+msgid "Inscription à encaisser"
+msgstr "Enrollment to collect"
+
+msgid "— Choisir un dossier —"
+msgstr "— Select an enrollment —"
+
+msgid "Choisissez l'inscription à encaisser."
+msgstr "Choose the enrollment to collect payment for."
+
+msgid ""
+"Cette inscription n'est pas encaissable : elle est annulée, en attente de "
+"validation ou n'appartient pas à l'étudiant sélectionné."
+msgstr ""
+"This enrollment is not payable: it is cancelled, pending approval, or does "
+"not belong to the selected student."
+
+msgid "Montant encaissé"
+msgstr "Amount collected"
+
+msgid "Moyen de paiement"
+msgstr "Payment method"
+
+msgid "Caisse / compte destinataire"
+msgstr "Cash desk / destination account"
+
+msgid "Date et heure du paiement"
+msgstr "Payment date and time"
+
+msgid "Chaque ligne rappelle l'étudiant, la formation et le reste à payer."
+msgstr "Each line shows the student, the program and the balance due."
+
+msgid ""
+"Aucune inscription pour cet étudiant : elle se crée au secrétariat avant "
+"tout encaissement."
+msgstr ""
+"No enrollment for this student: it must be created at the secretary's office"
+" before any payment is collected."
+
+msgid "Cette inscription n'appartient pas à l'étudiant sélectionné."
+msgstr "This enrollment does not belong to the selected student."
+
+msgid ""
+"Le montant net du dossier n'est pas défini : complétez l'inscription avant "
+"d'encaisser."
+msgstr ""
+"The net amount of this enrollment is not set: complete the enrollment before"
+" collecting payment."
+
+msgid "Ce dossier est soldé : aucun montant ne reste à encaisser."
+msgstr "This enrollment is fully paid: no amount remains to collect."
+
+msgid "Le montant dépasse le reste à payer (%(montant)s FCFA)."
+msgstr "The amount exceeds the balance due (%(montant)s FCFA)."
+
+msgid "Tarif appliqué (FCFA)"
+msgstr "Applied fee (FCFA)"
+
+msgid "Laisser vide pour reprendre le tarif catalogue du groupe."
+msgstr "Leave blank to use the class group's catalog fee."
+
+msgid "Cet étudiant est déjà inscrit à cette formation."
+msgstr "This student is already enrolled in this program."
+
+msgid "En attente d'approbation"
+msgstr "Awaiting approval"
+
+msgid "Actif"
+msgstr "Active"
+
+msgid "Suspendu"
+msgstr "Suspended"
+
+msgid "Désactivé"
+msgstr "Disabled"
+
+msgid "Refusé"
+msgstr "Rejected"
+
+msgid "Super Administrateur"
+msgstr "Super administrator"
+
+msgid "Administrateur"
+msgstr "Administrator"
+
+msgid "Direction"
+msgstr "Management"
+
+msgid "Secrétaire"
+msgstr "Secretary"
+
+msgid "Comptable"
+msgstr "Accountant"
+
+msgid "Responsable pédagogique"
+msgstr "Academic manager"
+
+msgid "Formateur"
+msgstr "Trainer"
+
+msgid "Accueil / Contrôle"
+msgstr "Front desk / Control"
+
+msgid "L'email est obligatoire"
+msgstr "An email address is required"
+
+msgid "Code interne ex: UA-ETU-0001"
+msgstr "Internal code, e.g. UA-ETU-0001"
+
+msgid "Identifiant utilisateur Clerk (user_...) lié à ce compte"
+msgstr "Clerk user ID (user_...) linked to this account"
+
+msgid "Nom affiché dans l'interface (facultatif)"
+msgstr "Name shown in the interface (optional)"
+
+msgid "Photo de profil (JPG, PNG ou WebP, 2 Mo max)"
+msgstr "Profile photo (JPG, PNG or WebP, 2 MB max)"
+
+msgid "En attente"
+msgstr "Pending"
+
+msgid "Approuvée"
+msgstr "Approved"
+
+msgid "Refusée"
+msgstr "Rejected"
+
+msgid "Rôle effectif attribué lors de l'approbation"
+msgstr "Actual role granted when the request is approved"
+
+msgid "Montant en FCFA"
+msgstr "Amount in FCFA"
+
+msgid "Planifiée"
+msgstr "Planned"
+
+msgid "En cours"
+msgstr "In progress"
+
+msgid "Terminée"
+msgstr "Completed"
+
+msgid "Annulée"
+msgstr "Cancelled"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Suspendue"
+msgstr "Suspended"
+
+msgid "Tarif catalogue appliqué (FCFA)"
+msgstr "Catalogue fee applied (FCFA)"
+
+msgid "Remise autorisée (FCFA)"
+msgstr "Approved discount (FCFA)"
+
+msgid "Montant net dû (FCFA)"
+msgstr "Net amount due (FCFA)"
+
+msgid "Présent"
+msgstr "Present"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "En retard"
+msgstr "Late"
+
+msgid "Excusé"
+msgstr "Excused"
+
+msgid "Difficultés"
+msgstr "Difficulties"
+
+msgid "Espèces"
+msgstr "Cash"
+
+msgid "Mobile Money"
+msgstr "Mobile Money"
+
+msgid "Virement bancaire"
+msgstr "Bank transfer"
+
+msgid "Autre"
+msgstr "Other"
+
+msgid "Effectué"
+msgstr "Completed"
+
+msgid "Annulé"
+msgstr "Cancelled"
+
+msgid "Remboursé"
+msgstr "Refunded"
+
+msgid "Soumise"
+msgstr "Submitted"
+
+msgid "En cours d'examen"
+msgstr "Under review"
+
+msgid "Documents demandés"
+msgstr "Documents requested"
+
+msgid "Rejetée"
+msgstr "Rejected"
+
+msgid "Retirée"
+msgstr "Withdrawn"
+
+msgid "Entrée"
+msgstr "Entry"
+
+msgid "Sortie"
+msgstr "Exit"
+
+msgid "Compte approuvé"
+msgstr "Account approved"
+
+msgid "Compte refusé"
+msgstr "Account rejected"
+
+msgid "Statut bourse"
+msgstr "Scholarship status"
+
+msgid "Paiement reçu"
+msgstr "Payment received"
+
+msgid "Général"
+msgstr "General"
+
+msgid "Délivré"
+msgstr "Issued"
+
+msgid "Révoqué"
+msgstr "Revoked"
+
+msgid "Prospect"
+msgstr "Prospect"
+
+msgid "Parent / tuteur"
+msgstr "Parent / guardian"
+
+msgid "Partenaire"
+msgstr "Partner"
+
+msgid "Nouveau"
+msgstr "New"
+
+msgid "À contacter"
+msgstr "To contact"
+
+msgid "Contact établi"
+msgstr "Contact established"
+
+msgid "Renseignements fournis"
+msgstr "Information provided"
+
+msgid "Relance nécessaire"
+msgstr "Follow-up required"
+
+msgid "Intéressé"
+msgstr "Interested"
+
+msgid "Inscription en cours"
+msgstr "Enrollment in progress"
+
+msgid "Inscrit"
+msgstr "Enrolled"
+
+msgid "Non intéressé"
+msgstr "Not interested"
+
+msgid "Injoignable"
+msgstr "Unreachable"
+
+msgid "Archivé"
+msgstr "Archived"
+
+msgid "Visite au centre"
+msgstr "Visit to the center"
+
+msgid "Appel téléphonique"
+msgstr "Phone call"
+
+msgid "Recommandation"
+msgstr "Referral"
+
+msgid "Réseaux sociaux"
+msgstr "Social media"
+
+msgid "Site internet"
+msgstr "Website"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Visite"
+msgstr "Visit"
+
+msgid "Appel"
+msgstr "Call"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "Réalisée"
+msgstr "Completed"
+
+msgid "Reportée"
+msgstr "Postponed"
+
+msgid "Nombre d'apprenants présents relevé sur le cahier de texte"
+msgstr "Number of learners present, as noted in the class register"
+
+msgid "Support de cours"
+msgstr "Course material"
+
+msgid "Exercice"
+msgstr "Exercise"
+
+msgid "Devoir"
+msgstr "Homework"
+
+msgid "Ressource"
+msgstr "Resource"
+
+msgid "Brouillon"
+msgstr "Draft"
+
+msgid "Publié"
+msgstr "Published"
+
+msgid "Groupe destinataire (facultatif)"
+msgstr "Recipient class group (optional)"
+
+msgid "Contenu HTML optionnel (assaini à l'affichage)"
+msgstr "Optional HTML content (sanitized when displayed)"
+
+msgid "Note de 1 à 5"
+msgstr "Rating from 1 to 5"
+
+msgid "Diplôme"
+msgstr "Degree"
+
+msgid "Relevé de notes"
+msgstr "Transcript"
+
+msgid "Certificat"
+msgstr "Certificate"
+
+msgid "Autre document"
+msgstr "Other document"
+
+msgid "Caisse (espèces)"
+msgstr "Cash till"
+
+msgid "Compte bancaire"
+msgstr "Bank account"
+
+msgid "Transfert"
+msgstr "Transfer"
+
+msgid "Validée"
+msgstr "Validated"
+
+msgid "Vous n'avez pas les permissions nécessaires."
+msgstr "You do not have the required permissions."
+
+msgid "Consultation seule : cette action relève du rôle métier."
+msgstr "Read-only: this action belongs to the operational role."
+
+msgid ""
+"La validation d'une inscription est réservée à la direction, à la caisse, à "
+"la supervision pédagogique et au super administrateur."
+msgstr ""
+"Validating an enrollment is reserved for Management, the cash desk, the "
+"academic manager and the super administrator."
+
+msgid "Permission refusée."
+msgstr "Permission denied."
+
+msgid "Cette action est réservée au super administrateur."
+msgstr "This action is restricted to the super administrator."
+
+msgid "Bonjour"
+msgstr "Good morning"
+
+msgid "Bon après-midi"
+msgstr "Good afternoon"
+
+msgid "Bonsoir"
+msgstr "Good evening"
+
+msgid "Inscriptions en attente de validation"
+msgstr "Enrollments awaiting validation"
+
+msgid "dossier(s) ouvert(s) au guichet : à valider avant encaissement."
+msgstr ""
+"record(s) opened at the front desk: validate before recording a payment."
+
+msgid "Net"
+msgstr "Net"
+
+msgid "Créée le"
+msgstr "Created on"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Dossier"
+msgstr "Record"
+
+msgid "Valider"
+msgstr "Validate"
+
+msgid ""
+"Ce dossier a été créé au guichet : il ne peut pas être encaissé avant sa "
+"validation."
+msgstr ""
+"This record was created at the front desk: no payment can be recorded until "
+"it is validated."
+
+msgid "Valider l'inscription"
+msgstr "Validate enrollment"
+
+msgid "Validation requise"
+msgstr "Validation required"
+
+msgid "Accès refusé"
+msgstr "Access denied"
+
+msgid "Accès refusé — Univers Academy"
+msgstr "Access denied — Univers Academy"
+
+msgid "Adresse e-mail du compte"
+msgstr "Account e-mail address"
+
+msgid "Annuler"
+msgstr "Cancel"
+
+msgid "Après"
+msgstr "After"
+
+msgid "Aucun événement d'audit enregistré."
+msgstr "No audit event recorded."
+
+msgid "Aucune fiche contact trouvée."
+msgstr "No contact record found."
+
+msgid "Auteur"
+msgstr "Author"
+
+msgid "Avant"
+msgstr "Before"
+
+msgid "Centre de Formation en Langues — Brazzaville"
+msgstr "Centre de Formation en Langues — Brazzaville"
+
+msgid "Changer d'adresse e-mail"
+msgstr "Change e-mail address"
+
+msgid "Compléter ma demande d'accès"
+msgstr "Complete my access request"
+
+msgid "Compte créé le"
+msgstr "Account created on"
+
+msgid "Demande d'accès — Univers Academy"
+msgstr "Access request — Univers Academy"
+
+msgid "Détails (avant / après)"
+msgstr "Details (before / after)"
+
+msgid "Enregistrer"
+msgstr "Save"
+
+msgid "Enregistrer la photo"
+msgstr "Save the photo"
+
+msgid "Envoyer la confirmation"
+msgstr "Send the confirmation"
+
+msgid "Envoyer ma demande"
+msgstr "Send my request"
+
+msgid "Historique des modifications"
+msgstr "Change history"
+
+msgid "Identifiant interne"
+msgstr "Internal ID"
+
+msgid "Informations personnelles"
+msgstr "Personal information"
+
+msgid "Inscription en attente de validation"
+msgstr "Enrollment awaiting validation"
+
+msgid ""
+"L'identifiant interne et le rôle ne sont pas modifiables depuis cette page."
+msgstr "The internal ID and the role cannot be changed from this page."
+
+msgid ""
+"Le changement n'est appliqué qu'après confirmation par un lien envoyé à la "
+"nouvelle adresse."
+msgstr ""
+"The change is applied only after you confirm through the link sent to the "
+"new address."
+
+msgid "Motifs de visite"
+msgstr "Visit reasons"
+
+msgid "Nouveau prospect"
+msgstr "New prospect"
+
+msgid "Nouvel étudiant"
+msgstr "New student"
+
+msgid "Nouvelle inscription"
+msgstr "New enrollment"
+
+msgid "Nouvelle visite"
+msgstr "New visit"
+
+msgid "Prospects"
+msgstr "Prospects"
+
+msgid "Précédent"
+msgstr "Previous"
+
+msgid "Qui a fait quoi et quand, d'après le journal d'audit."
+msgstr "Who did what and when, according to the audit log."
+
+msgid "Retour au tableau de bord"
+msgstr "Back to the dashboard"
+
+msgid "Retour à l'accueil"
+msgstr "Back to the home page"
+
+msgid "Retour à mon espace"
+msgstr "Back to my space"
+
+msgid "Réinitialiser la photo"
+msgstr "Reset the photo"
+
+msgid "Se déconnecter"
+msgstr "Sign out"
+
+msgid "Suivant"
+msgstr "Next"
+
+msgid "Système"
+msgstr "System"
+
+msgid "Tableau de bord"
+msgstr "Dashboard"
+
+msgid "Visites"
+msgstr "Visits"
+
+msgid "Voir les valeurs"
+msgstr "View values"
+
+msgid "Vos informations personnelles et votre photo de profil."
+msgstr "Your personal information and your profile photo."
+
+msgid ""
+"Votre compte est suspendu ou désactivé. Contactez l'administration pour plus"
+" d'informations."
+msgstr ""
+"Your account is suspended or disabled. Contact the administration for more "
+"information."
+
+msgid ""
+"Votre identité est vérifiée. Choisissez le rôle que vous souhaitez demander "
+": il sera examiné par l'administration."
+msgstr ""
+"Your identity is verified. Choose the role you want to request: it will be "
+"reviewed by the administration."
+
+msgid "Vous n'avez pas les permissions nécessaires pour cette action."
+msgstr "You do not have the required permissions for this action."
+
+msgid "Étudiants"
+msgstr "Students"
+
+msgid ""
+"Ce dossier n'est pas encore encaissable : le secrétariat l'a créé, il attend"
+" une validation."
+msgstr ""
+"This enrollment is not payable yet: the front office created it and it is "
+"waiting for validation."
+
+msgid ""
+"L'inscription de cet étudiant est en attente de validation : elle ne peut "
+"pas encore être encaissée."
+msgstr ""
+"This student's enrollment is still awaiting validation: no payment can be "
+"recorded yet."
+
+msgid ""
+"Cet étudiant n'a pas encore d'inscription. Créez-la dans le panneau « "
+"Inscrire un étudiant », puis faites-la valider avant l'encaissement."
+msgstr ""
+"This student has no enrollment yet. Create one in the \"Enroll a student\" "
+"panel, then have it validated before collecting payment."
+
+msgid ""
+"Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé"
+" après chaque règlement."
+msgstr ""
+"A partial payment does not settle the record: the balance due is recomputed "
+"after every payment."
+
+msgid "Seules les inscriptions validées sont encaissables."
+msgstr "Only validated enrollments can be paid into."
+
+msgid "Photo de %(name)s"
+msgstr "Photo of %(name)s"
+
+msgid "Page %(p)s / %(t)s"
+msgstr "Page %(p)s of %(t)s"
+
+msgid "Gestion des utilisateurs — Univers Academy"
+msgstr "User management — Univers Academy"
+
+msgid "Utilisateurs"
+msgstr "Users"
+
+msgid "Créer un compte"
+msgstr "Create an account"
+
+msgid "Nom, email, code…"
+msgstr "Name, email, code…"
+
+msgid "Utilisateur"
+msgstr "User"
+
+msgid "Rôle(s)"
+msgstr "Role(s)"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Aucun"
+msgstr "None"
+
+msgid "Rôles & accès"
+msgstr "Roles & access"
+
+msgid "Aucun utilisateur trouvé"
+msgstr "No user found"
+
+msgid "Créer/Modifier utilisateur — Univers Academy"
+msgstr "Create/Edit user — Univers Academy"
+
+msgid "Créer un utilisateur"
+msgstr "Create a user"
+
+msgid "Modifier un utilisateur"
+msgstr "Edit a user"
+
+msgid "Mettez à jour les informations du compte et son statut d'accès."
+msgstr "Update the account details and its access status."
+
+msgid "Renseignez l'identité, le rôle et les identifiants du nouveau compte."
+msgstr "Enter the identity, role and credentials of the new account."
+
+msgid "Détail utilisateur — Univers Academy"
+msgstr "User details — Univers Academy"
+
+msgid "Code non attribué"
+msgstr "No code assigned"
+
+msgid "Aucun rôle"
+msgstr "No role"
+
+msgid "Code interne"
+msgstr "Internal code"
+
+msgid "Compte Clerk"
+msgstr "Clerk account"
+
+msgid "Non lié — liaison automatique à la première connexion"
+msgstr "Not linked — automatic linking at first sign-in"
+
+msgid "Historique d'audit"
+msgstr "Audit history"
+
+msgid "20 derniers événements"
+msgstr "Last 20 events"
+
+msgid "Aucun historique"
+msgstr "No history"
+
+msgid "Rôles et accès"
+msgstr "Roles and access"
+
+msgid "Attribuez les rôles métier et le statut d'accès de ce compte."
+msgstr "Assign the business roles and the access status of this account."
+
+msgid "Chaque changement est tracé dans le journal d'audit."
+msgstr "Every change is tracked in the audit log."
+
+msgid "Super administrateur uniquement"
+msgstr "Super administrator only"
+
+msgid "Rôles attribués"
+msgstr "Assigned roles"
+
+msgid "privilégié"
+msgstr "privileged"
+
+msgid "Retirer le rôle %(label)s à ce compte ?"
+msgstr "Remove the role %(label)s from this account?"
+
+msgid "Retirer"
+msgstr "Remove"
+
+msgid "Aucun rôle attribué."
+msgstr "No role assigned."
+
+msgid "Ajouter un rôle"
+msgstr "Add a role"
+
+msgid "Attribuer"
+msgstr "Assign"
+
+msgid "Tous les rôles existants sont déjà attribués à ce compte."
+msgstr "All existing roles are already assigned to this account."
+
+msgid "Statut d'accès"
+msgstr "Access status"
+
+msgid "Statut actuel :"
+msgstr "Current status:"
+
+msgid "depuis le %(d)s"
+msgstr "since %(d)s"
+
+msgid "Nouveau statut"
+msgstr "New status"
+
+msgid "Appliquer"
+msgstr "Apply"
+
+msgid ""
+"Un compte suspendu, désactivé ou refusé perd immédiatement l'accès au back-"
+"office ; les données restent consultables par le super administrateur."
+msgstr ""
+"A suspended, disabled or refused account immediately loses access to the "
+"back office; the data remains viewable by the super administrator."
+
+msgid ""
+"Vous consultez votre propre fiche : vos rôles et votre statut ne peuvent pas"
+" être modifiés ici. Utilisez un autre compte super administrateur."
+msgstr ""
+"You are viewing your own profile: your roles and your status cannot be "
+"changed here. Use another super administrator account."
+
+msgid "Responsable Pédagogique — Univers Academy"
+msgstr "Academic manager — Univers Academy"
+
+msgid "Suivi pédagogique"
+msgstr "Academic follow-up"
+
+msgid "Formations actives"
+msgstr "Active programs"
+
+msgid "Catalogue"
+msgstr "Catalog"
+
+msgid "Séances documentées"
+msgstr "Documented sessions"
+
+msgid "Comptes rendus"
+msgstr "Session reports"
+
+msgid "Sur les séances"
+msgstr "Across sessions"
+
+msgid "Déclarées"
+msgstr "Reported"
+
+msgid "Sans sujet"
+msgstr "No topic"
+
+msgid "Horaires à définir"
+msgstr "Schedule to be defined"
+
+msgid "Aucune séance planifiée."
+msgstr "No planned session."
+
+msgid "Derniers comptes rendus"
+msgstr "Latest session reports"
+
+msgid "Aucun compte rendu."
+msgstr "No session report."
+
+msgid "Modules"
+msgstr "Modules"
+
+msgid "Leçons"
+msgstr "Lessons"
+
+msgid "Absences"
+msgstr "Absences"
+
+msgid "Toutes périodes"
+msgstr "All periods"
+
+msgid "Ressources publiées"
+msgstr "Published resources"
+
+msgid "Supports et exercices"
+msgstr "Materials and exercises"
+
+msgid "Catalogue des formations"
+msgstr "Program catalog"
+
+msgid "Programmes actuellement proposés"
+msgstr "Programs currently offered"
+
+msgid "Durée"
+msgstr "Duration"
+
+msgid "Frais"
+msgstr "Fees"
+
+msgid "%(d)s mois"
+msgstr "%(d)s months"
+
+msgid "Aucune formation au catalogue"
+msgstr "No program in the catalog"
+
+msgid "Sessions en cours"
+msgstr "Ongoing class groups"
+
+msgid "Encadrement et remplissage"
+msgstr "Teaching staff and enrollment"
+
+msgid "Formateurs :"
+msgstr "Trainers:"
+
+msgid "non affecté"
+msgstr "none assigned"
+
+msgid "Aucune session active"
+msgstr "No active class group"
+
+msgid "Journal comptable"
+msgstr "Accounting journal"
+
+msgid "Nouvelle opération"
+msgstr "New transaction"
+
+msgid "Paiement étudiant"
+msgstr "Student payment"
+
+msgid "Caisses & comptes"
+msgstr "Cash accounts & bank accounts"
+
+msgid "Clôtures"
+msgstr "Closings"
+
+msgid "Caisses et comptes — Univers Academy"
+msgstr "Cash accounts and bank accounts — Univers Academy"
+
+msgid "Caisses et comptes"
+msgstr "Cash accounts and bank accounts"
+
+msgid ""
+"Solde = ouverture + entrées validées − sorties validées. Les transferts sont"
+" neutres globalement."
+msgstr ""
+"Balance = opening + validated entries − validated exits. Transfers are "
+"neutral overall."
+
+msgid "Aucune caisse active."
+msgstr "No active cash account."
+
+msgid "Consultation"
+msgstr "View only"
+
+msgid ""
+"Consultation seule : la création d'une caisse relève de la comptabilité."
+msgstr "Read-only: creating a cash account is handled by accounting."
+
+msgid "Nouvelle caisse / compte"
+msgstr "New cash account / account"
+
+msgid "Créer"
+msgstr "Create"
+
+msgid "Caisse / compte"
+msgstr "Cash account / account"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Devise"
+msgstr "Currency"
+
+msgid "Solde d'ouverture"
+msgstr "Opening balance"
+
+msgid "Solde calculé"
+msgstr "Calculated balance"
+
+msgid "Comptes désactivés"
+msgstr "Disabled accounts"
+
+msgid "Nouvelle clôture — Univers Academy"
+msgstr "New closing — Univers Academy"
+
+msgid "Nouvelle clôture de caisse"
+msgstr "New cash account closing"
+
+msgid ""
+"Le solde théorique est calculé à partir des opérations validées de la "
+"journée."
+msgstr ""
+"The theoretical balance is calculated from the validated transactions of the"
+" day."
+
+msgid "Retour"
+msgstr "Back"
+
+msgid "Enregistrer la clôture"
+msgstr "Save the closing"
+
+msgid "Clôtures de caisse — Univers Academy"
+msgstr "Cash account closings — Univers Academy"
+
+msgid "Clôtures de caisse"
+msgstr "Cash account closings"
+
+msgid ""
+"Comparaison entre le solde théorique et le montant physiquement constaté."
+msgstr ""
+"Comparison between the theoretical balance and the amount physically "
+"counted."
+
+msgid "Nouvelle clôture"
+msgstr "New closing"
+
+msgid "Caisse"
+msgstr "Cash account"
+
+msgid "Toutes"
+msgstr "All"
+
+msgid "Filtrer"
+msgstr "Filter"
+
+msgid "Ouverture"
+msgstr "Opening"
+
+msgid "Théorique"
+msgstr "Theoretical"
+
+msgid "Constaté"
+msgstr "Counted"
+
+msgid "Écart"
+msgstr "Difference"
+
+msgid "Clôturé par"
+msgstr "Closed by"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Aucune clôture enregistrée."
+msgstr "No closing recorded."
+
+msgid "Comptabilité — Univers Academy"
+msgstr "Accounting — Univers Academy"
+
+msgid "Santé financière du mois"
+msgstr "Monthly financial health"
+
+msgid "%(r)s FCFA de recettes pour %(d)s FCFA de dépenses enregistrées."
+msgstr "%(r)s FCFA of income against %(d)s FCFA of recorded expenses."
+
+msgid "Encaisser un paiement"
+msgstr "Collect a payment"
+
+msgid "FCFA de solde des caisses"
+msgstr "FCFA across cash accounts"
+
+msgid "Entrées du jour"
+msgstr "Today's entries"
+
+msgid "Sorties du jour"
+msgstr "Today's exits"
+
+msgid "Solde des caisses"
+msgstr "Cash account balance"
+
+msgid "FCFA validés"
+msgstr "FCFA validated"
+
+msgid "Toutes caisses actives"
+msgstr "All active cash accounts"
+
+msgid "Opérations non validées"
+msgstr "Unvalidated transactions"
+
+msgid "Caisses"
+msgstr "Cash accounts"
+
+msgid "Gérer"
+msgstr "Manage"
+
+msgid "Clôtures aujourd'hui : %(c)s"
+msgstr "Closings today: %(c)s"
+
+msgid "Clôturer une caisse"
+msgstr "Close a cash account"
+
+msgid "Opérations récentes"
+msgstr "Recent transactions"
+
+msgid "Derniers mouvements enregistrés"
+msgstr "Latest recorded movements"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Référence"
+msgstr "Reference"
+
+msgid "Libellé"
+msgstr "Label"
+
+msgid "Montant"
+msgstr "Amount"
+
+msgid "Aucune opération enregistrée."
+msgstr "No transaction recorded."
+
+msgid "Paiements étudiants récents"
+msgstr "Recent student payments"
+
+msgid "Les 10 derniers encaissements"
+msgstr "The last 10 payments collected"
+
+msgid "Méthode"
+msgstr "Method"
+
+msgid "Aucun paiement enregistré"
+msgstr "No payment recorded"
+
+msgid "Journal comptable — Univers Academy"
+msgstr "Accounting journal — Univers Academy"
+
+msgid "Toutes les opérations financières, validées ou en attente."
+msgstr "All financial transactions, validated or pending."
+
+msgid "Export CSV"
+msgstr "CSV export"
+
+msgid "Entrées validées (filtre)"
+msgstr "Validated entries (filter)"
+
+msgid "Sorties validées (filtre)"
+msgstr "Validated exits (filter)"
+
+msgid "Opérations affichées"
+msgstr "Displayed transactions"
+
+msgid "lignes"
+msgstr "rows"
+
+msgid "Recherche"
+msgstr "Search"
+
+msgid "Référence, libellé, bénéficiaire…"
+msgstr "Reference, label, payee…"
+
+msgid "Tous"
+msgstr "All"
+
+msgid "Du"
+msgstr "From"
+
+msgid "Au"
+msgstr "To"
+
+msgid "Date effective"
+msgstr "Effective date"
+
+msgid "Catégorie"
+msgstr "Category"
+
+msgid "Bénéf. / payeur"
+msgstr "Payee / payer"
+
+msgid "Aucune opération pour ces critères."
+msgstr "No transaction for these criteria."
+
+msgid "Paiement étudiant — Univers Academy"
+msgstr "Student payment — Univers Academy"
+
+msgid "Encaisser un paiement étudiant"
+msgstr "Collect a student payment"
+
+msgid ""
+"Choisissez l'étudiant, puis son inscription : le paiement crée une opération"
+" de caisse et un reçu."
+msgstr ""
+"Choose the student, then their enrollment: the payment creates a cash "
+"transaction and a receipt."
+
+msgid "Enregistrer le paiement"
+msgstr "Save the payment"
+
+msgid ""
+"%(n)s a une inscription en attente : elle deviendra encaissable dès que la "
+"direction l'aura validée."
+msgstr ""
+"%(n)s has a pending enrollment: it will become payable as soon as management"
+" has validated it."
+
+msgid "Créée le %(d)s · net %(n)s FCFA · %(s)s"
+msgstr "Created on %(d)s · net %(n)s FCFA · %(s)s"
+
+msgid "Ouvrir le dossier"
+msgstr "Open the record"
+
+msgid "Inscrire un étudiant"
+msgstr "Enroll a student"
+
+msgid ""
+"L'inscription créée ici reste <strong>en attente</strong> : la direction "
+"doit la valider avant que le premier encaissement soit possible. Le tarif "
+"est repris du catalogue si le champ est laissé vide."
+msgstr ""
+"The enrollment created here stays <strong>pending</strong>: management must "
+"validate it before the first payment can be collected. The fee is taken from"
+" the catalog when this field is left blank."
+
+msgid "Créer l'inscription"
+msgstr "Create the enrollment"
+
+msgid "Comptes étudiants sans inscription"
+msgstr "Student accounts without enrollment"
+
+msgid ""
+"Un encaissement suppose une inscription validée : ces comptes actifs n'ont "
+"encore aucune inscription au dossier."
+msgstr ""
+"Collecting a payment requires a validated enrollment: these active accounts "
+"have no enrollment on file yet."
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Inscrire"
+msgstr "Enroll"
+
+msgid "À inscrire par le secrétariat"
+msgstr "To be enrolled by the secretary"
+
+msgid "Reste à payer sur ce dossier :"
+msgstr "Balance due on this record:"
+
+msgid "Dossier soldé : aucun montant ne reste à encaisser."
+msgstr "Record fully paid: no amount remains to collect."
+
+msgid "Reçu"
+msgstr "Receipt"
+
+msgid "Reçu de paiement étudiant"
+msgstr "Student payment receipt"
+
+msgid "Reçu n°"
+msgstr "Receipt no."
+
+msgid "Identifiant : %(code)s · %(mail)s"
+msgstr "ID: %(code)s · %(mail)s"
+
+msgid "Inscription"
+msgstr "Enrollment"
+
+msgid "Encaissé par"
+msgstr "Collected by"
+
+msgid "Net dû"
+msgstr "Net due"
+
+msgid "Total payé"
+msgstr "Total paid"
+
+msgid "Reste à payer"
+msgstr "Balance due"
+
+msgid "Statut du dossier"
+msgstr "Record status"
+
+msgid ""
+"Reçu imprimé le %(d)s. Ce reçu atteste uniquement du paiement enregistré ci-"
+"dessus, et non du règlement total du dossier lorsque le solde restant est "
+"supérieur à zéro."
+msgstr ""
+"Receipt printed on %(d)s. This receipt only attests to the payment recorded "
+"above, not to the full settlement of the record while a balance remains."
+
+msgid "Imprimer / PDF"
+msgstr "Print / PDF"
+
+msgid "Opération"
+msgstr "Transaction"
+
+msgid "Supervision financière"
+msgstr "Financial supervision"
+
+msgid "Retour au journal"
+msgstr "Back to the journal"
+
+msgid "Détail de l'opération"
+msgstr "Transaction details"
+
+msgid "Saisie"
+msgstr "Entered on"
+
+msgid "Bénéficiaire / payeur"
+msgstr "Payee / payer"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Commentaire"
+msgstr "Comment"
+
+msgid "Justificatif"
+msgstr "Supporting document"
+
+msgid "Ouvrir le fichier"
+msgstr "Open the file"
+
+msgid "Paiement étudiant lié"
+msgstr "Linked student payment"
+
+msgid "%(e)s · %(c)s · %(m)s · %(s)s · payé le %(d)s"
+msgstr "%(e)s · %(c)s · %(m)s · %(s)s · paid on %(d)s"
+
+msgid "Reste à payer sur le dossier : %(b)s FCFA"
+msgstr "Balance due on this record: %(b)s FCFA"
+
+msgid "Dépense liée"
+msgstr "Linked expense"
+
+msgid "Justificatif de la dépense"
+msgstr "Expense supporting document"
+
+msgid "Origine"
+msgstr "Source"
+
+msgid "Paiement étudiant (module Comptabilité)"
+msgstr "Student payment (Accounting module)"
+
+msgid "Dépense enregistrée"
+msgstr "Recorded expense"
+
+msgid "une seule transaction, aucun doublon"
+msgstr "a single transaction, no duplicates"
+
+msgid "Correction / annulation"
+msgstr "Correction / cancellation"
+
+msgid ""
+"Consultation seule : l'annulation d'une opération relève de la comptabilité."
+msgstr "Read-only: cancelling a transaction is handled by accounting."
+
+msgid "Cette opération est déjà annulée. Son historique est conservé."
+msgstr "This transaction is already cancelled. Its history is kept."
+
+msgid "Motif de l'annulation"
+msgstr "Cancellation reason"
+
+msgid "Annuler l'opération"
+msgstr "Cancel the transaction"
+
+msgid ""
+"L'annulation ne supprime rien : l'opération reste visible dans le journal "
+"avec son motif."
+msgstr ""
+"Cancelling deletes nothing: the transaction stays visible in the journal "
+"with its reason."
+
+msgid ""
+"Création, corrections et annulation enregistrées dans le journal d'audit."
+msgstr "Creation, corrections and cancellation recorded in the audit log."
+
+msgid "Aucun événement d'audit pour cette opération."
+msgstr "No audit event for this transaction."
+
+msgid "Nouvelle opération — Univers Academy"
+msgstr "New transaction — Univers Academy"
+
+msgid "Nouvelle opération comptable"
+msgstr "New accounting transaction"
+
+msgid ""
+"Entrée, sortie ou transfert entre deux caisses. La référence est générée "
+"automatiquement."
+msgstr ""
+"Entry, exit or transfer between two cash accounts. The reference is "
+"generated automatically."
+
+msgid "Enregistrer l'opération"
+msgstr "Save the transaction"
+
+msgid "Mon tableau de bord"
+msgstr "My dashboard"
+
+msgid "Groupes"
+msgstr "Class groups"
+
+msgid "Séances"
+msgstr "Sessions"
+
+msgid "Cahier de texte"
+msgstr "Class register"
+
+msgid "Présences"
+msgstr "Attendance"
+
+msgid "Ressources"
+msgstr "Resources"
+
+msgid "Progression"
+msgstr "Progress"
+
+msgid "Programmes"
+msgstr "Programs"
+
+msgid "Présences — Univers Academy"
+msgstr "Attendance — Univers Academy"
+
+msgid "Historique des présences"
+msgstr "Attendance history"
+
+msgid "Par étudiant, formation, séance et période."
+msgstr "By student, program, session and period."
+
+msgid "Enregistrements"
+msgstr "Records"
+
+msgid "Présents"
+msgstr "Present"
+
+msgid "Absents"
+msgstr "Absent"
+
+msgid "Retards"
+msgstr "Late"
+
+msgid "Excusés"
+msgstr "Excused"
+
+msgid "Séance"
+msgstr "Session"
+
+msgid "Motif"
+msgstr "Reason"
+
+msgid "Aucune présence pour ces critères."
+msgstr "No attendance record for these criteria."
+
+msgid "Étudiants les plus absents"
+msgstr "Most absent students"
+
+msgid "Aucune absence sur la période."
+msgstr "No absence over the period."
+
+msgid "Présences du %(d)s"
+msgstr "Attendance for %(d)s"
+
+msgid "Retour à la séance"
+msgstr "Back to the session"
+
+msgid "Inscrits"
+msgstr "Enrolled"
+
+msgid "groupe"
+msgstr "class group"
+
+msgid "validés"
+msgstr "validated"
+
+msgid "sans justification"
+msgstr "unexcused"
+
+msgid "arrivées tardives"
+msgstr "late arrivals"
+
+msgid "justifiés"
+msgstr "excused"
+
+msgid "Heure d'arrivée"
+msgstr "Arrival time"
+
+msgid "Motif d'absence"
+msgstr "Absence reason"
+
+msgid "Observation"
+msgstr "Observation"
+
+msgid "Aucun étudiant inscrit à ce groupe."
+msgstr "No student enrolled in this class group."
+
+msgid "Enregistrer les présences"
+msgstr "Save attendance"
+
+msgid "Nouveau groupe"
+msgstr "New class group"
+
+msgid "Modifier le groupe"
+msgstr "Edit class group"
+
+msgid "Un groupe réunit les étudiants d'une formation sur une période donnée."
+msgstr ""
+"A class group brings together the students of a program over a given period."
+
+msgid "Groupes — Univers Academy"
+msgstr "Class groups — Univers Academy"
+
+msgid "Groupes de formation"
+msgstr "Training class groups"
+
+msgid "Périodes, capacités et formateurs affectés à chaque groupe."
+msgstr "Periods, capacity and trainers assigned to each class group."
+
+msgid "Formation, horaires…"
+msgstr "Program, schedule…"
+
+msgid "Planifier"
+msgstr "Plan"
+
+msgid "Aucun formateur affecté"
+msgstr "No trainer assigned"
+
+msgid "Modifier"
+msgstr "Edit"
+
+msgid "Aucun groupe pour ces critères."
+msgstr "No class group for these criteria."
+
+msgid "Nouvelle leçon"
+msgstr "New lesson"
+
+msgid "Modifier la leçon"
+msgstr "Edit lesson"
+
+msgid "Une leçon appartient à un module et peut recevoir des ressources."
+msgstr "A lesson belongs to a module and can hold resources."
+
+msgid "Nouveau module"
+msgstr "New module"
+
+msgid "Modifier le module"
+msgstr "Edit module"
+
+msgid "Un module regroupe les leçons d'une formation."
+msgstr "A module groups the lessons of a program."
+
+msgid "%(m)s mois"
+msgstr "%(m)s months"
+
+msgid "Module %(n)s · %(t)s"
+msgstr "Module %(n)s · %(t)s"
+
+msgid "%(h)s h prévues · %(c)s leçon(s)"
+msgstr "%(h)s planned hours · %(c)s lesson(s)"
+
+msgid "Programmes — Univers Academy"
+msgstr "Programs — Univers Academy"
+
+msgid "Programmes pédagogiques"
+msgstr "Academic programs"
+
+msgid "Modules et leçons par formation."
+msgstr "Modules and lessons per program."
+
+msgid "Ajouter un module"
+msgstr "Add a module"
+
+msgid "Module"
+msgstr "Module"
+
+msgid "Leçon"
+msgstr "Lesson"
+
+msgid "Aucun module pour cette formation."
+msgstr "No module for this program."
+
+msgid "Aucune formation accessible."
+msgstr "No accessible program."
+
+msgid "Progression — Univers Academy"
+msgstr "Progress — Univers Academy"
+
+msgid "Progression des programmes"
+msgstr "Program progress"
+
+msgid "Heures prévues, heures réalisées et séances terminées."
+msgstr "Planned hours, delivered hours and completed sessions."
+
+msgid "Réalisées"
+msgstr "Delivered"
+
+msgid "Heures prévues"
+msgstr "Planned hours"
+
+msgid "Heures réalisées"
+msgstr "Delivered hours"
+
+msgid "Restantes"
+msgstr "Remaining"
+
+msgid "Leçons terminées"
+msgstr "Completed lessons"
+
+msgid "Dernier point"
+msgstr "Latest update"
+
+msgid "Aucune séance pour ces critères."
+msgstr "No session for these criteria."
+
+msgid "Nouvelle ressource"
+msgstr "New resource"
+
+msgid "Modifier la ressource"
+msgstr "Edit resource"
+
+msgid "Publier une ressource"
+msgstr "Publish a resource"
+
+msgid "Formats acceptés : PDF, DOC/DOCX, HTML, PPT, XLS, ZIP — 10 Mo maximum."
+msgstr "Accepted formats: PDF, DOC/DOCX, HTML, PPT, XLS, ZIP — 10 MB maximum."
+
+msgid "%(n)s retour(s)"
+msgstr "%(n)s feedback"
+
+msgid ""
+"Vous avez déjà donné votre retour le %(d)s — le renvoyer le met à jour."
+msgstr "You already gave your feedback on %(d)s — resending it updates it."
+
+msgid "Télécharger le fichier"
+msgstr "Download the file"
+
+msgid "Contenu"
+msgstr "Content"
+
+msgid "Aucun contenu HTML. Téléchargez le fichier joint."
+msgstr "No HTML content. Download the attached file."
+
+msgid "Retours des étudiants"
+msgstr "Student feedback"
+
+msgid "Envoyer mon retour"
+msgstr "Send my feedback"
+
+msgid "Vous"
+msgstr "You"
+
+msgid "(aucun commentaire)"
+msgstr "(no comment)"
+
+msgid "Aucun retour pour le moment."
+msgstr "No feedback yet."
+
+msgid "Soyez le premier à partager votre avis."
+msgstr "Be the first to share your opinion."
+
+msgid "%(n)s avis"
+msgstr "%(n)s reviews"
+
+msgid "Ressources pédagogiques — Univers Academy"
+msgstr "Learning resources — Univers Academy"
+
+msgid "Ressources pédagogiques"
+msgstr "Learning resources"
+
+msgid "Cours, exercices et devoirs publiés aux groupes."
+msgstr "Lessons, exercises and assignments published to class groups."
+
+msgid "Titre"
+msgstr "Title"
+
+msgid "Groupe"
+msgstr "Class group"
+
+msgid "Publication"
+msgstr "Publication"
+
+msgid "Échéance"
+msgstr "Due date"
+
+msgid "Fichier"
+msgstr "File"
+
+msgid "Lire"
+msgstr "Read"
+
+msgid "Aucune ressource pour ces critères."
+msgstr "No resource for these criteria."
+
+msgid "Séance %(d)s"
+msgstr "Session %(d)s"
+
+msgid "Présences enregistrées (%(n)s)"
+msgstr "Recorded attendance (%(n)s)"
+
+msgid "%(p)s présent(s) · %(a)s absent(s) · %(l)s retard(s) · %(e)s excusé(s)"
+msgstr "%(p)s present · %(a)s absent · %(l)s late · %(e)s excused"
+
+msgid "Fiches des apprenants (%(n)s)"
+msgstr "Learner sheets (%(n)s)"
+
+msgid "Gérer les présences"
+msgstr "Manage attendance"
+
+msgid "Durée prévue"
+msgstr "Planned duration"
+
+msgid "Durée réalisée"
+msgstr "Actual duration"
+
+msgid "étudiants"
+msgstr "students"
+
+msgid "Groupe / session"
+msgstr "Class group / session"
+
+msgid "Début prévu / réel"
+msgstr "Planned / actual start"
+
+msgid "Fin prévue / réelle"
+msgstr "Planned / actual end"
+
+msgid "Compte rendu par"
+msgstr "Report by"
+
+msgid "Contenu terminé"
+msgstr "Completed content"
+
+msgid "Contenu restant"
+msgstr "Remaining content"
+
+msgid "Prochaine séance"
+msgstr "Next session"
+
+msgid "Commentaires"
+msgstr "Comments"
+
+msgid "Compte rendu pédagogique"
+msgstr "Teaching report"
+
+msgid "Consultation seule : vous n'êtes pas affecté à cette session."
+msgstr "Read-only: you are not assigned to this session."
+
+msgid "Arrivée"
+msgstr "Arrival"
+
+msgid "Aucune présence enregistrée pour cette séance."
+msgstr "No attendance recorded for this session."
+
+msgid "Historique de la séance"
+msgstr "Session history"
+
+msgid "Création du compte rendu et pointage des présences."
+msgstr "Report creation and attendance check-in."
+
+msgid "Aucun événement d'audit pour cette séance."
+msgstr "No audit event for this session."
+
+msgid "Notions retenues et difficultés déclarées après le cours."
+msgstr "Concepts learned and difficulties reported after class."
+
+msgid "Apprenant"
+msgstr "Learner"
+
+msgid "Mise à jour"
+msgstr "Updated"
+
+msgid "Aucune fiche remplie par les apprenants pour cette séance."
+msgstr "No learner sheet filled in for this session."
+
+msgid "Nouvelle séance"
+msgstr "New session"
+
+msgid "Planifier une séance"
+msgstr "Plan a session"
+
+msgid "Enregistrer la séance"
+msgstr "Save the session"
+
+msgid "Séances — Univers Academy"
+msgstr "Sessions — Univers Academy"
+
+msgid "Séances et comptes rendus"
+msgstr "Sessions and reports"
+
+msgid "Séances planifiées, réalisées, annulées ou reportées."
+msgstr "Scheduled, delivered, cancelled or postponed sessions."
+
+msgid "Sujet, formation, contenu…"
+msgstr "Topic, program, content…"
+
+msgid "Session"
+msgstr "Session"
+
+msgid "Module / leçon"
+msgstr "Module / lesson"
+
+msgid "Sujet"
+msgstr "Topic"
+
+msgid "Prévu"
+msgstr "Planned"
+
+msgid "Réalisé"
+msgstr "Delivered"
+
+msgid "Modifier une ligne"
+msgstr "Edit an entry"
+
+msgid "Modifier la séance"
+msgstr "Edit the session"
+
+msgid "Cahier de texte — Univers Academy"
+msgstr "Class register — Univers Academy"
+
+msgid ""
+"Une ligne par cours : date, heures, notions enseignées, nombre d'apprenants "
+"et observations."
+msgstr ""
+"One line per class: date, hours, concepts taught, number of learners and "
+"observations."
+
+msgid "Formation, filière…"
+msgstr "Program, field of study…"
+
+msgid "Horaire non défini"
+msgstr "Schedule not set"
+
+msgid "Filière / domaine"
+msgstr "Field of study / area"
+
+msgid "Formateur(s)"
+msgstr "Trainer(s)"
+
+msgid "Non affecté"
+msgstr "Unassigned"
+
+msgid "Ouvrir"
+msgstr "Open"
+
+msgid "Imprimer"
+msgstr "Print"
+
+msgid "Aucune formation ne correspond à cette recherche."
+msgstr "No program matches this search."
+
+msgid "1<sup>er</sup> étage immeuble Monte Cristo"
+msgstr "1st floor, Monte Cristo building"
+
+msgid "Total : %(n)s séance(s)"
+msgstr "Total: %(n)s session(s)"
+
+msgid "Édité le %(d)s"
+msgstr "Issued on %(d)s"
+
+msgid "Retour au cahier"
+msgstr "Back to the register"
+
+msgid "Filière"
+msgstr "Field of study"
+
+msgid "Classe"
+msgstr "Class"
+
+msgid "Dates"
+msgstr "Dates"
+
+msgid "Heures"
+msgstr "Hours"
+
+msgid "Aucune séance enregistrée pour cette classe."
+msgstr "No session recorded for this class."
+
+msgid "Heures assurées"
+msgstr "Hours delivered"
+
+msgid "Apprenants"
+msgstr "Learners"
+
+msgid "Notions saisies"
+msgstr "Concepts entered"
+
+msgid "lignes du cahier"
+msgstr "register lines"
+
+msgid "cumul"
+msgstr "total"
+
+msgid "cumul des présences"
+msgstr "total attendance"
+
+msgid "séances renseignées"
+msgstr "sessions filled in"
+
+msgid "Ajouter la séance du jour"
+msgstr "Add today's session"
+
+msgid ""
+"Consultation seule : seuls le formateur affecté, le responsable pédagogique "
+"et la direction peuvent remplir le cahier de texte."
+msgstr ""
+"Read-only: only the assigned trainer, the academic manager and the direction"
+" can fill in the class register."
+
+msgid "Aucune séance enregistrée pour cette formation."
+msgstr "No session recorded for this program."
+
+msgid "%(n)s étudiant(s) inscrit(s)"
+msgstr "%(n)s enrolled student(s)"
+
+msgid "Mes sessions"
+msgstr "My sessions"
+
+msgid "Retour aux sessions"
+msgstr "Back to the sessions"
+
+msgid "Date de la séance"
+msgstr "Session date"
+
+msgid "Feuille de présence"
+msgstr "Attendance sheet"
+
+msgid "Aucun étudiant inscrit à cette session"
+msgstr "No student enrolled in this session"
+
+msgid "%(s)s session(s) à animer et %(n)s étudiant(s) inscrit(s)."
+msgstr "%(s)s training session(s) to run and %(n)s enrolled student(s)."
+
+msgid "%(a)s / %(b)s inscrits"
+msgstr "%(a)s of %(b)s enrolled"
+
+msgid "%(n)s places prises"
+msgstr "%(n)s seats taken"
+
+msgid "Formateur — Univers Academy"
+msgstr "Trainer — Univers Academy"
+
+msgid "Vos sessions de formation"
+msgstr "Your training sessions"
+
+msgid "Mes ressources"
+msgstr "My resources"
+
+msgid "Étudiants suivis"
+msgstr "Students followed"
+
+msgid "Heures restantes"
+msgstr "Remaining hours"
+
+msgid "Planifiées ou en cours"
+msgstr "Planned or ongoing"
+
+msgid "Inscriptions actives"
+msgstr "Active enrollments"
+
+msgid "Comptes rendus validés"
+msgstr "Validated reports"
+
+msgid "Sur les séances planifiées"
+msgstr "Over scheduled sessions"
+
+msgid "Planning du jour"
+msgstr "Today's schedule"
+
+msgid "Aucune séance planifiée aujourd'hui."
+msgstr "No session scheduled today."
+
+msgid "Prochaines séances"
+msgstr "Upcoming sessions"
+
+msgid "Aucune séance à venir."
+msgstr "No upcoming session."
+
+msgid "Absences récentes"
+msgstr "Recent absences"
+
+msgid "Historique"
+msgstr "History"
+
+msgid "Aucune absence récente."
+msgstr "No recent absence."
+
+msgid "Mes groupes"
+msgstr "My class groups"
+
+msgid "À définir"
+msgstr "To be defined"
+
+msgid "Période"
+msgstr "Period"
+
+msgid "Saisie rapide"
+msgstr "Quick entry"
+
+msgid "Aucune session ne vous est attribuée pour le moment."
+msgstr "No session is assigned to you at the moment."
+
+msgid "Reception — Univers Academy"
+msgstr "Reception — Univers Academy"
+
+msgid "Visiteurs, renseignements et prospects"
+msgstr "Visitors, inquiries and prospects"
+
+msgid "Enregistrer une visite"
+msgstr "Record a visit"
+
+msgid "Visites aujourd'hui"
+msgstr "Visits today"
+
+msgid "Personnes présentes"
+msgstr "People present"
+
+msgid "Prospects à suivre"
+msgstr "Prospects to follow up"
+
+msgid "Entrées / sorties"
+msgstr "Entries / exits"
+
+msgid "Passages enregistrés"
+msgstr "Recorded check-ins"
+
+msgid "Sans départ enregistré"
+msgstr "No departure recorded"
+
+msgid "Dossiers ouverts"
+msgstr "Open records"
+
+msgid "Contrôle des accès"
+msgstr "Access control"
+
+msgid "Visites du jour"
+msgstr "Today's visits"
+
+msgid "Personnes reçues à l'accueil aujourd'hui"
+msgstr "People received at reception today"
+
+msgid "Tout voir"
+msgstr "View all"
+
+msgid "Visiteur"
+msgstr "Visitor"
+
+msgid "Aucune visite aujourd'hui."
+msgstr "No visits today."
+
+msgid "Relances à effectuer"
+msgstr "Follow-ups to do"
+
+msgid "Voir"
+msgstr "View"
+
+msgid "Aucune relance en attente."
+msgstr "No follow-ups pending."
+
+msgid "Nouveau passage"
+msgstr "New check-in"
+
+msgid "Contrôle d'accès rapide"
+msgstr "Quick access control"
+
+msgid ""
+"Consultation seule : l'enregistrement des passages relève du rôle accueil."
+msgstr ""
+"Read-only: recording check-ins is the reception role's responsibility."
+
+msgid "Derniers prospects"
+msgstr "Recent prospects"
+
+msgid "Suivi commercial récent"
+msgstr "Recent sales follow-up"
+
+msgid "Relance"
+msgstr "Follow-up"
+
+msgid "Aucun prospect enregistré."
+msgstr "No prospect recorded."
+
+msgid "Événements d'accès récents"
+msgstr "Recent access events"
+
+msgid "Heure"
+msgstr "Time"
+
+msgid "Personne"
+msgstr "Person"
+
+msgid "Aucun événement enregistré"
+msgstr "No event recorded"
+
+msgid "%(ref)s — Prospect"
+msgstr "%(ref)s — Prospect"
+
+msgid "Convertir en étudiant"
+msgstr "Convert to student"
+
+msgid "Dossier étudiant"
+msgstr "Student record"
+
+msgid "Historique du prospect"
+msgstr "Prospect history"
+
+msgid "Création, mises à jour, relances et conversion."
+msgstr "Creation, updates, follow-ups and conversion."
+
+msgid "Aucun événement d'audit pour ce prospect."
+msgstr "No audit events for this prospect."
+
+msgid ""
+"Consultation seule : la modification d'un prospect relève du rôle accueil."
+msgstr "Read-only: editing a prospect is the reception role's responsibility."
+
+msgid "Informations du prospect"
+msgstr "Prospect information"
+
+msgid "Synthèse"
+msgstr "Summary"
+
+msgid "Source"
+msgstr "Source"
+
+msgid "Formation recherchée"
+msgstr "Program of interest"
+
+msgid "Domaine"
+msgstr "Field"
+
+msgid "Niveau"
+msgstr "Level"
+
+msgid "Contact préféré"
+msgstr "Preferred contact"
+
+msgid "Premier contact"
+msgstr "First contact"
+
+msgid "Prochaine relance"
+msgstr "Next follow-up"
+
+msgid "Agent"
+msgstr "Agent"
+
+msgid "Visite d'origine"
+msgstr "Origin visit"
+
+msgid "Converti le"
+msgstr "Converted on"
+
+msgid "Nouveau suivi"
+msgstr "New follow-up"
+
+msgid ""
+"Un compte rendu d'appel n'envoie aucun message : il documente uniquement "
+"l'échange."
+msgstr "A call report sends no message: it only documents the exchange."
+
+msgid "Consultation seule : l'ajout d'un suivi relève du rôle accueil."
+msgstr "Read-only: adding a follow-up is the reception role's responsibility."
+
+msgid "Enregistrer le suivi"
+msgstr "Save follow-up"
+
+msgid "Historique des suivis"
+msgstr "Follow-up history"
+
+msgid "Prochaine action"
+msgstr "Next action"
+
+msgid "Aucun suivi enregistré pour ce prospect."
+msgstr "No follow-up recorded for this prospect."
+
+msgid "Nouveau prospect — Univers Academy"
+msgstr "New prospect — Univers Academy"
+
+msgid "L'identifiant prospect est généré automatiquement."
+msgstr "The prospect reference is generated automatically."
+
+msgid "Retour aux prospects"
+msgstr "Back to prospects"
+
+msgid "Enregistrer le prospect"
+msgstr "Save prospect"
+
+msgid "Prospects — Univers Academy"
+msgstr "Prospects — Univers Academy"
+
+msgid "Personnes intéressées par une formation ou un service."
+msgstr "People interested in a program or a service."
+
+msgid "Nom, téléphone, référence…"
+msgstr "Name, phone, reference…"
+
+msgid "Aujourd'hui"
+msgstr "Today"
+
+msgid "Dernier contact"
+msgstr "Last contact"
+
+msgid "Aucun prospect pour ces critères."
+msgstr "No prospect matches these criteria."
+
+msgid "Motifs de visite — Univers Academy"
+msgstr "Visit reasons — Univers Academy"
+
+msgid "La liste peut être enrichie et désactivée sans perdre l'historique."
+msgstr "The list can be extended and disabled without losing history."
+
+msgid "Retour aux visites"
+msgstr "Back to visits"
+
+msgid "Consultation seule : la gestion des motifs relève du rôle accueil."
+msgstr "Read-only: managing reasons is the reception role's responsibility."
+
+msgid "Ajouter un motif"
+msgstr "Add a reason"
+
+msgid "Ajouter"
+msgstr "Add"
+
+msgid "Ordre"
+msgstr "Order"
+
+msgid "Désactiver"
+msgstr "Disable"
+
+msgid "Activer"
+msgstr "Enable"
+
+msgid "Aucun motif."
+msgstr "No reason."
+
+msgid "%(ref)s — Visite"
+msgstr "%(ref)s — Visit"
+
+msgid "Historique de la visite"
+msgstr "Visit history"
+
+msgid "Enregistrement, mise à jour et conversion en prospect."
+msgstr "Recording, update and conversion into a prospect."
+
+msgid "Aucun événement d'audit pour cette visite."
+msgstr "No audit events for this visit."
+
+msgid "Toujours présent"
+msgstr "Still present"
+
+msgid "Enregistrer le départ"
+msgstr "Record departure"
+
+msgid "Créer un prospect"
+msgstr "Create a prospect"
+
+msgid "Fiche visite"
+msgstr "Visit record"
+
+msgid "Type de visiteur"
+msgstr "Visitor type"
+
+msgid "Départ"
+msgstr "Departure"
+
+msgid "Service / personne"
+msgstr "Service / person"
+
+msgid "Agent d'accueil"
+msgstr "Reception agent"
+
+msgid "Demande"
+msgstr "Request"
+
+msgid ""
+"Consultation seule : la modification d'une visite relève du rôle accueil."
+msgstr "Read-only: editing a visit is the reception role's responsibility."
+
+msgid "Modifier les informations autorisées"
+msgstr "Edit permitted information"
+
+msgid "Prospects liés"
+msgstr "Linked prospects"
+
+msgid "Nouvelle visite — Univers Academy"
+msgstr "New visit — Univers Academy"
+
+msgid "Le numéro de visite est généré automatiquement à l'enregistrement."
+msgstr "The visit number is generated automatically on recording."
+
+msgid "Enregistrer la visite"
+msgstr "Save visit"
+
+msgid "Visites — Univers Academy"
+msgstr "Visits — Univers Academy"
+
+msgid "Visites au centre"
+msgstr "On-site visits"
+
+msgid "Personnes reçues à l'accueil, présentes ou déjà reparties."
+msgstr "People received at reception, present or already left."
+
+msgid "Aucune visite enregistrée pour ces critères."
+msgstr "No visit recorded for these criteria."
+
+msgid "Inscription — %(n)s"
+msgstr "Enrollment — %(n)s"
+
+msgid "Fiche étudiant"
+msgstr "Student record"
+
+msgid "Historique de l'inscription"
+msgstr "Enrollment history"
+
+msgid "Création et modifications de l'inscription."
+msgstr "Creation and edits of the enrollment."
+
+msgid "Aucun événement d'audit pour cette inscription."
+msgstr "No audit events for this enrollment."
+
+msgid "Tarif"
+msgstr "Fee"
+
+msgid "Remise"
+msgstr "Discount"
+
+msgid "Solde restant"
+msgstr "Remaining balance"
+
+msgid "Paiement"
+msgstr "Payment"
+
+msgid "Date d'inscription"
+msgstr "Enrollment date"
+
+msgid "Modalités"
+msgstr "Terms"
+
+msgid "Enregistré par"
+msgstr "Recorded by"
+
+msgid "Paiements"
+msgstr "Payments"
+
+msgid "Encaisser"
+msgstr "Collect payment"
+
+msgid "Aucun paiement. Les règlements sont enregistrés par la comptabilité."
+msgstr "No payment. Payments are recorded by accounting."
+
+msgid "Documents liés"
+msgstr "Linked documents"
+
+msgid "Télécharger"
+msgstr "Download"
+
+msgid "Modifier l'inscription"
+msgstr "Edit enrollment"
+
+msgid "Le montant net est calculé à partir du tarif et de la remise."
+msgstr "The net amount is calculated from the fee and the discount."
+
+msgid "%(p)s prospect(s) à traiter · %(d)s document(s) au fichier"
+msgstr "%(p)s prospect(s) to process · %(d)s document(s) on file"
+
+msgid "Secrétaire — Univers Academy"
+msgstr "Secretary — Univers Academy"
+
+msgid "Suivi des inscriptions"
+msgstr "Enrollment tracking"
+
+msgid "Inscriptions en attente"
+msgstr "Pending enrollments"
+
+msgid "Dossiers d'inscription"
+msgstr "Enrollment records"
+
+msgid "Étudiants au fichier"
+msgstr "Students on file"
+
+msgid "Prospects convertis"
+msgstr "Converted prospects"
+
+msgid "À confirmer"
+msgstr "To confirm"
+
+msgid "Toutes sessions"
+msgstr "All sessions"
+
+msgid "Comptes étudiants"
+msgstr "Student accounts"
+
+msgid "Vers une inscription"
+msgstr "Toward an enrollment"
+
+msgid "Actions rapides"
+msgstr "Quick actions"
+
+msgid "Inscriptions récentes"
+msgstr "Recent enrollments"
+
+msgid "Les 10 derniers dossiers enregistrés"
+msgstr "The 10 most recent records"
+
+msgid "Aucune inscription enregistrée"
+msgstr "No enrollment recorded"
+
+msgid "%(n)s — Étudiant"
+msgstr "%(n)s — Student"
+
+msgid "Modifier la fiche"
+msgstr "Edit record"
+
+msgid "Total dû"
+msgstr "Total due"
+
+msgid "Documents"
+msgstr "Documents"
+
+msgid "Paiements validés"
+msgstr "Validated payments"
+
+msgid "Pièces au dossier"
+msgstr "Supporting documents"
+
+msgid "Historique du dossier étudiant"
+msgstr "Student record history"
+
+msgid "Création, modifications et changements de statut du compte."
+msgstr "Creation, edits and account status changes."
+
+msgid "Aucun événement d'audit pour cet étudiant."
+msgstr "No audit events for this student."
+
+msgid "Informations"
+msgstr "Information"
+
+msgid "Adresse"
+msgstr "Address"
+
+msgid "Date de naissance"
+msgstr "Date of birth"
+
+msgid "Compte"
+msgstr "Account"
+
+msgid "Créé le"
+msgstr "Created on"
+
+msgid "Formations et inscriptions"
+msgstr "Programs and enrollments"
+
+msgid "Date début"
+msgstr "Start date"
+
+msgid "Payé"
+msgstr "Paid"
+
+msgid "Solde"
+msgstr "Balance"
+
+msgid "Soldé"
+msgstr "Settled"
+
+msgid "Partiel"
+msgstr "Partial"
+
+msgid "Impayé"
+msgstr "Unpaid"
+
+msgid "Détail"
+msgstr "Details"
+
+msgid "Aucune inscription."
+msgstr "No enrollment."
+
+msgid "Aucun paiement enregistré."
+msgstr "No payment recorded."
+
+msgid "Documents administratifs"
+msgstr "Administrative documents"
+
+msgid "Consultation seule : l'ajout de documents relève du secrétariat."
+msgstr "Read-only: adding documents is the secretary role's responsibility."
+
+msgid "Consultation : l'ajout de documents relève du secrétariat."
+msgstr "View only: adding documents is the secretary role's responsibility."
+
+msgid "Ajouter le document"
+msgstr "Add document"
+
+msgid "Aucun document au dossier."
+msgstr "No document on file."
+
+msgid "Dernières présences"
+msgstr "Recent attendance"
+
+msgid "Aucune présence enregistrée."
+msgstr "No attendance recorded."
+
+msgid "Modifier %(n)s"
+msgstr "Edit %(n)s"
+
+msgid "Modifier la fiche étudiant"
+msgstr "Edit student record"
+
+msgid "Retour à la fiche"
+msgstr "Back to record"
+
+msgid "(%(fn)s). Son historique de suivi sera conservé."
+msgstr "(%(fn)s). Their follow-up history will be kept."
+
+msgid "Nouvel étudiant — Univers Academy"
+msgstr "New student — Univers Academy"
+
+msgid ""
+"Le compte et la première inscription sont créés en une seule opération."
+msgstr ""
+"The account and the first enrollment are created in a single operation."
+
+msgid "Retour aux étudiants"
+msgstr "Back to students"
+
+msgid "Données reprises du prospect"
+msgstr "Data taken from the prospect"
+
+msgid "Première inscription"
+msgstr "First enrollment"
+
+msgid "Créer l'étudiant et l'inscription"
+msgstr "Create the student and enrollment"
+
+msgid "Étudiants — Univers Academy"
+msgstr "Students — Univers Academy"
+
+msgid "Dossiers administratifs et inscriptions."
+msgstr "Administrative records and enrollments."
+
+msgid "Nom, email, identifiant…"
+msgstr "Name, email, username…"
+
+msgid "Contact"
+msgstr "Contact"
+
+msgid "Formations"
+msgstr "Programs"
+
+msgid "Aucun étudiant pour ces critères."
+msgstr "No student matches these criteria."
+
+msgid ""
+"%(n)s formation%(fp)s suivie%(fp)s et %(t)s présence%(ep)s "
+"enregistrée%(ep)s."
+msgstr "%(n)s program%(fp)s followed and %(t)s attendance%(ep)s recorded."
+
+msgid "(facultatif)"
+msgstr "(optional)"
+
+msgid "(se connecter)"
+msgstr "(sign in)"
+
+msgid "-- Groupe (obligatoire si étudiant) --"
+msgstr "-- Class group (required for a student) --"
+
+msgid "-- Rôle à attribuer --"
+msgstr "-- Role to assign --"
+
+msgid "7 derniers jours"
+msgstr "Last 7 days"
+
+msgid "Accueil & visites"
+msgstr "Reception & visits"
+
+msgid "Accédez à votre espace de formation"
+msgstr "Access your training workspace"
+
+msgid "Acteur"
+msgstr "Actor"
+
+msgid "Action, entité, identifiant, acteur…"
+msgstr "Action, entity, identifier, actor…"
+
+msgid "Activité récente"
+msgstr "Recent activity"
+
+msgid "Administrateur — Univers Academy"
+msgstr "Administrator — Univers Academy"
+
+msgid "Annulées"
+msgstr "Cancelled"
+
+msgid "Année"
+msgstr "Year"
+
+msgid "Approuver"
+msgstr "Approve"
+
+msgid "Approuvées"
+msgstr "Approved"
+
+msgid ""
+"Après chaque séance, notez les notions retenues, vos difficultés et vos "
+"observations. Le formateur peut les consulter."
+msgstr ""
+"After each session, note the concepts learned, your difficulties and your "
+"observations. The trainer can view them."
+
+msgid "Attribué : %(r)s"
+msgstr "Assigned: %(r)s"
+
+msgid "Aucun document"
+msgstr "No document"
+
+msgid "Aucun utilisateur pour le moment"
+msgstr "No users yet"
+
+msgid "Aucun événement enregistré pour ces critères"
+msgstr "No event recorded for these criteria"
+
+msgid "Aucune activité récente"
+msgstr "No recent activity"
+
+msgid "Aucune caisse active"
+msgstr "No active cash account"
+
+msgid "Aucune candidature"
+msgstr "No application"
+
+msgid "Aucune candidature reçue"
+msgstr "No application received"
+
+msgid "Aucune demande d'accès"
+msgstr "No access request"
+
+msgid "Aucune demande en attente"
+msgstr "No requests pending"
+
+msgid "Aucune fiche remplie pour cette formation."
+msgstr "No sheet filled in for this program."
+
+msgid "Aucune formation en cours"
+msgstr "No program in progress"
+
+msgid "Aucune opération sur la période."
+msgstr "No transaction over the period."
+
+msgid "Aucune présence enregistrée"
+msgstr "No attendance recorded"
+
+msgid "Aucune ressource publiée pour le moment."
+msgstr "No resource published yet."
+
+msgid "Aucune ressource publiée pour vos formations."
+msgstr "No resource published for your programs."
+
+msgid "Aucune session active."
+msgstr "No active class group."
+
+msgid "Aucune sortie validée pour ces critères."
+msgstr "No validated exit for these criteria."
+
+msgid "Aucune séance réalisée pour ces critères."
+msgstr "No delivered session for these criteria."
+
+msgid "Aucune transaction enregistrée"
+msgstr "No transaction recorded"
+
+msgid "Audit"
+msgstr "Audit"
+
+msgid "Bourses"
+msgstr "Scholarships"
+
+msgid "Bourses en attente"
+msgstr "Pending scholarships"
+
+msgid "Caisses & points de contrôle"
+msgstr "Cash accounts & control points"
+
+msgid "Caisses, journal, clôtures"
+msgstr "Cash accounts, journal, closings"
+
+msgid "Candidat"
+msgstr "Applicant"
+
+msgid "Candidater à une bourse d'études"
+msgstr "Apply for a scholarship"
+
+msgid "Candidater à une bourse — Univers Academy"
+msgstr "Apply for a scholarship — Univers Academy"
+
+msgid "Candidature soumise"
+msgstr "Application submitted"
+
+msgid "Candidature soumise — Univers Academy"
+msgstr "Application submitted — Univers Academy"
+
+msgid "Candidatures bourse"
+msgstr "Scholarship applications"
+
+msgid "Candidatures bourse — Univers Academy"
+msgstr "Scholarship applications — Univers Academy"
+
+msgid "Candidatures à examiner"
+msgstr "Applications to review"
+
+msgid "Candidatures à instruire"
+msgstr "Applications to process"
+
+msgid "Catalogue en cours"
+msgstr "Current catalog"
+
+msgid "Centre de Formation en Langues"
+msgstr "Centre de Formation en Langues"
+
+msgid ""
+"Ces informations sont visibles par le formateur de la séance et l'équipe "
+"pédagogique."
+msgstr ""
+"This information is visible to the session trainer and the academic team."
+
+msgid "Changer le statut"
+msgstr "Change status"
+
+msgid "Chargement de la connexion sécurisée…"
+msgstr "Loading secure sign-in…"
+
+msgid "Comptabilité"
+msgstr "Accounting"
+
+msgid "Comptes au total"
+msgstr "Total accounts"
+
+msgid "Comptes étudiants ouverts"
+msgstr "Student accounts opened"
+
+msgid "Connexion avec votre e-mail ou votre code interne Univers Academy."
+msgstr "Sign in with your e-mail or your Univers Academy internal code."
+
+msgid ""
+"Connexion sécurisée par Clerk — Google, Gmail ou email et mot de passe."
+msgstr "Secure sign-in with Clerk — Google, Gmail or email and password."
+
+msgid "Connexion — Universe Academy"
+msgstr "Sign in — Universe Academy"
+
+msgid "Conservez ces informations pour suivre l'état de votre candidature."
+msgstr "Keep this information to track the status of your application."
+
+msgid "Consultation seule : aucune donnée n'est modifiée depuis cet écran."
+msgstr "Read-only: no data is modified from this screen."
+
+msgid ""
+"Consultation seule : la décision de bourse est réservée au super "
+"administrateur."
+msgstr ""
+"Read-only: the scholarship decision is reserved for the super administrator."
+
+msgid "Consulter"
+msgstr "View"
+
+msgid "Consulter / modifier"
+msgstr "View / edit"
+
+msgid "Consulter les utilisateurs"
+msgstr "View users"
+
+msgid "Consultez l'état de votre dossier de bourse."
+msgstr "View the status of your scholarship record."
+
+msgid "Contrôle financier — %(m)s"
+msgstr "Financial control — %(m)s"
+
+msgid "Créer un compte — Universe Academy"
+msgstr "Create an account — Universe Academy"
+
+msgid ""
+"Demande envoyée le %(d)s. Aucun accès n'est accordé avant la décision du "
+"super administrateur."
+msgstr ""
+"Request sent on %(d)s. No access is granted before the super administrator's"
+" decision."
+
+msgid "Demandes d'accès"
+msgstr "Access requests"
+
+msgid "Demandes d'accès en attente"
+msgstr "Pending access requests"
+
+msgid "Demandes d'accès — Univers Academy"
+msgstr "Access requests — Univers Academy"
+
+msgid "Demandes en attente"
+msgstr "Pending requests"
+
+msgid "Demandeur"
+msgstr "Requester"
+
+msgid "Derniers comptes créés"
+msgstr "Recently created accounts"
+
+msgid "Derniers paiements"
+msgstr "Recent payments"
+
+msgid "Dernière mise à jour : %(d)s"
+msgstr "Last updated: %(d)s"
+
+msgid "Destination"
+msgstr "Destination"
+
+msgid "Direction — Univers Academy"
+msgstr "Management — Univers Academy"
+
+msgid "Documents publiés pour vos formations et vos groupes."
+msgstr "Documents published for your programs and class groups."
+
+msgid "Documents à fournir"
+msgstr "Documents to provide"
+
+msgid "Domaine d'études"
+msgstr "Field of study"
+
+msgid "Dossier %(r)s · %(d)s"
+msgstr "Record %(r)s · %(d)s"
+
+msgid "Dossiers, inscriptions, documents"
+msgstr "Records, enrollments, documents"
+
+msgid "Début"
+msgstr "Start"
+
+msgid "Décision"
+msgstr "Decision"
+
+msgid "Dépenses"
+msgstr "Expenses"
+
+msgid "Détails & avis"
+msgstr "Details & reviews"
+
+msgid "Effectif"
+msgstr "Headcount"
+
+msgid "Effectifs par session active"
+msgstr "Headcount per active class group"
+
+msgid "En attente d'approbation — Universe Academy"
+msgstr "Awaiting approval — Universe Academy"
+
+msgid "En attente de validation"
+msgstr "Awaiting validation"
+
+msgid "Encadrants actifs"
+msgstr "Active supervisors"
+
+msgid "Enregistrer ma fiche"
+msgstr "Save my sheet"
+
+msgid "Enregistrée par"
+msgstr "Recorded by"
+
+msgid "Entité"
+msgstr "Entity"
+
+msgid "Entrées du mois"
+msgstr "This month's entries"
+
+msgid "Entrées validées"
+msgstr "Validated entries"
+
+msgid "Entrées − sorties validées"
+msgstr "Validated entries − exits"
+
+msgid "Examiner"
+msgstr "Review"
+
+msgid "FCFA de recettes"
+msgstr "FCFA of income"
+
+msgid "FCFA encaissés ce mois"
+msgstr "FCFA collected this month"
+
+msgid "FCFA versés ce mois"
+msgstr "FCFA paid out this month"
+
+msgid "FCFA — selon filtres"
+msgstr "FCFA — depending on filters"
+
+msgid "Feuille de suivi"
+msgstr "Tracking sheet"
+
+msgid "Feuille de suivi de l'apprenant"
+msgstr "Learner tracking sheet"
+
+msgid "Feuille imprimable"
+msgstr "Printable sheet"
+
+msgid "Feuille imprimable de la formation"
+msgstr "Printable sheet for the program"
+
+msgid "Fiche de cours"
+msgstr "Class sheet"
+
+msgid "Fiche de cours du %(d)s — Univers Academy"
+msgstr "Class sheet for %(d)s — Univers Academy"
+
+msgid "Fiches remplies"
+msgstr "Sheets filled in"
+
+msgid "Finances"
+msgstr "Finances"
+
+msgid "Finances — soldes par caisse"
+msgstr "Finances — balances per cash account"
+
+msgid "Formateurs actifs"
+msgstr "Active trainers"
+
+msgid "Formation / notions"
+msgstr "Program / concepts"
+
+msgid "Formation%(fp)s"
+msgstr "Program%(fp)s"
+
+msgid "Formations en cours"
+msgstr "Programs in progress"
+
+msgid "Gérer les utilisateurs"
+msgstr "Manage users"
+
+msgid "Heures suivies"
+msgstr "Hours attended"
+
+msgid "Historique de toutes les actions"
+msgstr "History of all actions"
+
+msgid "Historique personnel. Une erreur doit être signalée au secrétariat."
+msgstr ""
+"Personal history. Any error must be reported to the secretary's office."
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Immeuble Monte Cristo, Rond-point la Gare — Brazzaville"
+msgstr "Immeuble Monte Cristo, Rond-point la Gare — Brazzaville"
+
+msgid "Informations du candidat"
+msgstr "Applicant information"
+
+msgid "Inscriptions en cours"
+msgstr "Enrollments in progress"
+
+msgid "J'ai déjà un compte"
+msgstr "I already have an account"
+
+msgid "Jour"
+msgstr "Day"
+
+msgid "Journal d'audit"
+msgstr "Audit log"
+
+msgid "Journal d'audit — Univers Academy"
+msgstr "Audit log — Univers Academy"
+
+msgid "Justif."
+msgstr "Supporting doc."
+
+msgid "Justification"
+msgstr "Reason"
+
+msgid ""
+"L'administrateur a un accès de lecture complet à chaque module de "
+"l'établissement."
+msgstr ""
+"The administrator has full read access to every module of the institution."
+
+msgid "La séance"
+msgstr "The session"
+
+msgid "Le solde des caisses ci-contre porte sur toutes les périodes."
+msgstr "The cash account balances shown here cover all periods."
+
+msgid "Les 10 dernières actions enregistrées"
+msgstr "The 10 most recent actions"
+
+msgid "Les 6 inscriptions les plus récentes"
+msgstr "The 6 most recent enrollments"
+
+msgid "Libellé / tiers"
+msgstr "Label / party"
+
+msgid "Ma fiche"
+msgstr "My sheet"
+
+msgid "Ma fiche enregistrée"
+msgstr "My saved sheet"
+
+msgid "Ma présence"
+msgstr "My attendance"
+
+msgid "Mes cours & ressources"
+msgstr "My courses & resources"
+
+msgid "Mes cours et ressources"
+msgstr "My courses and resources"
+
+msgid "Mes cours et ressources — Univers Academy"
+msgstr "My courses and resources — Univers Academy"
+
+msgid "Mes fiches de cours"
+msgstr "My class sheets"
+
+msgid "Mes fiches de cours — Univers Academy"
+msgstr "My class sheets — Univers Academy"
+
+msgid "Mes formations"
+msgstr "My programs"
+
+msgid "Mes paiements"
+msgstr "My payments"
+
+msgid "Mes présences"
+msgstr "My attendance"
+
+msgid "Mes présences — Univers Academy"
+msgstr "My attendance — Univers Academy"
+
+msgid "Mois en cours"
+msgstr "Current month"
+
+msgid "Mon espace — Univers Academy"
+msgstr "My workspace — Univers Academy"
+
+msgid "Motif (facultatif)"
+msgstr "Reason (optional)"
+
+msgid "Mouvements validés de la période"
+msgstr "Validated transactions for the period"
+
+msgid "Moyen"
+msgstr "Method"
+
+msgid "Non"
+msgstr "No"
+
+msgid "Non catégorisé"
+msgstr "Uncategorized"
+
+msgid "Non pointée"
+msgstr "Not marked"
+
+msgid "Note interne"
+msgstr "Internal note"
+
+msgid "Notion, formation, sujet…"
+msgstr "Concept, program, topic…"
+
+msgid "Nouvelles inscriptions"
+msgstr "New enrollments"
+
+msgid "Opérations en attente"
+msgstr "Pending transactions"
+
+msgid "Opérations validées"
+msgstr "Validated transactions"
+
+msgid "Oui"
+msgstr "Yes"
+
+msgid "PDF, JPG ou PNG — 10 Mo maximum par fichier."
+msgstr "PDF, JPG or PNG — 10 MB maximum per file."
+
+msgid "Paiements effectués"
+msgstr "Payments made"
+
+msgid "Paiements incomplets"
+msgstr "Incomplete payments"
+
+msgid "Paiements étudiants"
+msgstr "Student payments"
+
+msgid "Parcours en cours"
+msgstr "Programs in progress"
+
+msgid "Pilotage de la vie académique"
+msgstr "Oversight of academic life"
+
+msgid "Pilotage financier et académique"
+msgstr "Financial and academic oversight"
+
+msgid "Programme"
+msgstr "Program"
+
+msgid "Programme visé"
+msgstr "Targeted program"
+
+msgid "Programmes, séances, présences"
+msgstr "Programs, sessions, attendance"
+
+msgid "Projet d'études"
+msgstr "Study project"
+
+msgid "Prospects en base"
+msgstr "Prospects in the database"
+
+msgid "Présence"
+msgstr "Attendance"
+
+msgid "Pédagogie"
+msgstr "Academics"
+
+msgid "Période personnalisée"
+msgstr "Custom period"
+
+msgid "Recettes"
+msgstr "Income"
+
+msgid "Refuser"
+msgstr "Reject"
+
+msgid "Refusées"
+msgstr "Rejected"
+
+msgid "Relevés validés"
+msgstr "Validated transcripts"
+
+msgid "Remplie"
+msgstr "Filled in"
+
+msgid "Remplies"
+msgstr "Filled in"
+
+msgid "Remplir"
+msgstr "Fill in"
+
+msgid "Remplir ma fiche"
+msgstr "Fill in my sheet"
+
+msgid ""
+"Remplissez le formulaire ci-dessous et joignez les documents demandés. Les "
+"champs marqués d'un astérisque sont obligatoires."
+msgstr ""
+"Fill in the form below and attach the requested documents. Fields marked "
+"with an asterisk are required."
+
+msgid "Ressources récentes"
+msgstr "Recent resources"
+
+msgid "Reste à recouvrer"
+msgstr "Outstanding balance"
+
+msgid "Retour à la liste"
+msgstr "Back to list"
+
+msgid "Retour à mes fiches"
+msgstr "Back to my sheets"
+
+msgid "Reçu %(r)s"
+msgstr "Receipt %(r)s"
+
+msgid "Référence de suivi"
+msgstr "Tracking reference"
+
+msgid "Référence, libellé, payeur, bénéficiaire, note…"
+msgstr "Reference, label, payer, payee, note…"
+
+msgid "Réinitialiser"
+msgstr "Reset"
+
+msgid "Rôle demandé :"
+msgstr "Requested role:"
+
+msgid "Rôle suggéré"
+msgstr "Suggested role"
+
+msgid "Rôle suggéré à la création du compte — à valider ou modifier"
+msgstr "Role suggested at account creation — to be validated or modified"
+
+msgid "Rôle à définir"
+msgstr "Role to be defined"
+
+msgid "Saisie par"
+msgstr "Entered by"
+
+msgid "Salaires & formateurs"
+msgstr "Salaries & trainers"
+
+msgid "Se connecter"
+msgstr "Sign in"
+
+msgid "Secrétariat"
+msgstr "Secretary"
+
+msgid "Sessions actives"
+msgstr "Active sessions"
+
+msgid "Solde net (filtre)"
+msgstr "Net balance (filter)"
+
+msgid "Solde total"
+msgstr "Total balance"
+
+msgid "Soldes des caisses"
+msgstr "Cash account balances"
+
+msgid "Sorties du mois"
+msgstr "Exits this month"
+
+msgid "Sorties par catégorie"
+msgstr "Exits by category"
+
+msgid "Sorties validées"
+msgstr "Validated exits"
+
+msgid "Soumettre ma candidature"
+msgstr "Submit my application"
+
+msgid "Soumise le"
+msgstr "Submitted on"
+
+msgid "Suivi de candidature"
+msgstr "Application tracking"
+
+msgid "Suivi de candidature — Univers Academy"
+msgstr "Application tracking — Univers Academy"
+
+msgid "Suivi des encaissements récents"
+msgstr "Recent collections tracking"
+
+msgid "Suivre ma candidature"
+msgstr "Track my application"
+
+msgid "Suivre une candidature"
+msgstr "Track an application"
+
+msgid "Super Admin — Univers Academy"
+msgstr "Super Admin — Univers Academy"
+
+msgid "Supervision"
+msgstr "Supervision"
+
+msgid "Supervision financière — Univers Academy"
+msgstr "Financial supervision — Univers Academy"
+
+msgid "Séances réalisées"
+msgstr "Delivered sessions"
+
+msgid "Séances suivies"
+msgstr "Sessions followed"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "Token de suivi"
+msgstr "Tracking token"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total utilisateurs"
+msgstr "Total users"
+
+msgid "Tous comptes actifs"
+msgstr "All active accounts"
+
+msgid "Tous cursus"
+msgstr "All curricula"
+
+msgid "Tous les modules"
+msgstr "All modules"
+
+msgid "Tous les utilisateurs"
+msgstr "All users"
+
+msgid "Tous rôles confondus"
+msgstr "All roles combined"
+
+msgid "Toutes les demandes"
+msgstr "All requests"
+
+msgid ""
+"Toutes les opérations enregistrées sur la plateforme, tous modules "
+"confondus."
+msgstr "All transactions recorded on the platform, across all modules."
+
+msgid "Toutes les transactions"
+msgstr "All transactions"
+
+msgid "Toutes origines confondues"
+msgstr "All sources combined"
+
+msgid "Traiter les demandes"
+msgstr "Process requests"
+
+msgid "Transactions récentes"
+msgstr "Recent transactions"
+
+msgid "Transactions validées, selon les filtres du haut."
+msgstr "Validated transactions, according to the filters at the top."
+
+msgid "Traçabilité complète"
+msgstr "Full traceability"
+
+msgid "Validation réservée à la supervision"
+msgstr "Validation reserved for supervision"
+
+msgid "Visites, relances, conversions"
+msgstr "Visits, follow-ups, conversions"
+
+msgid "Visiteurs & prospects"
+msgstr "Visitors & prospects"
+
+msgid "Voir les utilisateurs"
+msgstr "View users"
+
+msgid "Vos inscriptions et leur avancement"
+msgstr "Your enrollments and their progress"
+
+msgid "Votre candidature"
+msgstr "Your application"
+
+msgid "Votre candidature a été enregistrée avec succès."
+msgstr "Your application has been recorded successfully."
+
+msgid ""
+"Votre compte a été créé avec succès. Un administrateur doit l'approuver "
+"avant que vous puissiez accéder à la plateforme."
+msgstr ""
+"Your account has been created successfully. An administrator must approve it"
+" before you can access the platform."
+
+msgid "Votre demande sera examinée par l'administration avant activation."
+msgstr ""
+"Your request will be reviewed by the administration before activation."
+
+msgid "Votre parcours de formation"
+msgstr "Your training path"
+
+msgid "Vue d'ensemble de la plateforme"
+msgstr "Platform overview"
+
+msgid "Vue direction"
+msgstr "Management view"
+
+msgid "en attente"
+msgstr "pending"
+
+msgid "enregistrées"
+msgstr "recorded"
+
+msgid "le %(d)s"
+msgstr "on %(d)s"
+
+msgid "non justifiées"
+msgstr "unexcused"
+
+msgid "ou"
+msgstr "or"
+
+msgid "par %(n)s"
+msgstr "by %(n)s"
+
+msgid "validées"
+msgstr "validated"
+
+msgid "À justifier si besoin"
+msgstr "To be justified if needed"
+
+msgid "À remplir"
+msgstr "To be filled in"
+
+msgid "À valider par vos soins"
+msgstr "For you to validate"
+
+msgid "Écarts de caisse constatés"
+msgstr "Cash differences identified"
+
+msgid "Échéance : %(d)s"
+msgstr "Due date: %(d)s"
+
+msgid "État"
+msgstr "Status"
+
+msgid "Étudiants actifs"
+msgstr "Active students"
+
+msgid "à documenter"
+msgstr "to be documented"
+
+msgid "à définir"
+msgstr "to be defined"
+
+msgid ""
+"%(a)s étudiant(s) actif(s) et %(p)s demande(s) d'accès en attente sur la "
+"plateforme."
+msgstr ""
+"%(a)s active student(s) and %(p)s access request(s) pending on the platform."
+
+msgid "%(c)s candidature(s) reçue(s)"
+msgstr "%(c)s application(s) received"
+
+msgid "%(c)s compte(s) enregistré(s)"
+msgstr "%(c)s registered account(s)"
+
+msgid ""
+"%(c)s formation(s) au catalogue, %(s)s séance(s) documentée(s) et %(m)s "
+"réalisées."
+msgstr ""
+"%(c)s program(s) in the catalog, %(s)s documented session(s) and %(m)s "
+"delivered."
+
+msgid "%(c)s opération(s) correspondant aux critères"
+msgstr "%(c)s transaction(s) matching these criteria"
+
+msgid "%(c)s opération(s) validée(s) ce mois · toutes origines confondues"
+msgstr "%(c)s validated transaction(s) this month · all sources combined"
+
+msgid "%(c)s événement(s) correspondant aux critères"
+msgstr "%(c)s event(s) matching these criteria"
+
+msgid "%(n)s dossier(s)"
+msgstr "%(n)s record(s)"
+
+msgid "%(n)s nouvelle(s) inscription(s) ce mois-ci"
+msgstr "%(n)s new enrollment(s) this month"
+
+msgid "%(n)s opération(s)"
+msgstr "%(n)s transaction(s)"
+
+msgid ""
+"%(p)s demande(s) d'accès et %(s)s candidature(s) bourse attendent votre "
+"validation."
+msgstr ""
+"%(p)s access request(s) and %(s)s scholarship application(s) awaiting your "
+"validation."
+
+msgid ""
+"%(p)s inscription(s) en attente sur %(t)s dossier(s) au total, %(s)s "
+"étudiant(s) au fichier."
+msgstr ""
+"%(p)s enrollment(s) pending out of %(t)s record(s) in total, %(s)s "
+"student(s) on file."
+
+msgid "%(pc)s en attente · %(tc)s demande(s) au total"
+msgstr "%(pc)s pending · %(tc)s request(s) in total"
+
+msgid ""
+"%(t)s étudiant(s) actif(s), %(s)s session(s) en cours et %(r)s FCFA de "
+"recettes encaissées."
+msgstr ""
+"%(t)s active student(s), %(s)s ongoing class group(s) and %(r)s FCFA of "
+"income collected."
+
+msgid ""
+"%(v)s visite(s) aujourd'hui, %(p)s personne(s) encore présente(s) et %(o)s "
+"prospect(s) à suivre."
+msgstr ""
+"%(v)s visit(s) today, %(p)s person(s) still present and %(o)s prospect(s) to"
+" follow up."
+
+msgid "Votre compte est désactivé ou suspendu."
+msgstr "Your account is disabled or suspended."
+
+msgid "Identifiant ou mot de passe incorrect."
+msgstr "Incorrect username or password."
+
+msgid "Connexion Clerk impossible : jeton manquant."
+msgstr "Clerk sign-in failed: missing token."
+
+msgid "Connexion Clerk impossible. Veuillez reessayer."
+msgstr "Clerk sign-in failed. Please try again."
+
+msgid "Votre compte est desactive. Contactez l'administration."
+msgstr "Your account is disabled. Contact the administration."
+
+msgid "Votre compte est desactive ou suspendu."
+msgstr "Your account is disabled or suspended."
+
+msgid "Votre demande d'accès a été enregistrée."
+msgstr "Your access request has been recorded."
+
+msgid "Le fichier %(nom)s est trop volumineux (max 10 Mo)."
+msgstr "File %(nom)s is too large (max 10 MB)."
+
+msgid "Aucune candidature trouvée avec ces informations."
+msgstr "No application found with these details."
+
+msgid "Inscription créée à la création du compte."
+msgstr "Enrollment created when the account was created."
+
+msgid "Utilisateur %(nom)s créé avec succès."
+msgstr "User %(nom)s created successfully."
+
+msgid ""
+"Ce compte étudiant est actif sans inscription : le secrétariat doit "
+"l'inscrire à un groupe pour qu'il figure dans la liste des inscrits."
+msgstr ""
+"This student account is active without an enrollment: the secretary must "
+"enroll it in a group so that it appears in the enrolled list."
+
+msgid "Utilisateur modifié."
+msgstr "User updated."
+
+msgid "Vous ne pouvez pas modifier vos propres rôles."
+msgstr "You cannot change your own roles."
+
+msgid "Action sur le rôle inconnue."
+msgstr "Unknown role action."
+
+msgid "Rôle inconnu."
+msgstr "Unknown role."
+
+msgid "Impossible d'attribuer un rôle privilégié."
+msgstr "Cannot assign a privileged role."
+
+msgid "Rôle %(role)s ajouté."
+msgstr "Role %(role)s added."
+
+msgid ""
+"Ce compte n'a aucune inscription : le secrétariat doit l'inscrire à un "
+"groupe pour qu'il figure dans la liste des inscrits."
+msgstr ""
+"This account has no enrollment: the secretary must enroll it in a group so "
+"that it appears in the enrolled list."
+
+msgid "Le rôle %(role)s est déjà attribué."
+msgstr "Role %(role)s is already assigned."
+
+msgid ""
+"Impossible de retirer le rôle SUPER_ADMIN au dernier super administrateur "
+"actif."
+msgstr ""
+"Cannot remove the SUPER_ADMIN role from the last active super administrator."
+
+msgid "Rôle %(role)s retiré."
+msgstr "Role %(role)s removed."
+
+msgid "Le rôle %(role)s n'était pas attribué."
+msgstr "Role %(role)s was not assigned."
+
+msgid "Vous ne pouvez pas modifier le statut de votre propre compte."
+msgstr "You cannot change the status of your own account."
+
+msgid "Statut de compte invalide."
+msgstr "Invalid account status."
+
+msgid "Le compte a déjà ce statut."
+msgstr "The account already has this status."
+
+msgid "Impossible de désactiver le dernier super administrateur actif."
+msgstr "Cannot disable the last active super administrator."
+
+msgid "Statut du compte passé à « %(statut)s »."
+msgstr "Account status set to « %(statut)s »."
+
+msgid "Cette demande a déjà été traitée."
+msgstr "This request has already been processed."
+
+msgid "Vous ne pouvez pas traiter votre propre demande d'accès."
+msgstr "You cannot process your own access request."
+
+msgid "Rôle invalide : choisissez le rôle à attribuer dans la liste."
+msgstr "Invalid role: choose the role to assign from the list."
+
+msgid "Groupe invalide : choisissez-le dans la liste proposée."
+msgstr "Invalid group: choose it from the suggested list."
+
+msgid ""
+"Un compte étudiant doit être inscrit à un groupe : choisissez la formation /"
+" le groupe avant d'approuver."
+msgstr ""
+"A student account must be enrolled in a group: choose the program / group "
+"before approving."
+
+msgid ""
+"Ce compte a déjà une inscription : la nouvelle inscription se crée au "
+"secrétariat."
+msgstr ""
+"This account already has an enrollment: new enrollments are created by the "
+"secretary."
+
+msgid "Inscription créée à la validation du compte."
+msgstr "Enrollment created when the account was approved."
+
+msgid "Compte de %(nom)s approuvé. Inscrit à %(cours)s."
+msgstr "Account for %(nom)s approved. Enrolled in %(cours)s."
+
+msgid "Compte de %(nom)s approuvé."
+msgstr "Account for %(nom)s approved."
+
+msgid ""
+"Votre compte a été approuvé avec le rôle %(role)s. Votre code : %(code)s"
+msgstr "Your account was approved with the %(role)s role. Your code: %(code)s"
+
+msgid "Demande refusée"
+msgstr "Request declined"
+
+msgid "Votre demande d'accès a été refusée."
+msgstr "Your access request was declined."
+
+msgid "Demande refusée."
+msgstr "Request declined."
+
+msgid "Décision invalide."
+msgstr "Invalid decision."
+
+msgid "La décision de bourse est réservée au super administrateur."
+msgstr "Scholarship decisions are reserved for the super administrator."
+
+msgid "Statut mis à jour : %(statut)s"
+msgstr "Status updated: %(statut)s"
+
+msgid "Vous n'êtes pas affecté à cette session."
+msgstr "You are not assigned to this session."
+
+msgid "Présences enregistrées."
+msgstr "Attendance recorded."
+
+msgid "Événement enregistré."
+msgstr "Event recorded."
+
+msgid "Heure effective"
+msgstr "Effective time"
+
+msgid "Payeur / Bénéficiaire"
+msgstr "Payer / Payee"
+
+msgid "Compte destination"
+msgstr "Destination account"
+
+msgid "Enregistrée le"
+msgstr "Recorded on"
+
+msgid "Enregistrée à"
+msgstr "Recorded at"
+
+msgid "Bénéficiaire/Payeur"
+msgstr "Payee/Payer"
+
+msgid "Opération %(reference)s enregistrée."
+msgstr "Transaction %(reference)s recorded."
+
+msgid "Un motif est obligatoire pour annuler."
+msgstr "A reason is required to cancel."
+
+msgid "Cette opération est déjà annulée."
+msgstr "This transaction is already cancelled."
+
+msgid "Annulation : %(motif)s"
+msgstr "Cancellation: %(motif)s"
+
+msgid "Opération annulée et historisée."
+msgstr "Transaction cancelled and added to the history."
+
+msgid "Caisse / compte créé."
+msgstr "Cash account created."
+
+msgid "Cette caisse est déjà clôturée pour cette date."
+msgstr "This cash account is already closed for this date."
+
+msgid "Clôture enregistrée. Écart : %(ecart)s FCFA."
+msgstr "Closing recorded. Difference: %(ecart)s FCFA."
+
+msgid ""
+"Inscription créée. Elle doit être validée par la direction avant tout "
+"encaissement."
+msgstr ""
+"Enrollment created. It must be approved by management before any payment is "
+"collected."
+
+msgid ""
+"Un paiement identique vient d'être enregistré. Vérifiez le journal avant de "
+"réessayer."
+msgstr ""
+"An identical payment has just been recorded. Check the journal before trying"
+" again."
+
+msgid "Paiement étudiant %(reference)s"
+msgstr "Student payment %(reference)s"
+
+msgid "Paiement %(reference)s enregistré. Reste à payer : %(reste)s FCFA."
+msgstr "Payment %(reference)s recorded. Balance due: %(reste)s FCFA."
+
+msgid "Accès au reçu non autorisé."
+msgstr "Access to this receipt is not allowed."
+
+msgid "Module créé."
+msgstr "Module created."
+
+msgid "Module mis à jour."
+msgstr "Module updated."
+
+msgid "Leçon créée."
+msgstr "Lesson created."
+
+msgid "Leçon mise à jour."
+msgstr "Lesson updated."
+
+msgid "Groupe créé."
+msgstr "Class group created."
+
+msgid "Groupe mis à jour."
+msgstr "Class group updated."
+
+msgid "Séance enregistrée."
+msgstr "Session recorded."
+
+msgid "Compte rendu de séance mis à jour."
+msgstr "Session report updated."
+
+msgid "%(nb)s présence(s) enregistrée(s)."
+msgstr "%(nb)s attendance(s) recorded."
+
+msgid "Ressource enregistrée."
+msgstr "Resource saved."
+
+msgid "Ressource mise à jour."
+msgstr "Resource updated."
+
+msgid "Merci, votre retour a été enregistré."
+msgstr "Thank you, your feedback has been recorded."
+
+msgid "%(titre)s — du %(de)s au %(au)s"
+msgstr "%(titre)s — from %(de)s to %(au)s"
+
+msgid "Séance enregistrée dans le cahier de texte."
+msgstr "Session recorded in the class register."
+
+msgid "Ligne du cahier de texte mise à jour."
+msgstr "Class register line updated."
+
+msgid "Séance hors de votre parcours."
+msgstr "Session outside your program."
+
+msgid "Cette séance n'est pas encore réalisée."
+msgstr "This session has not taken place yet."
+
+msgid "Votre fiche de cours a été enregistrée."
+msgstr "Your course sheet has been saved."
+
+msgid "Votre profil a été mis à jour."
+msgstr "Your profile has been updated."
+
+msgid "Photo de profil enregistrée."
+msgstr "Profile photo saved."
+
+msgid "Photo supprimée, avatar par défaut rétabli."
+msgstr "Photo deleted, default avatar restored."
+
+msgid "Confirmation de votre nouvelle adresse — Univers Academy"
+msgstr "Confirmation of your new address — Univers Academy"
+
+msgid "Bonjour,"
+msgstr "Hello,"
+
+msgid ""
+"Vous avez demandé à utiliser cette adresse pour votre compte Univers "
+"Academy."
+msgstr "You asked to use this address for your Univers Academy account."
+
+msgid "Confirmez le changement en ouvrant ce lien :"
+msgstr "Confirm the change by opening this link:"
+
+msgid ""
+"Ce lien expire dans 24 heures. Si vous n'êtes pas à l'origine de cette "
+"demande, ignorez ce message."
+msgstr ""
+"This link expires within 24 hours. If you did not request this change, "
+"ignore this message."
+
+msgid "Un lien de confirmation a été envoyé à la nouvelle adresse."
+msgstr "A confirmation link has been sent to the new address."
+
+msgid ""
+"L'email de vérification n'a pas pu être envoyé. Le changement n'a pas été "
+"appliqué."
+msgstr "The verification email could not be sent. The change was not applied."
+
+msgid "Ce lien de confirmation a expiré."
+msgstr "This confirmation link has expired."
+
+msgid "Lien de confirmation invalide."
+msgstr "Invalid confirmation link."
+
+msgid "Ce lien ne correspond pas à votre compte."
+msgstr "This link does not match your account."
+
+msgid "Cette adresse est déjà utilisée par un autre compte."
+msgstr "This address is already used by another account."
+
+msgid "Votre adresse e-mail a été mise à jour."
+msgstr "Your email address has been updated."
+
+msgid "Visite %(reference)s enregistrée."
+msgstr "Visit %(reference)s recorded."
+
+msgid "Visite mise à jour."
+msgstr "Visit updated."
+
+msgid "Le départ de cette visite est déjà enregistré."
+msgstr "The departure of this visit is already recorded."
+
+msgid "Départ enregistré."
+msgstr "Departure recorded."
+
+msgid "Cette visite est déjà liée au prospect %(reference)s."
+msgstr "This visit is already linked to prospect %(reference)s."
+
+msgid "Prospect %(reference)s créé depuis la visite."
+msgstr "Prospect %(reference)s created from the visit."
+
+msgid "Prospect %(reference)s enregistré."
+msgstr "Prospect %(reference)s recorded."
+
+msgid "Suivi enregistré."
+msgstr "Follow-up recorded."
+
+msgid "Prospect mis à jour."
+msgstr "Prospect updated."
+
+msgid "Motif de visite ajouté."
+msgstr "Visit reason added."
+
+msgid "Motif « %(label)s » %(etat)s."
+msgstr "Visit reason « %(label)s » %(etat)s."
+
+msgid "activé"
+msgstr "enabled"
+
+msgid "désactivé"
+msgstr "disabled"
+
+msgid "Étudiant %(nom)s créé (%(code)s) et inscrit à %(formation)s."
+msgstr "Student %(nom)s created (%(code)s) and enrolled in %(formation)s."
+
+msgid "Fiche étudiant mise à jour."
+msgstr "Student record updated."
+
+msgid "Inscription enregistrée."
+msgstr "Enrollment recorded."
+
+msgid "Inscription mise à jour."
+msgstr "Enrollment updated."
+
+msgid ""
+"Seules les inscriptions en attente de validation peuvent être validées."
+msgstr "Only enrollments pending validation can be validated."
+
+msgid "Inscription validée : le dossier peut désormais être encaissé."
+msgstr "Enrollment validated: payment can now be collected on this record."
+
+msgid "Le document dépasse 10 Mo."
+msgstr "The document exceeds 10 MB."
+
+msgid "Document ajouté au dossier."
+msgstr "Document added to the record."
+
+msgid "Le document n'a pas pu être enregistré."
+msgstr "The document could not be saved."
+
+msgid "Assiduité par mois"
+msgstr "Attendance by month"
+
+msgid "Autres (%(n)s formations)"
+msgstr "Other (%(n)s programs)"
+
+msgid "Encaissements par mois"
+msgstr "Income by month"
+
+msgid "Entrées"
+msgstr "Entries"
+
+msgid "Inscriptions actives et terminées."
+msgstr "Active and completed enrollments."
+
+msgid "Reste dû"
+msgstr "Amount still due"
+
+msgid "Restes à recouvrer"
+msgstr "Outstanding balances"
+
+msgid "Sans groupe"
+msgstr "No class group"
+
+msgid "Sorties"
+msgstr "Exits"
+
+msgid "Tarif dû moins sommes encaissées, dossier par dossier."
+msgstr "Fee due minus collected amounts, per enrollment."
+
+msgid "Taux de présence (%)"
+msgstr "Attendance rate (%)"
+
+msgid "Écritures validées, sur %(n)s mois."
+msgstr "Validated entries and exits over %(n)s months."
+
+msgid "Élèves"
+msgstr "Students"
+
+msgid "Élèves par formation"
+msgstr "Students by program"
+
+msgid "Taux = présents et retards face aux feuilles d’appel remplies."
+msgstr "Rate = present plus late over filled attendance sheets."

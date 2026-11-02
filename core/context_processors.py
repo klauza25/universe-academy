@@ -1,13 +1,14 @@
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 def _greeting():
     hour = timezone.localtime().hour
     if hour < 12:
-        return "Bonjour"
+        return _("Bonjour")
     if hour < 18:
-        return "Bon après-midi"
-    return "Bonsoir"
+        return _("Bon après-midi")
+    return _("Bonsoir")
 
 
 def _initials(user):
@@ -45,6 +46,11 @@ def user_profile_context(request):
         ctx['is_elevated'] = request.user.is_elevated
         ctx['can_manage_users'] = request.user.has_any_role(
             'SUPER_ADMIN', 'ADMIN'
+        )
+        from .decorators import ENROLLMENT_VALIDATION_ROLES
+
+        ctx['can_validate_enrollment'] = request.user.has_any_role(
+            *ENROLLMENT_VALIDATION_ROLES
         )
         try:
             ctx['unread_notifications'] = (

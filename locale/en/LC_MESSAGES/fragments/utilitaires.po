@@ -1,0 +1,38 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/decorators.py
+msgid "Vous n'avez pas les permissions nécessaires."
+msgstr "You do not have the required permissions."
+
+# core/decorators.py
+msgid "Consultation seule : cette action relève du rôle métier."
+msgstr "Read-only: this action belongs to the operational role."
+
+# core/decorators.py
+msgid "La validation d'une inscription est réservée à la direction, à la caisse, à la supervision pédagogique et au super administrateur."
+msgstr "Validating an enrollment is reserved for Management, the cash desk, the academic manager and the super administrator."
+
+# core/decorators.py
+msgid "Permission refusée."
+msgstr "Permission denied."
+
+# core/decorators.py
+msgid "Cette action est réservée au super administrateur."
+msgstr "This action is restricted to the super administrator."
+
+# core/context_processors.py
+msgid "Bonjour"
+msgstr "Good morning"
+
+# core/context_processors.py
+msgid "Bon après-midi"
+msgstr "Good afternoon"
+
+# core/context_processors.py
+msgid "Bonsoir"
+msgstr "Good evening"

@@ -3,20 +3,24 @@ import csv
 from datetime import timedelta
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db import transaction as db_transaction
+from django.db import IntegrityError, transaction as db_transaction
 from django.db.models import Q, Sum
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .decorators import business_write_required, role_required
 from .forms import (
-    CashAccountForm, CashClosureForm, CashTransactionForm, StudentPaymentForm,
+    CashAccountForm, CashClosureForm, CashTransactionForm, CounterEnrollmentForm,
+    StudentPaymentForm,
 )
 from .models import (
-    AuditLog, CashAccount, CashClosure, CashTransaction, Enrollment,
-    Payment, TransactionCategory, User,
+    AccountStatus, AuditLog, CashAccount, CashClosure, CashTransaction,
+    Enrollment, Payment, RoleKey, TransactionCategory, User,
 )
 from .utils import log_audit
 
@@ -90,14 +94,14 @@ def journal(request):
     if request.GET.get('export') == 'csv':
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = (
-            'attachment; filename="journal-comptable.csv"'
+            'attachment; filename="journal-comptable.csv"'  # i18n-exempt: en-tête HTTP, nom de fichier
         )
         response.write('\ufeff')
         writer = csv.writer(response, delimiter=';')
         writer.writerow([
-            'Référence', 'Date effective', 'Saisie', 'Type', 'Catégorie',
-            'Libellé', 'Bénéficiaire/Payeur', 'Entrée', 'Sortie',
-            'Moyen', 'Caisse', 'Auteur', 'Statut',
+            _('Référence'), _('Date effective'), _('Saisie'), _('Type'), _('Catégorie'),
+            _('Libellé'), _('Bénéficiaire/Payeur'), _('Entrée'), _('Sortie'),
+            _('Moyen'), _('Caisse'), _('Auteur'), _('Statut'),
         ])
         for tx in qs.order_by('-occurred_at')[:5000]:
             writer.writerow([
@@ -162,7 +166,7 @@ def transaction_create(request):
                 },
             )
             messages.success(
-                request, f"Opération {tx.reference} enregistrée."
+                request, _("Opération %(reference)s enregistrée.") % {'reference': tx.reference}
             )
             return redirect('core:dashboard:transaction-detail', tx_id=tx.id)
     return render(request, 'dashboard/comptabilite/transaction_form.html', {
@@ -182,20 +186,20 @@ def transaction_detail(request, tx_id):
     if request.method == 'POST':
         if request.user.is_elevated:
             return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
+                _("Consultation seule : cette action relève du rôle métier.")
             )
         action = request.POST.get('action')
         if action == 'cancel':
             reason = (request.POST.get('reason') or '').strip()
             if not reason:
-                messages.error(request, "Un motif est obligatoire pour annuler.")
+                messages.error(request, _("Un motif est obligatoire pour annuler."))
             elif tx.status == CashTransaction.Status.CANCELLED:
-                messages.info(request, "Cette opération est déjà annulée.")
+                messages.info(request, _("Cette opération est déjà annulée."))
             else:
                 before = {'status': tx.status}
                 tx.status = CashTransaction.Status.CANCELLED
                 tx.note = (tx.note + '\n' if tx.note else '') + (
-                    f"Annulation : {reason}"
+                    _("Annulation : %(motif)s") % {'motif': reason}
                 )
                 tx.save(update_fields=['status', 'note', 'updated_at'])
                 log_audit(
@@ -203,7 +207,7 @@ def transaction_detail(request, tx_id):
                     str(tx.id), before=before,
                     after={'status': tx.status, 'reason': reason},
                 )
-                messages.success(request, "Opération annulée et historisée.")
+                messages.success(request, _("Opération annulée et historisée."))
             return redirect('core:dashboard:transaction-detail', tx_id=tx.id)
 
     return render(request, 'dashboard/comptabilite/transaction_detail.html', {
@@ -222,7 +226,7 @@ def account_list(request):
     if request.method == 'POST':
         if request.user.is_elevated:
             return HttpResponseForbidden(
-                "Consultation seule : cette action relève du rôle métier."
+                _("Consultation seule : cette action relève du rôle métier.")
             )
         form = CashAccountForm(request.POST)
         if form.is_valid():
@@ -231,7 +235,7 @@ def account_list(request):
                       str(account.id),
                       after={'name': account.name,
                              'kind': account.kind})
-            messages.success(request, "Caisse / compte créé.")
+            messages.success(request, _("Caisse / compte créé."))
             return redirect('core:dashboard:accounts')
     return render(request, 'dashboard/comptabilite/accounts.html', {
         'rows': accounts_with_balance(),
@@ -266,7 +270,7 @@ def closure_create(request):
             account = form.cleaned_data['account']
             day = form.cleaned_data['date']
             if CashClosure.objects.filter(account=account, date=day).exists():
-                form.add_error(None, "Cette caisse est déjà clôturée pour cette date.")
+                form.add_error(None, _("Cette caisse est déjà clôturée pour cette date."))
             else:
                 # Solde d'ouverture = solde avant la date clôturée.
                 previous = CashClosure.objects.filter(
@@ -298,8 +302,7 @@ def closure_create(request):
                            'difference': closure.difference},
                 )
                 messages.success(
-                    request,
-                    f"Clôture enregistrée. Écart : {closure.difference} FCFA.",
+                    request, _("Clôture enregistrée. Écart : %(ecart)s FCFA.") % {'ecart': closure.difference},
                 )
                 return redirect('core:dashboard:closures')
     return render(request, 'dashboard/comptabilite/closure_form.html', {
@@ -311,15 +314,75 @@ def closure_create(request):
 # Paiements étudiants
 # ---------------------------------------------------------------------------
 
+COUNTER_ENROLL_ROLES = ('COMPTABLE', 'DIRECTION')
+
+
+def _student_from_id(value):
+    """Étudiant désigné par l'URL, ``None`` si l'identifiant est invalide."""
+    if not value:
+        return None
+    try:
+        return User.objects.filter(id=value).first()
+    except (ValueError, ValidationError):
+        return None
+
+
 @business_write_required(*FINANCE_ROLES)
 def student_payment_create(request):
-    initial = {'paid_at': timezone.localtime().strftime('%Y-%m-%dT%H:%M')}
-    enrollment_id = request.GET.get('enrollment')
-    if enrollment_id:
-        initial['enrollment'] = enrollment_id
-    form = StudentPaymentForm(initial=initial)
+    student_param = (
+        request.POST.get('student') if request.method == 'POST'
+        else request.GET.get('student')
+    ) or ''
+    enrollment_param = request.GET.get('enrollment') or ''
 
-    if request.method == 'POST':
+    initial = {'paid_at': timezone.localtime().strftime('%Y-%m-%dT%H:%M')}
+    if enrollment_param:
+        linked = (
+            Enrollment.objects.select_related('student')
+            .filter(id=enrollment_param).first()
+        )
+        if linked:
+            initial['enrollment'] = linked.id
+            initial['student'] = linked.student_id
+            student_param = student_param or str(linked.student_id)
+    if student_param:
+        initial['student'] = student_param
+
+    form = StudentPaymentForm(initial=initial)
+    counter_form = CounterEnrollmentForm(
+        prefix='inscription',
+        initial={'student': student_param} if student_param else None,
+    )
+
+    if request.method == 'POST' and request.POST.get('form_kind') == 'enroll':
+        counter_form = CounterEnrollmentForm(
+            request.POST, prefix='inscription')
+        if counter_form.is_valid():
+            try:
+                enrollment = counter_form.save(request.user)
+            except IntegrityError:
+                counter_form.add_error(
+                    'session',
+                    _("Cet étudiant est déjà inscrit à cette formation."),
+                )
+            else:
+                log_audit(
+                    request, 'ENROLLMENT_CREATE', 'Enrollment',
+                    str(enrollment.id),
+                    after={'student': str(enrollment.student_id),
+                           'session': str(enrollment.session_id),
+                           'net': enrollment.net_amount,
+                           'status': enrollment.status,
+                           'source': 'guichet'},
+                )
+                messages.success(
+                    request, _("Inscription créée. Elle doit être validée par la direction avant tout encaissement."),
+                )
+                return redirect(
+                    reverse('core:dashboard:payment-create')
+                    + f"?student={enrollment.student_id}"
+                )
+    elif request.method == 'POST':
         form = StudentPaymentForm(request.POST)
         if form.is_valid():
             enrollment = form.cleaned_data['enrollment']
@@ -338,8 +401,7 @@ def student_payment_create(request):
             if duplicate:
                 form.add_error(
                     None,
-                    "Un paiement identique vient d'être enregistré. "
-                    "Vérifiez le journal avant de réessayer.",
+                    _("Un paiement identique vient d'être enregistré. Vérifiez le journal avant de réessayer."),
                 )
             else:
                 with db_transaction.atomic():
@@ -352,14 +414,14 @@ def student_payment_create(request):
                         note=form.cleaned_data['note'],
                         status=Payment.Status.COMPLETED,
                     )
-                    category, _ = TransactionCategory.objects.get_or_create(
-                        name='Paiements des étudiants',
+                    category, _unused = TransactionCategory.objects.get_or_create(
+                        name='Paiements des étudiants',  # i18n-exempt: nom stocké en base, clé de get_or_create
                         direction=TransactionCategory.Direction.IN,
                     )
                     cash = CashTransaction.objects.create(
                         tx_type=CashTransaction.Type.IN,
                         category=category,
-                        label=f"Paiement étudiant {payment.reference}",
+                        label=_("Paiement étudiant %(reference)s") % {'reference': payment.reference},
                         description=(
                             f"{enrollment.student.display_label} — "
                             f"{enrollment.session.course.title}"
@@ -378,22 +440,43 @@ def student_payment_create(request):
                     payment.save(update_fields=['transaction'])
 
                 log_audit(
-                    request, 'PAYMENT_CREATE', 'Payment', str(payment.id),
+                    request, 'PAYMENT_CREATE', 'Payment', str(payment.id),  # i18n-exempt: 'Payment' = nom de classe technique (audit)
                     after={'amount': amount, 'reference': payment.reference,
                            'enrollment': str(enrollment.id),
                            'transaction': cash.reference,
                            'balance_due': enrollment.balance_due},
                 )
                 messages.success(
-                    request,
-                    f"Paiement {payment.reference} enregistré. "
-                    f"Reste à payer : {enrollment.balance_due} FCFA.",
+                    request, _("Paiement %(reference)s enregistré. Reste à payer : %(reste)s FCFA.") % {'reference': payment.reference, 'reste': enrollment.balance_due},
                 )
                 return redirect('core:dashboard:payment-receipt',
                                 payment_id=payment.id)
 
+    enrolled_ids = Enrollment.objects.exclude(
+        status=Enrollment.Status.CANCELLED,
+    ).values_list('student_id', flat=True)
+    selected_student = _student_from_id(student_param)
+    pending_enrollments = Enrollment.objects.none()
+    if selected_student:
+        pending_enrollments = (
+            selected_student.enrollments
+            .filter(status=Enrollment.Status.PENDING)
+            .select_related('session__course')
+            .order_by('-enrolled_at')
+        )
     return render(request, 'dashboard/comptabilite/payment_form.html', {
         'form': form,
+        'counter_form': counter_form,
+        'selected_student': selected_student,
+        'pending_enrollments': pending_enrollments,
+        'students_without_enrollment': User.objects.filter(
+            roles__key=RoleKey.ETUDIANT,
+            account_status=AccountStatus.ACTIVE,
+        ).exclude(id__in=enrolled_ids).order_by('last_name', 'first_name'),
+        'can_enroll': (
+            not request.user.is_elevated
+            and request.user.has_any_role(*COUNTER_ENROLL_ROLES)
+        ),
     })
 
 
@@ -412,8 +495,8 @@ def payment_receipt(request, payment_id):
                           'SECRETAIRE') or
         payment.enrollment.student_id == user.id
     ):
-        return HttpResponseForbidden("Accès au reçu non autorisé.")
-    log_audit(request, 'PAYMENT_RECEIPT', 'Payment', str(payment.id))
+        return HttpResponseForbidden(_("Accès au reçu non autorisé."))
+    log_audit(request, 'PAYMENT_RECEIPT', 'Payment', str(payment.id))  # i18n-exempt: 'Payment' = nom de classe technique (audit)
     return render(request, 'dashboard/comptabilite/receipt.html', {
         'payment': payment,
         'enrollment': payment.enrollment,

@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Accès refusé — Univers Academy{% endblock %}
+{% block title %}{% translate "Accès refusé" %} — Univers Academy{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
@@ -9,10 +9,10 @@
     <div class="flex items-center gap-4 mb-4">
         <span class="ua-stat-icon ua-tone-rose">{% icon "shield" %}</span>
         <div>
-            <h1 class="ua-page-title">Accès refusé</h1>
-            <p class="ua-page-sub">Vous n'avez pas les permissions nécessaires pour cette action.</p>
+            <h1 class="ua-page-title">{% translate "Accès refusé" %}</h1>
+            <p class="ua-page-sub">{% translate "Vous n'avez pas les permissions nécessaires pour cette action." %}</p>
         </div>
     </div>
-    <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-btn ua-btn-primary">Retour à mon espace</a>
+    <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-btn ua-btn-primary">{% translate "Retour à mon espace" %}</a>
 </section>
 {% endblock %}

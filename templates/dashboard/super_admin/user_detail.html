@@ -1,27 +1,28 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Détail utilisateur — Univers Academy{% endblock %}
+{% block title %}{% translate "Détail utilisateur — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
+{% translate "Code non attribué" as var_code_non_attribue %}
 <div class="ua-page-head">
     <div>
         <h1 class="ua-page-title">{{ profile_user.get_full_name|default:profile_user.email }}</h1>
         <p class="ua-page-sub">
-            {{ profile_user.internal_code|default:"Code non attribué" }} · {{ profile_user.email }}
+            {{ profile_user.internal_code|default:var_code_non_attribue }} · {{ profile_user.email }}
         </p>
     </div>
     <div class="flex flex-wrap gap-2">
         {% if 'SUPER_ADMIN' in user_roles %}
         <a href="{% url 'core:dashboard:user-edit' profile_user.id %}" class="ua-btn ua-btn-primary">
-            {% icon "settings" %} Modifier
+            {% icon "settings" %} {% translate "Modifier" %}
         </a>
         {% endif %}
-        <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">{% translate "Retour" %}</a>
     </div>
 </div>
 
@@ -37,7 +38,7 @@
                     {% for r in profile_user.roles.all %}
                     <span class="ua-badge ua-badge-indigo">{{ r.label }}</span>
                     {% empty %}
-                    <span class="ua-muted text-xs">Aucun rôle</span>
+                    <span class="ua-muted text-xs">{% translate "Aucun rôle" %}</span>
                     {% endfor %}
                 </div>
             </div>
@@ -51,23 +52,23 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <p class="ua-stat-label">Email</p>
+                <p class="ua-stat-label">{% translate "Email" %}</p>
                 <p class="text-sm font-semibold mt-1 break-all" style="color:#1e2044;">{{ profile_user.email }}</p>
             </div>
             <div>
-                <p class="ua-stat-label">Téléphone</p>
+                <p class="ua-stat-label">{% translate "Téléphone" %}</p>
                 <p class="text-sm font-semibold mt-1" style="color:#1e2044;">{{ profile_user.phone|default:"—" }}</p>
             </div>
             <div>
-                <p class="ua-stat-label">Code interne</p>
+                <p class="ua-stat-label">{% translate "Code interne" %}</p>
                 <p class="text-sm font-semibold font-mono mt-1" style="color:#1e2044;">{{ profile_user.internal_code|default:"—" }}</p>
             </div>
             <div>
-                <p class="ua-stat-label">Compte Clerk</p>
+                <p class="ua-stat-label">{% translate "Compte Clerk" %}</p>
                 {% if profile_user.clerk_user_id %}
                 <p class="text-sm font-semibold font-mono mt-1 break-all" style="color:#1e2044;">{{ profile_user.clerk_user_id }}</p>
                 {% else %}
-                <p class="text-xs ua-muted mt-1">Non lié — liaison automatique à la première connexion</p>
+                <p class="text-xs ua-muted mt-1">{% translate "Non lié — liaison automatique à la première connexion" %}</p>
                 {% endif %}
             </div>
         </div>
@@ -75,15 +76,15 @@
 
     <section class="ua-card overflow-hidden">
         <div class="px-6 pt-6 pb-4">
-            <h2 class="ua-section-title">Historique d'audit</h2>
-            <p class="text-xs ua-muted mt-1">20 derniers événements</p>
+            <h2 class="ua-section-title">{% translate "Historique d'audit" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "20 derniers événements" %}</p>
         </div>
         <div class="ua-table-wrap">
             <table class="ua-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Action</th>
+                        <th>{% translate "Date" %}</th>
+                        <th>{% translate "Action" %}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,7 +94,7 @@
                         <td><span class="ua-badge ua-badge-indigo">{{ entry.action }}</span></td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="2" class="ua-empty">Aucun historique</td></tr>
+                    <tr><td colspan="2" class="ua-empty">{% translate "Aucun historique" %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -105,25 +106,26 @@
 <section id="acces" class="ua-card ua-card-pad mt-6">
     <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div>
-            <h2 class="ua-section-title">Rôles et accès</h2>
+            <h2 class="ua-section-title">{% translate "Rôles et accès" %}</h2>
             <p class="text-xs ua-muted mt-1">
-                Attribuez les rôles métier et le statut d'accès de ce compte.
-                Chaque changement est tracé dans le journal d'audit.
+                {% translate "Attribuez les rôles métier et le statut d'accès de ce compte." %}
+                {% translate "Chaque changement est tracé dans le journal d'audit." %}
             </p>
         </div>
-        <span class="ua-badge ua-badge-indigo">Super administrateur uniquement</span>
+        <span class="ua-badge ua-badge-indigo">{% translate "Super administrateur uniquement" %}</span>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-            <p class="ua-stat-label mb-2">Rôles attribués</p>
+            <p class="ua-stat-label mb-2">{% translate "Rôles attribués" %}</p>
             <ul class="flex flex-col gap-2">
                 {% for r in profile_user.roles.all %}
                 <li class="flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl border border-[#e6e7f5] bg-[#fbfbff]">
+                    {% blocktrans with label=r.label asvar var_retirer_question %}Retirer le rôle {{ label }} à ce compte ?{% endblocktrans %}
                     <span class="text-sm font-semibold" style="color:#1e2044;">
                         {{ r.label }}
                         {% if r.is_privileged %}
-                        <span class="ua-badge ua-badge-amber ml-1">privilégié</span>
+                        <span class="ua-badge ua-badge-amber ml-1">{% translate "privilégié" %}</span>
                         {% endif %}
                     </span>
                     <form method="post" action="{% url 'core:dashboard:user-role-assign' profile_user.id %}">
@@ -131,13 +133,13 @@
                         <input type="hidden" name="action" value="remove">
                         <input type="hidden" name="role_key" value="{{ r.key }}">
                         <button type="submit" class="ua-btn ua-btn-ghost ua-btn-sm"
-                                onclick="return confirm('Retirer le rôle {{ r.label|escapejs }} à ce compte ?');">
-                            {% icon "close" %} Retirer
+                                onclick="return confirm('{{ var_retirer_question|escapejs }}');">
+                            {% icon "close" %} {% translate "Retirer" %}
                         </button>
                     </form>
                 </li>
                 {% empty %}
-                <li class="text-sm ua-muted">Aucun rôle attribué.</li>
+                <li class="text-sm ua-muted">{% translate "Aucun rôle attribué." %}</li>
                 {% endfor %}
             </ul>
 
@@ -147,40 +149,40 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add">
                 <div class="flex-1 min-w-[180px]">
-                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Ajouter un rôle</label>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Ajouter un rôle" %}</label>
                     <select name="role_key"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
                         {% for role in available_roles %}
-                        <option value="{{ role.key }}">{{ role.label }}{% if role.is_privileged %} (privilégié){% endif %}</option>
+                        <option value="{{ role.key }}">{{ role.label }}{% if role.is_privileged %} ({% translate "privilégié" %}){% endif %}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <button type="submit" class="ua-btn ua-btn-primary">
-                    {% icon "user-plus" %} Attribuer
+                    {% icon "user-plus" %} {% translate "Attribuer" %}
                 </button>
             </form>
             {% else %}
-            <p class="text-xs ua-muted mt-4">Tous les rôles existants sont déjà attribués à ce compte.</p>
+            <p class="text-xs ua-muted mt-4">{% translate "Tous les rôles existants sont déjà attribués à ce compte." %}</p>
             {% endif %}
         </div>
 
         <div>
-            <p class="ua-stat-label mb-2">Statut d'accès</p>
+            <p class="ua-stat-label mb-2">{% translate "Statut d'accès" %}</p>
             <p class="text-xs ua-muted mb-3">
-                Statut actuel :
+                {% translate "Statut actuel :" %}
                 <span class="ua-badge
                     {% if profile_user.account_status == 'ACTIVE' %}ua-badge-green
                     {% elif profile_user.account_status == 'PENDING_APPROVAL' %}ua-badge-amber
                     {% else %}ua-badge-rose{% endif %}">{{ profile_user.get_account_status_display }}</span>
                 {% if profile_user.disabled_at %}
-                <span class="ua-muted">depuis le {{ profile_user.disabled_at|date:"d/m/Y H:i" }}</span>
+                <span class="ua-muted">{% blocktrans with d=profile_user.disabled_at|date:"d/m/Y H:i" %}depuis le {{ d }}{% endblocktrans %}</span>
                 {% endif %}
             </p>
             <form method="post" action="{% url 'core:dashboard:user-status-change' profile_user.id %}"
                   class="flex flex-wrap gap-3 items-end">
                 {% csrf_token %}
                 <div class="flex-1 min-w-[180px]">
-                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">Nouveau statut</label>
+                    <label class="block text-xs font-semibold mb-1.5" style="color:#6d719b;">{% translate "Nouveau statut" %}</label>
                     <select name="account_status"
                             class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
                         {% for value, label in status_choices %}
@@ -189,13 +191,11 @@
                     </select>
                 </div>
                 <button type="submit" class="ua-btn ua-btn-primary">
-                    {% icon "check-circle" %} Appliquer
+                    {% icon "check-circle" %} {% translate "Appliquer" %}
                 </button>
             </form>
             <p class="text-xs ua-muted mt-3">
-                Un compte suspendu, désactivé ou refusé perd immédiatement l'accès
-                au back-office ; les données restent consultables par le super
-                administrateur.
+                {% translate "Un compte suspendu, désactivé ou refusé perd immédiatement l'accès au back-office ; les données restent consultables par le super administrateur." %}
             </p>
         </div>
     </div>
@@ -203,8 +203,7 @@
 {% elif is_self and 'SUPER_ADMIN' in user_roles %}
 <section class="ua-card ua-card-pad mt-6">
     <p class="text-sm ua-muted">
-        Vous consultez votre propre fiche : vos rôles et votre statut ne peuvent
-        pas être modifiés ici. Utilisez un autre compte super administrateur.
+        {% translate "Vous consultez votre propre fiche : vos rôles et votre statut ne peuvent pas être modifiés ici. Utilisez un autre compte super administrateur." %}
     </p>
 </section>
 {% endif %}

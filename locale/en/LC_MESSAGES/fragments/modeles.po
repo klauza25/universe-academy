@@ -1,0 +1,364 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/models.py
+msgid "En attente d'approbation"
+msgstr "Awaiting approval"
+
+msgid "Actif"
+msgstr "Active"
+
+msgid "Suspendu"
+msgstr "Suspended"
+
+msgid "Désactivé"
+msgstr "Disabled"
+
+msgid "Refusé"
+msgstr "Rejected"
+
+msgid "Super Administrateur"
+msgstr "Super administrator"
+
+msgid "Administrateur"
+msgstr "Administrator"
+
+msgid "Direction"
+msgstr "Management"
+
+msgid "Secrétaire"
+msgstr "Secretary"
+
+msgid "Comptable"
+msgstr "Accountant"
+
+msgid "Responsable pédagogique"
+msgstr "Academic manager"
+
+msgid "Formateur"
+msgstr "Trainer"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Accueil / Contrôle"
+msgstr "Front desk / Control"
+
+msgid "L'email est obligatoire"
+msgstr "An email address is required"
+
+msgid "Code interne ex: UA-ETU-0001"
+msgstr "Internal code, e.g. UA-ETU-0001"
+
+msgid "Identifiant utilisateur Clerk (user_...) lié à ce compte"
+msgstr "Clerk user ID (user_...) linked to this account"
+
+msgid "Nom affiché dans l'interface (facultatif)"
+msgstr "Name shown in the interface (optional)"
+
+msgid "Photo de profil (JPG, PNG ou WebP, 2 Mo max)"
+msgstr "Profile photo (JPG, PNG or WebP, 2 MB max)"
+
+msgid "En attente"
+msgstr "Pending"
+
+msgid "Approuvée"
+msgstr "Approved"
+
+msgid "Refusée"
+msgstr "Rejected"
+
+msgid "Rôle effectif attribué lors de l'approbation"
+msgstr "Actual role granted when the request is approved"
+
+msgid "Montant en FCFA"
+msgstr "Amount in FCFA"
+
+msgid "Planifiée"
+msgstr "Planned"
+
+msgid "En cours"
+msgstr "In progress"
+
+msgid "Terminée"
+msgstr "Completed"
+
+msgid "Annulée"
+msgstr "Cancelled"
+
+msgid "Ex: Lun-Ven 13h-15h"
+msgstr "E.g. Mon-Fri 1pm-3pm"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Suspendue"
+msgstr "Suspended"
+
+msgid "Tarif catalogue appliqué (FCFA)"
+msgstr "Catalogue fee applied (FCFA)"
+
+msgid "Remise autorisée (FCFA)"
+msgstr "Approved discount (FCFA)"
+
+msgid "Montant net dû (FCFA)"
+msgstr "Net amount due (FCFA)"
+
+msgid "Ex: 2 versements — 50 % à l'inscription"
+msgstr "E.g. 2 installments — 50% at enrollment"
+
+msgid "Présent"
+msgstr "Present"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "En retard"
+msgstr "Late"
+
+msgid "Excusé"
+msgstr "Excused"
+
+msgid "Notions retenues"
+msgstr "Key points retained"
+
+msgid "Ce que j'ai appris pendant cette séance"
+msgstr "What I learned during this session"
+
+msgid "Difficultés"
+msgstr "Difficulties"
+
+msgid "Observations"
+msgstr "Observations"
+
+msgid "J'étais présent à cette séance"
+msgstr "I attended this session"
+
+msgid "Heure de début suivie"
+msgstr "Start time followed"
+
+msgid "Heure de fin suivie"
+msgstr "End time followed"
+
+msgid "Espèces"
+msgstr "Cash"
+
+msgid "Mobile Money"
+msgstr "Mobile Money"
+
+msgid "Virement bancaire"
+msgstr "Bank transfer"
+
+msgid "Autre"
+msgstr "Other"
+
+msgid "Effectué"
+msgstr "Completed"
+
+msgid "Annulé"
+msgstr "Cancelled"
+
+msgid "Remboursé"
+msgstr "Refunded"
+
+msgid "Soumise"
+msgstr "Submitted"
+
+msgid "En cours d'examen"
+msgstr "Under review"
+
+msgid "Documents demandés"
+msgstr "Documents requested"
+
+msgid "Rejetée"
+msgstr "Rejected"
+
+msgid "Retirée"
+msgstr "Withdrawn"
+
+msgid "Ex: Licence, Master"
+msgstr "E.g. Bachelor's degree, Master's degree"
+
+msgid "Ex: Informatique, Médecine"
+msgstr "E.g. Computer science, Medicine"
+
+msgid "Pièce d'identité"
+msgstr "ID document"
+
+msgid "Diplômes"
+msgstr "Degrees"
+
+msgid "Relevés de notes"
+msgstr "Transcripts"
+
+msgid "Photo d'identité"
+msgstr "ID photo"
+
+msgid "Lettre de motivation"
+msgstr "Cover letter"
+
+msgid "Entrée"
+msgstr "Entry"
+
+msgid "Sortie"
+msgstr "Exit"
+
+msgid "Compte approuvé"
+msgstr "Account approved"
+
+msgid "Compte refusé"
+msgstr "Account rejected"
+
+msgid "Statut bourse"
+msgstr "Scholarship status"
+
+msgid "Paiement reçu"
+msgstr "Payment received"
+
+msgid "Général"
+msgstr "General"
+
+msgid "Délivré"
+msgstr "Issued"
+
+msgid "Révoqué"
+msgstr "Revoked"
+
+msgid "Prospect"
+msgstr "Prospect"
+
+msgid "Parent / tuteur"
+msgstr "Parent / guardian"
+
+msgid "Partenaire"
+msgstr "Partner"
+
+msgid "Nouveau"
+msgstr "New"
+
+msgid "À contacter"
+msgstr "To contact"
+
+msgid "Contact établi"
+msgstr "Contact established"
+
+msgid "Renseignements fournis"
+msgstr "Information provided"
+
+msgid "Relance nécessaire"
+msgstr "Follow-up required"
+
+msgid "Intéressé"
+msgstr "Interested"
+
+msgid "Inscription en cours"
+msgstr "Enrollment in progress"
+
+msgid "Inscrit"
+msgstr "Enrolled"
+
+msgid "Non intéressé"
+msgstr "Not interested"
+
+msgid "Injoignable"
+msgstr "Unreachable"
+
+msgid "Archivé"
+msgstr "Archived"
+
+msgid "Visite au centre"
+msgstr "Visit to the center"
+
+msgid "Appel téléphonique"
+msgstr "Phone call"
+
+msgid "Recommandation"
+msgstr "Referral"
+
+msgid "Réseaux sociaux"
+msgstr "Social media"
+
+msgid "Site internet"
+msgstr "Website"
+
+msgid "Téléphone"
+msgstr "Phone"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+msgid "Visite"
+msgstr "Visit"
+
+msgid "Appel"
+msgstr "Call"
+
+msgid "Message"
+msgstr "Message"
+
+msgid "Réalisée"
+msgstr "Completed"
+
+msgid "Reportée"
+msgstr "Postponed"
+
+msgid "Nombre d'apprenants présents relevé sur le cahier de texte"
+msgstr "Number of learners present, as noted in the class register"
+
+msgid "Support de cours"
+msgstr "Course material"
+
+msgid "Exercice"
+msgstr "Exercise"
+
+msgid "Devoir"
+msgstr "Homework"
+
+msgid "Ressource"
+msgstr "Resource"
+
+msgid "Brouillon"
+msgstr "Draft"
+
+msgid "Publié"
+msgstr "Published"
+
+msgid "Groupe destinataire (facultatif)"
+msgstr "Recipient class group (optional)"
+
+msgid "Contenu HTML optionnel (assaini à l'affichage)"
+msgstr "Optional HTML content (sanitized when displayed)"
+
+msgid "Note de 1 à 5"
+msgstr "Rating from 1 to 5"
+
+msgid "Diplôme"
+msgstr "Degree"
+
+msgid "Relevé de notes"
+msgstr "Transcript"
+
+msgid "Certificat"
+msgstr "Certificate"
+
+msgid "Autre document"
+msgstr "Other document"
+
+msgid "Caisse (espèces)"
+msgstr "Cash till"
+
+msgid "Compte bancaire"
+msgstr "Bank account"
+
+msgid "Transfert"
+msgstr "Transfer"
+
+msgid "Validée"
+msgstr "Validated"

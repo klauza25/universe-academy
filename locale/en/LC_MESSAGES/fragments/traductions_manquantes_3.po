@@ -1,0 +1,303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Programmes, séances, présences"
+msgstr "Programs, sessions, attendance"
+
+msgid "Projet d'études"
+msgstr "Study project"
+
+msgid "Prospects en base"
+msgstr "Prospects in the database"
+
+msgid "Présence"
+msgstr "Attendance"
+
+msgid "Pédagogie"
+msgstr "Academics"
+
+msgid "Période personnalisée"
+msgstr "Custom period"
+
+msgid "Recettes"
+msgstr "Income"
+
+msgid "Refuser"
+msgstr "Reject"
+
+msgid "Refusées"
+msgstr "Rejected"
+
+msgid "Relevés validés"
+msgstr "Validated transcripts"
+
+msgid "Remplie"
+msgstr "Filled in"
+
+msgid "Remplies"
+msgstr "Filled in"
+
+msgid "Remplir"
+msgstr "Fill in"
+
+msgid "Remplir ma fiche"
+msgstr "Fill in my sheet"
+
+msgid ""
+"Remplissez le formulaire ci-dessous et joignez les documents demandés. Les "
+"champs marqués d'un astérisque sont obligatoires."
+msgstr ""
+"Fill in the form below and attach the requested documents. Fields marked "
+"with an asterisk are required."
+
+msgid "Ressources récentes"
+msgstr "Recent resources"
+
+msgid "Reste à recouvrer"
+msgstr "Outstanding balance"
+
+msgid "Retour à la liste"
+msgstr "Back to list"
+
+msgid "Retour à mes fiches"
+msgstr "Back to my sheets"
+
+msgid "Reçu %(r)s"
+msgstr "Receipt %(r)s"
+
+msgid "Référence de suivi"
+msgstr "Tracking reference"
+
+msgid "Référence, libellé, payeur, bénéficiaire, note…"
+msgstr "Reference, label, payer, payee, note…"
+
+msgid "Réinitialiser"
+msgstr "Reset"
+
+msgid "Rôle demandé :"
+msgstr "Requested role:"
+
+msgid "Rôle suggéré"
+msgstr "Suggested role"
+
+msgid "Rôle suggéré à la création du compte — à valider ou modifier"
+msgstr "Role suggested at account creation — to be validated or modified"
+
+msgid "Rôle à définir"
+msgstr "Role to be defined"
+
+msgid "Saisie par"
+msgstr "Entered by"
+
+msgid "Salaires & formateurs"
+msgstr "Salaries & trainers"
+
+msgid "Se connecter"
+msgstr "Sign in"
+
+msgid "Secrétariat"
+msgstr "Secretary"
+
+msgid "Sessions actives"
+msgstr "Active sessions"
+
+msgid "Solde net (filtre)"
+msgstr "Net balance (filter)"
+
+msgid "Solde total"
+msgstr "Total balance"
+
+msgid "Soldes des caisses"
+msgstr "Cash account balances"
+
+msgid "Sorties du mois"
+msgstr "Exits this month"
+
+msgid "Sorties par catégorie"
+msgstr "Exits by category"
+
+msgid "Sorties validées"
+msgstr "Validated exits"
+
+msgid "Soumettre ma candidature"
+msgstr "Submit my application"
+
+msgid "Soumise le"
+msgstr "Submitted on"
+
+msgid "Suivi de candidature"
+msgstr "Application tracking"
+
+msgid "Suivi de candidature — Univers Academy"
+msgstr "Application tracking — Univers Academy"
+
+msgid "Suivi des encaissements récents"
+msgstr "Recent collections tracking"
+
+msgid "Suivre ma candidature"
+msgstr "Track my application"
+
+msgid "Suivre une candidature"
+msgstr "Track an application"
+
+msgid "Super Admin — Univers Academy"
+msgstr "Super Admin — Univers Academy"
+
+msgid "Supervision"
+msgstr "Supervision"
+
+msgid "Supervision financière — Univers Academy"
+msgstr "Financial supervision — Univers Academy"
+
+msgid "Séances réalisées"
+msgstr "Delivered sessions"
+
+msgid "Séances suivies"
+msgstr "Sessions followed"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "Token de suivi"
+msgstr "Tracking token"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Total utilisateurs"
+msgstr "Total users"
+
+msgid "Tous comptes actifs"
+msgstr "All active accounts"
+
+msgid "Tous cursus"
+msgstr "All curricula"
+
+msgid "Tous les modules"
+msgstr "All modules"
+
+msgid "Tous les utilisateurs"
+msgstr "All users"
+
+msgid "Tous rôles confondus"
+msgstr "All roles combined"
+
+msgid "Toutes les demandes"
+msgstr "All requests"
+
+msgid ""
+"Toutes les opérations enregistrées sur la plateforme, tous modules "
+"confondus."
+msgstr "All transactions recorded on the platform, across all modules."
+
+msgid "Toutes les transactions"
+msgstr "All transactions"
+
+msgid "Toutes origines confondues"
+msgstr "All sources combined"
+
+msgid "Traiter les demandes"
+msgstr "Process requests"
+
+msgid "Transactions récentes"
+msgstr "Recent transactions"
+
+msgid "Transactions validées, selon les filtres du haut."
+msgstr "Validated transactions, according to the filters at the top."
+
+msgid "Traçabilité complète"
+msgstr "Full traceability"
+
+msgid "Validation réservée à la supervision"
+msgstr "Validation reserved for supervision"
+
+msgid "Visites, relances, conversions"
+msgstr "Visits, follow-ups, conversions"
+
+msgid "Visiteurs & prospects"
+msgstr "Visitors & prospects"
+
+msgid "Voir les utilisateurs"
+msgstr "View users"
+
+msgid "Vos inscriptions et leur avancement"
+msgstr "Your enrollments and their progress"
+
+msgid "Votre candidature"
+msgstr "Your application"
+
+msgid "Votre candidature a été enregistrée avec succès."
+msgstr "Your application has been recorded successfully."
+
+msgid ""
+"Votre compte a été créé avec succès. Un administrateur doit l'approuver "
+"avant que vous puissiez accéder à la plateforme."
+msgstr ""
+"Your account has been created successfully. An administrator must approve it"
+" before you can access the platform."
+
+msgid "Votre demande sera examinée par l'administration avant activation."
+msgstr ""
+"Your request will be reviewed by the administration before activation."
+
+msgid "Votre parcours de formation"
+msgstr "Your training path"
+
+msgid "Vue d'ensemble de la plateforme"
+msgstr "Platform overview"
+
+msgid "Vue direction"
+msgstr "Management view"
+
+msgid "en attente"
+msgstr "pending"
+
+msgid "enregistrées"
+msgstr "recorded"
+
+msgid "le %(d)s"
+msgstr "on %(d)s"
+
+msgid "non justifiées"
+msgstr "unexcused"
+
+msgid "ou"
+msgstr "or"
+
+msgid "par %(n)s"
+msgstr "by %(n)s"
+
+msgid "validées"
+msgstr "validated"
+
+msgid "À justifier si besoin"
+msgstr "To be justified if needed"
+
+msgid "À remplir"
+msgstr "To be filled in"
+
+msgid "À valider par vos soins"
+msgstr "For you to validate"
+
+msgid "Écarts de caisse constatés"
+msgstr "Cash differences identified"
+
+msgid "Échéance : %(d)s"
+msgstr "Due date: %(d)s"
+
+msgid "État"
+msgstr "Status"
+
+msgid "Étudiants actifs"
+msgstr "Active students"
+
+msgid "à documenter"
+msgstr "to be documented"
+
+msgid "à définir"
+msgstr "to be defined"

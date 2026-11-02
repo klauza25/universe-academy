@@ -250,7 +250,8 @@ class AdminTransversalAccessTests(BusinessTestBase):
         client = self.client_for(self.admin)
         response = client.post(
             reverse('core:dashboard:access-request-review', args=[pending.id]),
-            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT},
+            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT,
+             'session': self.session.pk},
         )
         self.assertRedirects(
             response, reverse('core:dashboard:access-requests'),

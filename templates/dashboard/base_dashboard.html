@@ -1,19 +1,21 @@
 {% extends "base.html" %}
-{% load static ui %}
+{% load static ui i18n %}
 
 {% block body %}
+{% translate "Mon espace" as mon_espace %}
+{% translate "Navigation" as nav_label %}
 <div class="ua-shell">
-    <aside class="ua-sidebar" id="ua-sidebar" aria-label="Navigation principale">
+    <aside class="ua-sidebar" id="ua-sidebar" aria-label="{% translate 'Navigation principale' %}">
         <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-brand">
             <span class="ua-brand-mark"><img src="{% static 'img/logo-univers.jpg' %}" alt="" class="h-full w-full p-2 object-contain"></span>
             <span class="min-w-0">
                 <span class="ua-brand-name block">Universe Academy</span>
-                <span class="ua-brand-sub block truncate">{{ user_primary_role_label|default:"Mon espace" }}</span>
+                <span class="ua-brand-sub block truncate">{{ user_primary_role_label|default:mon_espace }}</span>
             </span>
         </a>
 
         <nav class="ua-nav">
-            <p class="ua-nav-label">Navigation</p>
+            <p class="ua-nav-label">{{ nav_label }}</p>
             {% block sidebar_nav %}{% endblock %}
         </nav>
 
@@ -30,12 +32,12 @@
                 </span>
             </div>
             <a href="{% url 'core:dashboard:profile' %}" class="ua-nav-link">
-                {% icon "settings" %}<span>Mon profil</span>
+                {% icon "settings" %}<span>{% translate "Mon profil" %}</span>
             </a>
             <form method="post" action="{% url 'core:logout' %}">
                 {% csrf_token %}
                 <button type="submit" class="ua-nav-link w-full text-left">
-                    {% icon "logout" %}<span>Déconnexion</span>
+                    {% icon "logout" %}<span>{% translate "Déconnexion" %}</span>
                 </button>
             </form>
         </div>
@@ -45,35 +47,57 @@
 
     <div class="ua-main">
         <header class="ua-topbar">
-            <button class="ua-icon-btn ua-burger" type="button" onclick="uaToggleSidebar()" aria-label="Ouvrir le menu">
+            <button class="ua-icon-btn ua-burger" type="button" onclick="uaToggleSidebar()" aria-label="{% translate 'Ouvrir le menu' %}">
                 {% icon "menu" %}
             </button>
 
             {% if can_manage_users %}
             <form class="ua-search" method="get" action="{% url 'core:dashboard:user-list' %}" role="search">
                 {% icon "search" %}
-                <input type="search" name="q" placeholder="Rechercher un utilisateur…"
-                       value="{{ request.GET.q|default:'' }}" aria-label="Rechercher un utilisateur">
+                <input type="search" name="q" placeholder="{% translate 'Rechercher un utilisateur…' %}"
+                       value="{{ request.GET.q|default:'' }}" aria-label="{% translate 'Rechercher un utilisateur' %}">
             </form>
             {% else %}
-            <div class="hidden sm:flex items-center gap-2 text-sm font-semibold" style="color:#4b4f7d;">
+            <div class="hidden sm:flex items-center gap-2 text-sm font-semibold ua-muted">
                 {% icon "sparkles" %}<span>{{ user_primary_role_label }}</span>
             </div>
             {% endif %}
 
             <div class="ua-topbar-right">
                 <span class="ua-chip">{% icon "calendar" %} {% now "D d M Y" %}</span>
+
+                <form method="post" action="{% url 'set_language' %}" class="ua-switch"
+                      aria-label="{% translate 'Langue de l’interface' %}">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ request.path }}">
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% for code, nom in LANGUAGES %}
+                    <button type="submit" name="language" value="{{ code }}"
+                            class="{% if code == LANGUAGE_CODE %}is-on{% endif %}">{{ code|upper }}</button>
+                    {% endfor %}
+                </form>
+
+                <button type="button" class="ua-icon-btn" id="ua-theme-btn" onclick="uaBasculerTheme()"
+                        title="{% translate 'Thème clair ou sombre' %}"
+                        aria-label="{% translate 'Changer de thème' %}">
+                    <span class="ua-icone-clair">{% icon "moon" %}</span>
+                    <span class="ua-icone-sombre">{% icon "sun" %}</span>
+                </button>
+
                 {% if is_platform_admin %}
                 <a href="{% url 'core:dashboard:admin-dashboard' %}" class="ua-icon-btn"
-                   title="Pilotage général" aria-label="Pilotage général">
+                   title="{% translate 'Pilotage général' %}" aria-label="{% translate 'Pilotage général' %}">
                     {% icon "grid" %}
                 </a>
                 {% endif %}
-                <a href="{% url 'core:home' %}" class="ua-icon-btn" title="Site public" aria-label="Site public">
+                <a href="{% url 'core:home' %}" class="ua-icon-btn" title="{% translate 'Site public' %}"
+                   aria-label="{% translate 'Site public' %}">
                     {% icon "home" %}
                 </a>
                 <div class="ua-profile">
-                    <a href="{% url 'core:dashboard:profile' %}" class="flex items-center gap-3 min-w-0" title="Mon profil">
+                    <a href="{% url 'core:dashboard:profile' %}" class="flex items-center gap-3 min-w-0"
+                       title="{% translate 'Mon profil' %}">
                         {% if user_avatar_url %}
                         <img src="{{ user_avatar_url }}" alt="" class="ua-avatar ua-avatar-lg object-cover">
                         {% else %}
@@ -111,9 +135,9 @@
                     <p class="ua-hero-eyebrow">
                         {{ greeting }}{% if request.user.first_name %}, {{ request.user.first_name }}{% endif %}
                     </p>
-                    <h1 class="ua-hero-title">{% block hero_title %}Bienvenue sur votre espace{% endblock %}</h1>
+                    <h1 class="ua-hero-title">{% block hero_title %}{% translate "Bienvenue sur votre espace" %}{% endblock %}</h1>
                     <p class="ua-hero-text">
-                        {% block hero_text %}Voici l'essentiel de votre activité aujourd'hui.{% endblock %}
+                        {% block hero_text %}{% translate "Voici l’essentiel de votre activité aujourd’hui." %}{% endblock %}
                     </p>
                     <div class="ua-hero-actions">
                         {% block hero_actions %}{% endblock %}
@@ -129,6 +153,7 @@
 </div>
 
 <script>
+<!--
 function uaToggleSidebar(force) {
     const sidebar = document.getElementById('ua-sidebar');
     const backdrop = document.getElementById('ua-backdrop');
@@ -142,5 +167,11 @@ function uaToggleSidebar(force) {
 document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') uaToggleSidebar(false);
 });
+
+function uaBasculerTheme() {
+    const sombre = document.documentElement.dataset.theme === 'dark';
+    window.uaThemeAppliquer(sombre ? 'light' : 'dark');
+}
+//-->
 </script>
 {% endblock %}

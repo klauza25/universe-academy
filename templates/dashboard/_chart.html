@@ -1,0 +1,16 @@
+{# Carte de graphique : core/graphiques.py fournit les chiffres, static/js/graphiques.js fait le dessin. #}
+<section class="ua-card ua-card-pad">
+    <div class="flex items-start justify-between gap-3 mb-3">
+        <div>
+            <h2 class="ua-section-title">{{ chart.titre }}</h2>
+            <p class="text-xs ua-muted mt-1">{{ chart.note }}</p>
+        </div>
+        {% if chart.total %}
+        <span class="ua-badge ua-badge-amber whitespace-nowrap">{{ chart.total }} FCFA</span>
+        {% endif %}
+    </div>
+    <div class="ua-chart-box">
+        <canvas data-chart-source="{{ chart.id }}" role="img" aria-label="{{ chart.titre }}"></canvas>
+    </div>
+    {{ chart|json_script:chart.id }}
+</section>

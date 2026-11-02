@@ -254,6 +254,44 @@ class SessionRecordTests(PedagogyTestBase):
         self.assert_audited('SESSION_UPDATE', record.pk)
 
 
+    def test_trainer_sees_the_planning_shortcut(self):
+        response = self.trainer_client.get(
+            reverse('core:dashboard:session-records'))
+        self.assertContains(response, 'Planifier une séance')
+        self.assertContains(response, reverse(
+            'core:dashboard:session-record-create', args=[self.session.id]))
+
+    def test_secretary_reads_sessions_without_planning_shortcut(self):
+        response = self.client_for(self.secretaire).get(
+            reverse('core:dashboard:session-records'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Planifier une séance')
+        self.assertNotContains(response, reverse(
+            'core:dashboard:session-record-create', args=[self.session.id]))
+
+    def test_admin_reads_sessions_without_planning_shortcut(self):
+        response = self.client_for(self.admin).get(
+            reverse('core:dashboard:session-records'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Planifier une séance')
+
+    def test_duration_is_known_only_when_both_hours_are_set(self):
+        record = self.make_record(
+            planned_start=dt_time(8, 0), planned_end=dt_time(9, 30),
+            actual_start=None, actual_end=None,
+        )
+        self.assertEqual(record.planned_minutes, 90)
+        self.assertIsNone(record.actual_minutes)
+        self.assertEqual(record.display_minutes, 90)
+
+    def test_session_list_formats_duration_as_hours_and_minutes(self):
+        self.make_record(planned_start=dt_time(16, 10), planned_end=dt_time(16, 15))
+        response = self.trainer_client.get(
+            reverse('core:dashboard:session-records'))
+        self.assertContains(response, '0 h 05')
+        self.assertNotContains(response, '0,08')
+
+
 class AttendanceTests(PedagogyTestBase):
     def test_attendance_sheet_records_presence(self):
         record = self.make_record()
@@ -359,9 +397,14 @@ class AttendanceTests(PedagogyTestBase):
         row = response.context['rows'][0]
         self.assertEqual(row['records'], 1)
         self.assertEqual(row['completed'], 1)
-        self.assertEqual(row['planned_hours'], 2.0)
-        self.assertAlmostEqual(row['actual_hours'], 1.83, places=2)
+        self.assertEqual(row['planned_minutes'], 120)
+        self.assertEqual(row['actual_minutes'], 110)
+        self.assertEqual(row['remaining_minutes'], 10)
         self.assertIsNotNone(row['last_record'])
+        self.assertContains(response, '2 h 00')
+        self.assertContains(response, '1 h 50')
+        self.assertNotContains(response, '1.83')
+        self.assertNotContains(response, '1,83')
 
 
 class ResourceTests(PedagogyTestBase):
@@ -625,6 +668,7 @@ class TextbookPrintTests(PedagogyTestBase):
         response = self.trainer_client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Cahier de texte")
+        self.assertContains(response, "2 h 00")
 
     def test_student_cannot_print_textbook(self):
         url = reverse(

@@ -1,13 +1,13 @@
-{% load core_tags %}
+{% load core_tags i18n %}
 {% if page.has_other_pages %}
 <div class="flex items-center justify-between gap-3 mt-4 text-sm">
-    <span class="ua-muted">Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    <span class="ua-muted">{% blocktrans with p=page.number t=page.paginator.num_pages %}Page {{ p }} / {{ t }}{% endblocktrans %}</span>
     <div class="flex gap-2">
         {% if page.has_previous %}
-        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="?{% query_replace page=page.previous_page_number %}">Précédent</a>
+        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="?{% query_replace page=page.previous_page_number %}">{% translate "Précédent" %}</a>
         {% endif %}
         {% if page.has_next %}
-        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="?{% query_replace page=page.next_page_number %}">Suivant</a>
+        <a class="ua-btn ua-btn-ghost ua-btn-sm" href="?{% query_replace page=page.next_page_number %}">{% translate "Suivant" %}</a>
         {% endif %}
     </div>
 </div>

@@ -1,6 +1,7 @@
 from functools import wraps
 from django.shortcuts import redirect
 from django.http import HttpResponseForbidden
+from django.utils.translation import gettext_lazy as _
 from .models import AccountStatus
 
 
@@ -30,7 +31,7 @@ def role_required(*role_keys):
             if not (request.user.is_elevated or
                     request.user.has_any_role(*role_keys)):
                 return HttpResponseForbidden(
-                    "Vous n'avez pas les permissions nécessaires."
+                    _("Vous n'avez pas les permissions nécessaires.")
                 )
             return view_func(request, *args, **kwargs)
         return wrapper
@@ -50,15 +51,39 @@ def business_write_required(*role_keys):
         def wrapper(request, *args, **kwargs):
             if request.user.is_elevated:
                 return HttpResponseForbidden(
-                    "Consultation seule : cette action relève du rôle métier."
+                    _("Consultation seule : cette action relève du rôle métier.")
                 )
             if not request.user.has_any_role(*role_keys):
                 return HttpResponseForbidden(
-                    "Vous n'avez pas les permissions nécessaires."
+                    _("Vous n'avez pas les permissions nécessaires.")
                 )
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
+
+
+ENROLLMENT_VALIDATION_ROLES = ('DIRECTION', 'SUPER_ADMIN', 'COMPTABLE', 'RESP_PEDA')
+
+
+def enrollment_validation_required(view_func):
+    """Validation d'un dossier d'inscription.
+
+    Quatre rôles peuvent valider depuis leur propre tableau de bord : la
+    direction (référente), la caisse, la supervision pédagogique et le super
+    administrateur. La chaîne « inscription au guichet → validation →
+    encaissement » ne doit jamais s'arrêter faute de valideur disponible.
+    L'ADMIN reste en consultation seule (politique transversale) et chaque
+    validation laisse sa trace dans l'audit (ENROLLMENT_VALIDATE).
+    """
+    @wraps(view_func)
+    @active_account_required
+    def wrapper(request, *args, **kwargs):
+        if request.user.has_any_role(*ENROLLMENT_VALIDATION_ROLES):
+            return view_func(request, *args, **kwargs)
+        return HttpResponseForbidden(
+            _("La validation d'une inscription est réservée à la direction, à la caisse, à la supervision pédagogique et au super administrateur.")
+        )
+    return wrapper
 
 
 def permission_required(perm_key):
@@ -68,7 +93,7 @@ def permission_required(perm_key):
         def wrapper(request, *args, **kwargs):
             if not (request.user.is_elevated or
                     request.user.has_perm_key(perm_key)):
-                return HttpResponseForbidden("Permission refusée.")
+                return HttpResponseForbidden(_("Permission refusée."))
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
@@ -85,7 +110,7 @@ def super_admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.has_role('SUPER_ADMIN'):
             return HttpResponseForbidden(
-                "Cette action est réservée au super administrateur."
+                _("Cette action est réservée au super administrateur.")
             )
         return view_func(request, *args, **kwargs)
     return wrapper

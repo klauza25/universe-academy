@@ -1,0 +1,163 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/403.html, templates/public/access_denied.html
+msgid "Accès refusé"
+msgstr "Access denied"
+
+msgid "Accès refusé — Univers Academy"
+msgstr "Access denied — Univers Academy"
+
+msgid "Vous n'avez pas les permissions nécessaires pour cette action."
+msgstr "You do not have the required permissions for this action."
+
+msgid "Votre compte est suspendu ou désactivé. Contactez l'administration pour plus d'informations."
+msgstr "Your account is suspended or disabled. Contact the administration for more information."
+
+# templates/public/access_request.html
+msgid "Demande d'accès — Univers Academy"
+msgstr "Access request — Univers Academy"
+
+msgid "Compléter ma demande d'accès"
+msgstr "Complete my access request"
+
+msgid "Envoyer ma demande"
+msgstr "Send my request"
+
+msgid "Envoyer la confirmation"
+msgstr "Send the confirmation"
+
+msgid "Votre identité est vérifiée. Choisissez le rôle que vous souhaitez demander : il sera examiné par l'administration."
+msgstr "Your identity is verified. Choose the role you want to request: it will be reviewed by the administration."
+
+# templates/bourses/
+msgid "Centre de Formation en Langues — Brazzaville"
+msgstr "Centre de Formation en Langues — Brazzaville"
+
+# templates/dashboard/profile/index.html
+msgid "Adresse e-mail du compte"
+msgstr "Account e-mail address"
+
+msgid "Changer d'adresse e-mail"
+msgstr "Change e-mail address"
+
+msgid "Le changement n'est appliqué qu'après confirmation par un lien envoyé à la nouvelle adresse."
+msgstr "The change is applied only after you confirm through the link sent to the new address."
+
+msgid "Informations personnelles"
+msgstr "Personal information"
+
+msgid "Vos informations personnelles et votre photo de profil."
+msgstr "Your personal information and your profile photo."
+
+msgid "Enregistrer"
+msgstr "Save"
+
+msgid "Enregistrer la photo"
+msgstr "Save the photo"
+
+msgid "Réinitialiser la photo"
+msgstr "Reset the photo"
+
+msgid "Photo de %(name)s"
+msgstr "Photo of %(name)s"
+
+msgid "Identifiant interne"
+msgstr "Internal ID"
+
+msgid "L'identifiant interne et le rôle ne sont pas modifiables depuis cette page."
+msgstr "The internal ID and the role cannot be changed from this page."
+
+msgid "Compte créé le"
+msgstr "Account created on"
+
+# templates/dashboard/_audit_trail.html, templates/dashboard/super_admin/audit_log.html
+msgid "Historique des modifications"
+msgstr "Change history"
+
+msgid "Qui a fait quoi et quand, d'après le journal d'audit."
+msgstr "Who did what and when, according to the audit log."
+
+msgid "Aucun événement d'audit enregistré."
+msgstr "No audit event recorded."
+
+msgid "Auteur"
+msgstr "Author"
+
+msgid "Système"
+msgstr "System"
+
+msgid "Avant"
+msgstr "Before"
+
+msgid "Après"
+msgstr "After"
+
+msgid "Détails (avant / après)"
+msgstr "Details (before / after)"
+
+msgid "Voir les valeurs"
+msgstr "View values"
+
+# templates/dashboard/accueil/
+msgid "Motifs de visite"
+msgstr "Visit reasons"
+
+msgid "Nouvelle visite"
+msgstr "New visit"
+
+msgid "Visites"
+msgstr "Visits"
+
+msgid "Nouveau prospect"
+msgstr "New prospect"
+
+msgid "Prospects"
+msgstr "Prospects"
+
+msgid "Aucune fiche contact trouvée."
+msgstr "No contact record found."
+
+# navigation and shared labels
+msgid "Nouvel étudiant"
+msgstr "New student"
+
+msgid "Étudiants"
+msgstr "Students"
+
+msgid "Nouvelle inscription"
+msgstr "New enrollment"
+
+msgid "Inscription en attente de validation"
+msgstr "Enrollment awaiting validation"
+
+msgid "Tableau de bord"
+msgstr "Dashboard"
+
+msgid "Retour au tableau de bord"
+msgstr "Back to the dashboard"
+
+msgid "Retour à l'accueil"
+msgstr "Back to the home page"
+
+msgid "Retour à mon espace"
+msgstr "Back to my space"
+
+msgid "Se déconnecter"
+msgstr "Sign out"
+
+msgid "Annuler"
+msgstr "Cancel"
+
+msgid "Précédent"
+msgstr "Previous"
+
+msgid "Suivant"
+msgstr "Next"
+
+msgid "Page %(p)s / %(t)s"
+msgstr "Page %(p)s of %(t)s"

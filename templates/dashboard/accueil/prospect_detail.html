@@ -1,12 +1,18 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}{{ prospect.reference }} — Prospect{% endblock %}
+{% block title %}{% blocktrans with ref=prospect.reference %}{{ ref }} — Prospect{% endblocktrans %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
 
 {% block dashboard_content %}
+{% translate "Convertir en étudiant" as act_convert %}
+{% translate "Dossier étudiant" as act_dossier %}
+{% translate "Retour" as act_retour %}
+{% translate "Historique du prospect" as audit_titre_prospect %}
+{% translate "Création, mises à jour, relances et conversion." as audit_sous_titre_prospect %}
+{% translate "Aucun événement d'audit pour ce prospect." as audit_vide_prospect %}
 <div class="ua-page-head">
     <div>
         <h1 class="ua-page-title">{{ prospect.reference }}</h1>
@@ -15,56 +21,56 @@
     <div class="flex flex-wrap gap-2">
         {% if can_convert and not prospect.converted_student %}
         <a href="{% url 'core:dashboard:student-create' %}?prospect={{ prospect.id }}" class="ua-btn ua-btn-primary">
-            {% icon "graduation" %} Convertir en étudiant
+            {% icon "graduation" %} {{ act_convert }}
         </a>
         {% endif %}
         {% if prospect.converted_student %}
         <a href="{% url 'core:dashboard:student-detail' prospect.converted_student.id %}" class="ua-btn ua-btn-light">
-            {% icon "user-check" %} Dossier étudiant
+            {% icon "user-check" %} {{ act_dossier }}
         </a>
         {% endif %}
-        <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost">{{ act_retour }}</a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad xl:col-span-2">
         {% if is_elevated %}
-        <h2 class="ua-section-title mb-4">Consultation</h2>
-        <p class="ua-empty">Consultation seule : la modification d'un prospect relève du rôle accueil.</p>
+        <h2 class="ua-section-title mb-4">{% translate "Consultation" %}</h2>
+        <p class="ua-empty">{% translate "Consultation seule : la modification d'un prospect relève du rôle accueil." %}</p>
         {% else %}
-        <h2 class="ua-section-title mb-4">Informations du prospect</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Informations du prospect" %}</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="edit">
             {% include "dashboard/_form.html" with form=form %}
             <div class="flex flex-wrap gap-3 mt-4">
-                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
-                <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Enregistrer" %}</button>
+                <a href="{% url 'core:dashboard:prospect-detail' prospect.id %}" class="ua-btn ua-btn-ghost">{% translate "Annuler" %}</a>
             </div>
         </form>
         {% endif %}
     </section>
 
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Synthèse</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Synthèse" %}</h2>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-xs ua-muted">Statut</dt><dd><span class="ua-badge ua-badge-indigo">{{ prospect.get_status_display }}</span></dd></div>
-            <div><dt class="text-xs ua-muted">Source</dt><dd>{{ prospect.get_source_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Formation recherchée</dt><dd>{{ prospect.course.title|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Domaine</dt><dd>{{ prospect.domain|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Niveau</dt><dd>{{ prospect.level|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Contact préféré</dt><dd>{{ prospect.get_preferred_contact_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Premier contact</dt><dd>{{ prospect.first_contact_at|date:"d/m/Y" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Prochaine relance</dt><dd>{{ prospect.next_follow_up|date:"d/m/Y"|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Agent</dt><dd>{{ prospect.agent.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Statut" %}</dt><dd><span class="ua-badge ua-badge-indigo">{{ prospect.get_status_display }}</span></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Source" %}</dt><dd>{{ prospect.get_source_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Formation recherchée" %}</dt><dd>{{ prospect.course.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Domaine" %}</dt><dd>{{ prospect.domain|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Niveau" %}</dt><dd>{{ prospect.level|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Contact préféré" %}</dt><dd>{{ prospect.get_preferred_contact_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Premier contact" %}</dt><dd>{{ prospect.first_contact_at|date:"d/m/Y" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Prochaine relance" %}</dt><dd>{{ prospect.next_follow_up|date:"d/m/Y"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Agent" %}</dt><dd>{{ prospect.agent.display_label|default:"—" }}</dd></div>
             {% if prospect.visit %}
-            <div><dt class="text-xs ua-muted">Visite d'origine</dt>
+            <div><dt class="text-xs ua-muted">{% translate "Visite d'origine" %}</dt>
                 <dd><a class="ua-cell-title" href="{% url 'core:dashboard:visit-detail' prospect.visit.id %}">{{ prospect.visit.reference }}</a></dd>
             </div>
             {% endif %}
             {% if prospect.converted_student %}
-            <div><dt class="text-xs ua-muted">Converti le</dt><dd>{{ prospect.converted_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Converti le" %}</dt><dd>{{ prospect.converted_at|date:"d/m/Y H:i" }}</dd></div>
             {% endif %}
         </dl>
     </section>
@@ -72,37 +78,37 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mt-5">
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-1">Nouveau suivi</h2>
-        <p class="text-xs ua-muted mb-4">Un compte rendu d'appel n'envoie aucun message : il documente uniquement l'échange.</p>
+        <h2 class="ua-section-title mb-1">{% translate "Nouveau suivi" %}</h2>
+        <p class="text-xs ua-muted mb-4">{% translate "Un compte rendu d'appel n'envoie aucun message : il documente uniquement l'échange." %}</p>
         {% if is_elevated %}
-        <p class="ua-empty">Consultation seule : l'ajout d'un suivi relève du rôle accueil.</p>
+        <p class="ua-empty">{% translate "Consultation seule : l'ajout d'un suivi relève du rôle accueil." %}</p>
         {% else %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="follow_up">
             {% include "dashboard/_form.html" with form=follow_form %}
-            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} Enregistrer le suivi</button>
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Enregistrer le suivi" %}</button>
         </form>
         {% endif %}
     </section>
 
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Historique des suivis</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Historique des suivis" %}</h2>
         {% for follow in follow_ups %}
         <div class="ua-list-row">
             <div>
                 <span class="ua-cell-title">{{ follow.get_contact_type_display }} · {{ follow.occurred_at|date:"d/m/Y H:i" }}</span>
                 <span class="ua-cell-sub block">{{ follow.summary|truncatechars:120 }}</span>
-                {% if follow.next_action %}<span class="ua-cell-sub block">Prochaine action : {{ follow.next_action }}</span>{% endif %}
-                {% if follow.next_follow_up %}<span class="ua-cell-sub block">Relance : {{ follow.next_follow_up|date:"d/m/Y" }}</span>{% endif %}
+                {% if follow.next_action %}<span class="ua-cell-sub block">{% translate "Prochaine action" %} : {{ follow.next_action }}</span>{% endif %}
+                {% if follow.next_follow_up %}<span class="ua-cell-sub block">{% translate "Relance" %} : {{ follow.next_follow_up|date:"d/m/Y" }}</span>{% endif %}
                 <span class="ua-cell-sub block">{{ follow.agent.display_label|default:"—" }}</span>
             </div>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucun suivi enregistré pour ce prospect.</p>
+        <p class="ua-empty">{% translate "Aucun suivi enregistré pour ce prospect." %}</p>
         {% endfor %}
     </section>
 </div>
 
-{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique du prospect" audit_subtitle="Création, mises à jour, relances et conversion." audit_empty="Aucun événement d'audit pour ce prospect." %}
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title=audit_titre_prospect audit_subtitle=audit_sous_titre_prospect audit_empty=audit_vide_prospect %}
 {% endblock %}

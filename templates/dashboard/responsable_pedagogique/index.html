@@ -1,32 +1,44 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Responsable Pédagogique — Univers Academy{% endblock %}
+{% block title %}{% translate "Responsable Pédagogique — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
 
-{% block hero_title %}Suivi pédagogique{% endblock %}
+{% block hero_title %}{% translate "Suivi pédagogique" %}{% endblock %}
 {% block hero_text %}
-{{ courses|length }} formation{{ courses|length|pluralize }} au catalogue,
-{{ records_completed }} séance{{ records_completed|pluralize }} documentée{{ records_completed|pluralize }} et
-{{ hours_actual }} h réalisées.
+{% blocktrans with c=courses|length s=records_completed m=minutes_actual|duree %}{{ c }} formation(s) au catalogue, {{ s }} séance(s) documentée(s) et {{ m }} réalisées.{% endblocktrans %}
 {% endblock %}
 {% block hero_actions %}
-<a href="{% url 'core:dashboard:programs' %}" class="ua-btn ua-btn-light">{% icon "book-open" %} Programmes</a>
-<a href="{% url 'core:dashboard:progression' %}" class="ua-btn ua-btn-ghost">{% icon "chart" %} Progression</a>
+<a href="{% url 'core:dashboard:programs' %}" class="ua-btn ua-btn-light">{% icon "book-open" %} {% translate "Programmes" %}</a>
+<a href="{% url 'core:dashboard:progression' %}" class="ua-btn ua-btn-ghost">{% icon "chart" %} {% translate "Progression" %}</a>
 {% endblock %}
 
 {% block dashboard_content %}
+{% translate "Formations actives" as lbl_formations %}
+{% translate "Catalogue" as hint_catalogue %}
+{% translate "Séances documentées" as lbl_seances %}
+{% translate "Comptes rendus" as hint_rendus %}
+{% translate "Heures prévues" as lbl_heures_prevues %}
+{% translate "Sur les séances" as hint_seances %}
+{% translate "Heures réalisées" as lbl_heures_realisees %}
+{% translate "Déclarées" as hint_declarees %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-    {% include "dashboard/_stat.html" with label="Formations actives" value=courses|length icon="book-open" tone="indigo" hint="Catalogue" %}
-    {% include "dashboard/_stat.html" with label="Séances documentées" value=records_completed icon="presentation" tone="green" hint="Comptes rendus" %}
-    {% include "dashboard/_stat.html" with label="Heures prévues" value=hours_planned icon="clock" tone="sky" hint="Sur les séances" %}
-    {% include "dashboard/_stat.html" with label="Heures réalisées" value=hours_actual icon="check-circle" tone="violet" hint="Déclarées" %}
+    {% include "dashboard/_stat.html" with label=lbl_formations value=courses|length icon="book-open" tone="indigo" hint=hint_catalogue %}
+    {% include "dashboard/_stat.html" with label=lbl_seances value=records_completed icon="presentation" tone="green" hint=hint_rendus %}
+    {% include "dashboard/_stat.html" with label=lbl_heures_prevues value=minutes_planned|duree icon="clock" tone="sky" hint=hint_seances %}
+    {% include "dashboard/_stat.html" with label=lbl_heures_realisees value=minutes_actual|duree icon="check-circle" tone="violet" hint=hint_declarees %}
 </div>
 
+{% include "dashboard/_validation_queue.html" %}
+
+{% include "dashboard/_charts.html" %}
+
+{% translate "Sans sujet" as var_sans_sujet %}
+{% translate "Horaires à définir" as var_horaires %}
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-5">
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Prochaines séances</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Prochaines séances" %}</h2>
         {% for record in upcoming_records %}
         <div class="ua-list-row">
             <div>
@@ -36,55 +48,62 @@
             <span class="ua-badge ua-badge-indigo">{{ record.get_status_display }}</span>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucune séance planifiée.</p>
+        <p class="ua-empty">{% translate "Aucune séance planifiée." %}</p>
         {% endfor %}
     </section>
 
     <section class="ua-card ua-card-pad">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="ua-section-title">Derniers comptes rendus</h2>
-            <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Tous</a>
+            <h2 class="ua-section-title">{% translate "Derniers comptes rendus" %}</h2>
+            <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Tous" %}</a>
         </div>
         {% for record in recent_records %}
         <div class="ua-list-row">
             <div>
                 <a class="ua-cell-title" href="{% url 'core:dashboard:session-record-detail' record.id %}">{{ record.session.course.title }}</a>
-                <span class="ua-cell-sub block">{{ record.date|date:"d/m/Y" }} · {{ record.actual_hours }} h · {{ record.topic|default:"Sans sujet" }}</span>
+                <span class="ua-cell-sub block">{{ record.date|date:"d/m/Y" }} · {{ record.actual_minutes|duree }} · {{ record.topic|default:var_sans_sujet }}</span>
             </div>
             <span class="ua-badge ua-badge-green">{{ record.get_status_display }}</span>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucun compte rendu.</p>
+        <p class="ua-empty">{% translate "Aucun compte rendu." %}</p>
         {% endfor %}
     </section>
 </div>
 
+{% translate "Modules" as lbl_modules %}
+{% translate "Programmes" as hint_programmes %}
+{% translate "Leçons" as lbl_lecons %}
+{% translate "Absences" as lbl_absences %}
+{% translate "Toutes périodes" as hint_periodes %}
+{% translate "Ressources publiées" as lbl_ressources %}
+{% translate "Supports et exercices" as hint_supports %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
-    {% include "dashboard/_stat.html" with label="Modules" value=modules_count icon="grid" tone="indigo" hint="Programmes" %}
-    {% include "dashboard/_stat.html" with label="Leçons" value=lessons_count icon="file-text" tone="sky" hint="Programmes" %}
-    {% include "dashboard/_stat.html" with label="Absences" value=attendance_totals.absents icon="close" tone="rose" hint="Toutes périodes" %}
-    {% include "dashboard/_stat.html" with label="Ressources publiées" value=published_resources icon="book-open" tone="green" hint="Supports et exercices" %}
+    {% include "dashboard/_stat.html" with label=lbl_modules value=modules_count icon="grid" tone="indigo" hint=hint_programmes %}
+    {% include "dashboard/_stat.html" with label=lbl_lecons value=lessons_count icon="file-text" tone="sky" hint=hint_programmes %}
+    {% include "dashboard/_stat.html" with label=lbl_absences value=attendance_totals.absents icon="close" tone="rose" hint=hint_periodes %}
+    {% include "dashboard/_stat.html" with label=lbl_ressources value=published_resources icon="book-open" tone="green" hint=hint_supports %}
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
     <section class="ua-card overflow-hidden">
         <div class="px-6 pt-6 pb-4">
-            <h2 class="ua-section-title">Catalogue des formations</h2>
-            <p class="text-xs ua-muted mt-1">Programmes actuellement proposés</p>
+            <h2 class="ua-section-title">{% translate "Catalogue des formations" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Programmes actuellement proposés" %}</p>
         </div>
         <div class="ua-table-wrap">
             <table class="ua-table">
-                <thead><tr><th>Formation</th><th>Domaine</th><th>Durée</th><th class="text-right">Frais</th></tr></thead>
+                <thead><tr><th>{% translate "Formation" %}</th><th>{% translate "Domaine" %}</th><th>{% translate "Durée" %}</th><th class="text-right">{% translate "Frais" %}</th></tr></thead>
                 <tbody>
                     {% for course in courses %}
                     <tr>
                         <td class="ua-cell-title">{{ course.title }}</td>
                         <td><span class="ua-badge ua-badge-indigo">{{ course.domain }}</span></td>
-                        <td class="ua-muted">{{ course.duration_months }} mois</td>
+                        <td class="ua-muted">{% blocktrans with d=course.duration_months %}{{ d }} mois{% endblocktrans %}</td>
                         <td class="text-right font-semibold" style="color:#1e2044;">{{ course.fee_amount|floatformat:0 }} FCFA</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4" class="ua-empty">Aucune formation au catalogue</td></tr>
+                    <tr><td colspan="4" class="ua-empty">{% translate "Aucune formation au catalogue" %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -93,8 +112,8 @@
 
     <section class="ua-card ua-card-pad">
         <div class="mb-4">
-            <h2 class="ua-section-title">Sessions en cours</h2>
-            <p class="text-xs ua-muted mt-1">Encadrement et remplissage</p>
+            <h2 class="ua-section-title">{% translate "Sessions en cours" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Encadrement et remplissage" %}</p>
         </div>
         {% for session in active_sessions %}
         <div class="ua-list-row">
@@ -103,17 +122,21 @@
                 <p class="text-sm font-semibold truncate" style="color:#1e2044;">{{ session.course.title }}</p>
                 <p class="text-xs ua-muted truncate">
                     {{ session.starts_at|date:"d/m/Y" }} → {{ session.ends_at|date:"d/m/Y" }}
-                    · {{ session.schedule|default:"Horaires à définir" }}
+                    · {{ session.schedule|default:var_horaires }}
                 </p>
-                <p class="text-xs ua-muted">Formateurs :
-                    {% for teacher in session.formateurs.all %}{{ teacher.display_label }}{% if not forloop.last %}, {% endif %}{% empty %}non affecté{% endfor %}
+                <p class="text-xs ua-muted">{% translate "Formateurs :" %}
+                    {% for teacher in session.formateurs.all %}{{ teacher.display_label }}{% if not forloop.last %}, {% endif %}{% empty %}{% translate "non affecté" %}{% endfor %}
                 </p>
             </div>
             <span class="ua-badge ua-badge-green">{{ session.enrolled_count }}/{{ session.capacity }}</span>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucune session active</p>
+        <p class="ua-empty">{% translate "Aucune session active" %}</p>
         {% endfor %}
     </section>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% include "dashboard/_charts_scripts.html" %}
 {% endblock %}

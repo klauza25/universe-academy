@@ -1,0 +1,56 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/base.html
+msgid "Univers Academy — plateforme de gestion académique"
+msgstr "Univers Academy — academic management platform"
+
+# templates/dashboard/base_dashboard.html
+msgid "Mon espace"
+msgstr "My workspace"
+
+msgid "Navigation"
+msgstr "Navigation"
+
+msgid "Navigation principale"
+msgstr "Main navigation"
+
+msgid "Mon profil"
+msgstr "My profile"
+
+msgid "Déconnexion"
+msgstr "Sign out"
+
+msgid "Ouvrir le menu"
+msgstr "Open menu"
+
+msgid "Rechercher un utilisateur…"
+msgstr "Search for a user…"
+
+msgid "Rechercher un utilisateur"
+msgstr "Search for a user"
+
+msgid "Langue de l’interface"
+msgstr "Interface language"
+
+msgid "Thème clair ou sombre"
+msgstr "Light or dark theme"
+
+msgid "Changer de thème"
+msgstr "Change theme"
+
+msgid "Pilotage général"
+msgstr "Administration"
+
+msgid "Site public"
+msgstr "Public site"
+
+msgid "Bienvenue sur votre espace"
+msgstr "Welcome to your workspace"
+
+msgid "Voici l’essentiel de votre activité aujourd’hui."
+msgstr "Here is your activity at a glance."

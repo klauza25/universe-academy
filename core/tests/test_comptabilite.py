@@ -514,6 +514,19 @@ class ComptableStudentListTests(BusinessTestBase):
             reverse('core:dashboard:student-edit', args=[self.etudiant.id]))
         self.assertNotContains(
             response, reverse('core:dashboard:enrollment-create'))
+        self.assertNotContains(
+            response,
+            reverse('core:dashboard:student-document-upload',
+                    args=[self.etudiant.id]))
+        self.assertContains(response, 'relève du secrétariat')
+
+    def test_secretary_gets_the_document_form(self):
+        response = self.client_for(self.secretaire).get(reverse(
+            'core:dashboard:student-detail', args=[self.etudiant.id]))
+        self.assertContains(
+            response,
+            reverse('core:dashboard:student-document-upload',
+                    args=[self.etudiant.id]))
 
     def test_comptable_cannot_write_student_records(self):
         client = self.client_for(self.comptable)
@@ -527,3 +540,383 @@ class ComptableStudentListTests(BusinessTestBase):
                 {}).status_code,
             403,
         )
+
+
+class StudentWithoutEnrollmentNoticeTests(BusinessTestBase):
+    """Un compte étudiant validé reste visible sur l'écran d'encaissement."""
+
+    def make_silent_student(self, email):
+        student = self.make_user(RoleKey.ETUDIANT, email)
+        student.first_name = 'Zorro'
+        student.last_name = 'Nsimbe'
+        student.save(update_fields=['first_name', 'last_name'])
+        return student
+
+    def test_the_account_is_listed_on_the_payment_screen(self):
+        self.make_silent_student('silent1@test.local')
+        page = self.client_for(self.comptable).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Comptes étudiants sans inscription')
+        self.assertContains(page, 'Zorro Nsimbe')
+        self.assertContains(page, 'Inscrire')
+
+    def test_a_direction_member_can_enroll_from_that_screen(self):
+        student = self.make_silent_student('silent2@test.local')
+        page = self.client_for(self.direction).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertContains(page, 'Inscrire')
+        self.assertContains(page, f'?student={student.id}')
+
+    def test_the_comptable_can_also_enroll_from_that_screen(self):
+        student = self.make_silent_student('silent3@test.local')
+        page = self.client_for(self.comptable).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertContains(page, f'?student={student.id}#inscription')
+        self.assertContains(page, 'Inscrire un étudiant')
+
+    def test_enrolled_student_is_not_listed(self):
+        page = self.client_for(self.comptable).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertNotContains(page, 'Comptes étudiants sans inscription')
+        self.assertContains(page, self.etudiant.get_full_name())
+
+
+class PaymentEnrollmentFlowTests(AccountingTestBase):
+    """Étudiant → inscription : création au guichet puis validation.
+
+    La validation est ouverte à la direction, la caisse, la supervision
+    pédagogique et au super administrateur ; l'ADMIN et les rôles opérationnels
+    (formateur, secrétariat, accueil, étudiant) restent exclus.
+    """
+
+    def counter_payload(self, student, **overrides):
+        payload = {
+            'inscription-student': student.pk,
+            'inscription-session': self.session.pk,
+            'inscription-start_date': self.local_date(),
+            'inscription-tariff_amount': '',
+            'inscription-discount_amount': '0',
+            'inscription-payment_plan': '',
+            'inscription-notes': '',
+        }
+        payload.update(overrides)
+        return payload
+
+    def make_student(self, email='nouveau.guichet@test.local'):
+        student = self.make_user(RoleKey.ETUDIANT, email)
+        student.first_name = 'Nouveau'
+        student.last_name = 'Guichet'
+        student.save(update_fields=['first_name', 'last_name'])
+        return student
+
+    def test_student_field_lists_every_active_student(self):
+        other = self.make_student('autre.actif@test.local')
+        page = self.client.get(reverse('core:dashboard:payment-create'))
+        self.assertEqual(page.status_code, 200)
+        queryset = page.context['form'].fields['student'].queryset
+        self.assertIn(self.etudiant, queryset)
+        self.assertIn(other, queryset)
+        self.assertContains(page, 'Choisir un étudiant')
+        self.assertContains(page, self.etudiant.get_full_name())
+        self.assertContains(page, 'Nouveau Guichet')
+
+    def test_enrollment_choices_are_filtered_by_student(self):
+        other = self.make_student('autre.dossier@test.local')
+        page = self.client.get(
+            reverse('core:dashboard:payment-create'),
+            {'student': other.pk},
+        )
+        self.assertEqual(page.status_code, 200)
+        queryset = page.context['form'].fields['enrollment'].queryset
+        self.assertEqual(list(queryset), [])
+
+        page = self.client.get(
+            reverse('core:dashboard:payment-create'),
+            {'student': self.etudiant.pk},
+        )
+        self.assertEqual(
+            [e.pk for e in page.context['form'].fields['enrollment'].queryset],
+            [self.enrollment.pk],
+        )
+
+    def test_enrollment_choices_show_the_remaining_balance(self):
+        page = self.client.get(reverse('core:dashboard:payment-create'))
+        self.assertContains(page, 'reste 90000 FCFA')
+        self.assertContains(page, f'data-balance="90000"')
+
+    def test_enrollment_choice_label_names_the_student(self):
+        page = self.client.get(reverse('core:dashboard:payment-create'))
+        self.assertContains(
+            page,
+            f'{self.etudiant.display_label} — {self.course.title} '
+            f'(reste 90000 FCFA)',
+        )
+
+    def test_empty_enrollment_choice_is_explained(self):
+        other = self.make_student('sans.dossier@test.local')
+        page = self.client.get(
+            reverse('core:dashboard:payment-create'),
+            {'student': other.pk},
+        )
+        self.assertContains(page, 'Choisir un dossier')
+        self.assertContains(page, 'Aucune inscription pour cet étudiant')
+
+    def test_pending_enrollment_explains_the_validation_wait(self):
+        student = self.make_student('en.attente@test.local')
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        page = self.client.get(
+            reverse('core:dashboard:payment-create'),
+            {'student': student.pk},
+        )
+        self.assertContains(page, 'il attend une validation')
+
+    def test_counter_enrollment_is_created_pending_without_payment(self):
+        student = self.make_student()
+        response = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        self.assertRedirects(
+            response,
+            f"{reverse('core:dashboard:payment-create')}"
+            f"?student={student.pk}",
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(enrollment.status, Enrollment.Status.PENDING)
+        self.assertEqual(enrollment.net_amount, self.course.fee_amount)
+        self.assertEqual(enrollment.registered_by, self.comptable)
+        self.assertEqual(Payment.objects.count(), 0)
+        self.assert_audited('ENROLLMENT_CREATE', enrollment.pk)
+
+    def test_counter_enrollment_keeps_the_net_amount_from_tariff(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(
+                student,
+                **{'inscription-tariff_amount': '120000',
+                   'inscription-discount_amount': '20000'})},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        self.assertEqual(enrollment.net_amount, 100000)
+
+    def test_a_pending_enrollment_cannot_be_paid(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        response = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(
+                student=student.pk, enrollment=enrollment.pk, amount='10000'),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Payment.objects.count(), 0)
+        self.assertEqual(
+            Enrollment.objects.get(pk=enrollment.pk).status,
+            Enrollment.Status.PENDING,
+        )
+
+    def test_direction_validates_the_counter_enrollment(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+
+        refused = self.client_for(self.formateur).post(reverse(
+            'core:dashboard:enrollment-validate', args=[enrollment.pk]))
+        self.assertEqual(refused.status_code, 403)
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, Enrollment.Status.PENDING)
+
+        response = self.client_for(self.direction).post(reverse(
+            'core:dashboard:enrollment-validate', args=[enrollment.pk]))
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:enrollment-detail', args=[enrollment.pk]),
+            fetch_redirect_response=False,
+        )
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, Enrollment.Status.ACTIVE)
+        self.assert_audited('ENROLLMENT_VALIDATE', enrollment.pk)
+
+    def test_super_admin_can_validate_while_admin_stays_read_only(self):
+        student = self.make_student('relais.direction@test.local')
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        url = reverse('core:dashboard:enrollment-validate', args=[enrollment.pk])
+
+        self.assertEqual(
+            self.client_for(self.admin).post(url).status_code, 403)
+
+        response = self.client_for(self.super_admin).post(url)
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:enrollment-detail', args=[enrollment.pk]),
+            fetch_redirect_response=False,
+        )
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, Enrollment.Status.ACTIVE)
+
+    def test_comptable_valide_depuis_sa_caisse(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        url = reverse('core:dashboard:enrollment-validate', args=[enrollment.pk])
+
+        page = self.client.get(reverse('core:dashboard:comptabilite-dashboard'))
+        self.assertContains(page, 'Inscriptions en attente de validation')
+        self.assertContains(page, url)
+
+        response = self.client.post(url)
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:enrollment-detail', args=[enrollment.pk]),
+            fetch_redirect_response=False,
+        )
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, Enrollment.Status.ACTIVE)
+        self.assert_audited('ENROLLMENT_VALIDATE', enrollment.pk)
+
+    def test_responsable_pedagogique_valide_depuis_son_tableau_de_bord(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        url = reverse('core:dashboard:enrollment-validate', args=[enrollment.pk])
+        peta = self.client_for(self.peda)
+
+        page = peta.get(reverse('core:dashboard:resp-peda-dashboard'))
+        self.assertContains(page, 'Inscriptions en attente de validation')
+        self.assertContains(page, url)
+
+        response = peta.post(url)
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:enrollment-detail', args=[enrollment.pk]),
+            fetch_redirect_response=False,
+        )
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, Enrollment.Status.ACTIVE)
+        self.assertContains(
+            peta.get(reverse(
+                'core:dashboard:enrollment-detail', args=[enrollment.pk])),
+            'Solde restant',
+        )
+
+    def test_panel_de_validation_present_sur_les_tableaux_habilites(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        for user, route in (
+            (self.super_admin, 'core:dashboard:super-admin-dashboard'),
+            (self.direction, 'core:dashboard:direction-dashboard'),
+            (self.comptable, 'core:dashboard:comptabilite-dashboard'),
+            (self.peda, 'core:dashboard:resp-peda-dashboard'),
+        ):
+            page = self.client_for(user).get(reverse(route))
+            self.assertEqual(page.status_code, 200, route)
+            self.assertContains(page, 'Inscriptions en attente de validation')
+
+    def test_validated_enrollment_becomes_payable(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        self.client_for(self.direction).post(reverse(
+            'core:dashboard:enrollment-validate', args=[enrollment.pk]))
+
+        response = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(
+                student=student.pk, enrollment=enrollment.pk, amount='10000'),
+        )
+        payment = Payment.objects.get()
+        self.assertRedirects(
+            response,
+            reverse('core:dashboard:payment-receipt', args=[payment.pk]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(payment.enrollment_id, enrollment.pk)
+
+    def test_enrollment_from_another_student_is_refused(self):
+        other = self.make_user(RoleKey.ETUDIANT, 'autre.etudiant@test.local')
+        response = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(student=other.pk),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Payment.objects.count(), 0)
+        errors = response.context['form'].errors.get('enrollment', [])
+        self.assertTrue(
+            any('appartient pas' in str(error) for error in errors), errors)
+
+    def test_sold_out_enrollment_has_an_explicit_message(self):
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(amount='90000'),
+        )
+        response = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(
+                amount='1000', paid_at=self.local_datetime(minutes=5)),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Payment.objects.count(), 1)
+        self.assertContains(response, 'Ce dossier est soldé')
+
+    def test_cancelled_enrollment_is_not_offered(self):
+        self.enrollment.status = Enrollment.Status.CANCELLED
+        self.enrollment.save(update_fields=['status'])
+        page = self.client.get(reverse('core:dashboard:payment-create'))
+        self.assertEqual(
+            list(page.context['form'].fields['enrollment'].queryset), [])
+
+    def test_pending_enrollment_warning_is_displayed(self):
+        student = self.make_student()
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        page = self.client.get(
+            reverse('core:dashboard:payment-create'),
+            {'student': student.pk},
+        )
+        self.assertContains(page, 'Inscriptions en attente de validation')
+        self.assertContains(page, 'en attente de validation')
+
+    def test_direction_dashboard_lists_pending_enrollments(self):
+        student = self.make_student('tableau.direction@test.local')
+        self.client.post(
+            reverse('core:dashboard:payment-create'),
+            {'form_kind': 'enroll', **self.counter_payload(student)},
+        )
+        enrollment = Enrollment.objects.get(student=student)
+        page = self.client_for(self.direction).get(
+            reverse('core:dashboard:direction-dashboard'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Inscriptions en attente de validation')
+        self.assertContains(page, enrollment.student.get_full_name())
+        self.assertContains(page, reverse(
+            'core:dashboard:enrollment-validate', args=[enrollment.pk]))

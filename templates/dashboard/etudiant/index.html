@@ -1,40 +1,48 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Mon espace — Univers Academy{% endblock %}
+{% block title %}{% translate "Mon espace — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/etudiant/_nav.html" %}{% endblock %}
 
-{% block hero_title %}Votre parcours de formation{% endblock %}
-{% block hero_text %}
-{{ enrollments|length }} formation{{ enrollments|length|pluralize }} suivie{{ enrollments|length|pluralize }}
-et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }} enregistrée{{ attendance_totals.total|pluralize }}.
-{% endblock %}
+{% block hero_title %}{% translate "Votre parcours de formation" %}{% endblock %}
+{% block hero_text %}{% blocktrans trimmed with n=enrollments|length fp=enrollments|length|pluralize t=attendance_totals.total ep=attendance_totals.total|pluralize %}{{ n }} formation{{ fp }} suivie{{ fp }} et {{ t }} présence{{ ep }} enregistrée{{ ep }}.{% endblocktrans %}{% endblock %}
 {% block hero_actions %}
 <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-light">
-    {% icon "book-open" %} Mes cours et ressources
+    {% icon "book-open" %} {% translate "Mes cours et ressources" %}
+</a>
+<a href="{% url 'core:dashboard:student-notebook' %}" class="ua-btn ua-btn-light">
+    {% icon "file-text" %} {% translate "Mes fiches de cours" %}
 </a>
 {% endblock %}
 {% block hero_aside %}
 <div class="ua-hero-card">
     <p class="ua-hero-card-value">{{ enrollments|length }}</p>
-    <p class="ua-hero-card-label">Formation{{ enrollments|length|pluralize }}</p>
+    <p class="ua-hero-card-label">{% blocktrans with fp=enrollments|length|pluralize %}Formation{{ fp }}{% endblocktrans %}</p>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
+{% translate "Mes formations" as lbl_formations %}
+{% translate "Solde restant" as lbl_solde %}
+{% translate "Présences" as lbl_presences %}
+{% translate "Absences" as lbl_absences %}
+{% translate "Parcours en cours" as hint_parcours %}
+{% translate "Relevés validés" as hint_releves %}
+{% translate "À justifier si besoin" as hint_justifier %}
+{% translate "Horaires à définir" as horaires_defaut %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-    {% include "dashboard/_stat.html" with label="Mes formations" value=enrollments|length icon="book-open" tone="indigo" hint="Parcours en cours" %}
-    {% include "dashboard/_stat.html" with label="Solde restant" value=balance icon="wallet" tone="amber" hint="FCFA" %}
-    {% include "dashboard/_stat.html" with label="Présences" value=attendance_totals.presents icon="user-check" tone="green" hint="Relevés validés" %}
-    {% include "dashboard/_stat.html" with label="Absences" value=attendance_totals.absents icon="close" tone="rose" hint="À justifier si besoin" %}
+    {% include "dashboard/_stat.html" with label=lbl_formations value=enrollments|length icon="book-open" tone="indigo" hint=hint_parcours %}
+    {% include "dashboard/_stat.html" with label=lbl_solde value=balance icon="wallet" tone="amber" hint="FCFA" %}
+    {% include "dashboard/_stat.html" with label=lbl_presences value=attendance_totals.presents icon="user-check" tone="green" hint=hint_releves %}
+    {% include "dashboard/_stat.html" with label=lbl_absences value=attendance_totals.absents icon="close" tone="rose" hint=hint_justifier %}
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
     <section class="ua-card xl:col-span-2 overflow-hidden">
         <div class="px-6 pt-6 pb-4">
-            <h2 class="ua-section-title">Mes formations</h2>
-            <p class="text-xs ua-muted mt-1">Vos inscriptions et leur avancement</p>
+            <h2 class="ua-section-title">{% translate "Mes formations" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Vos inscriptions et leur avancement" %}</p>
         </div>
         <div class="px-6 pb-6 space-y-3">
             {% for enrollment in enrollments %}
@@ -46,7 +54,7 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
                         </p>
                         <p class="text-xs ua-muted mt-1">
                             {{ enrollment.session.starts_at|date:"d/m/Y" }} → {{ enrollment.session.ends_at|date:"d/m/Y" }}
-                            · {{ enrollment.session.schedule|default:"Horaires à définir" }}
+                            · {{ enrollment.session.schedule|default:horaires_defaut }}
                         </p>
                     </div>
                     <span class="ua-badge
@@ -59,14 +67,14 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
                 </div>
             </article>
             {% empty %}
-            <p class="ua-empty">Aucune formation en cours</p>
+            <p class="ua-empty">{% translate "Aucune formation en cours" %}</p>
             {% endfor %}
         </div>
     </section>
 
     <div class="space-y-6">
         <section class="ua-card ua-card-pad">
-            <h2 class="ua-section-title mb-4">Mes paiements</h2>
+            <h2 class="ua-section-title mb-4">{% translate "Mes paiements" %}</h2>
             {% for payment in payments|slice:":5" %}
             <div class="ua-list-row">
                 <span class="ua-avatar-sm" style="background:#e6f8ef;color:#15803d;">
@@ -86,12 +94,12 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
                 </span>
             </div>
             {% empty %}
-            <p class="ua-empty">Aucun paiement enregistré</p>
+            <p class="ua-empty">{% translate "Aucun paiement enregistré" %}</p>
             {% endfor %}
         </section>
 
         <section class="ua-card ua-card-pad">
-            <h2 class="ua-section-title mb-4">Dernières présences</h2>
+            <h2 class="ua-section-title mb-4">{% translate "Dernières présences" %}</h2>
             {% for attendance in attendances|slice:":5" %}
             <div class="ua-list-row">
                 <div class="min-w-0 flex-1">
@@ -109,7 +117,7 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
                 </span>
             </div>
             {% empty %}
-            <p class="ua-empty">Aucune présence enregistrée</p>
+            <p class="ua-empty">{% translate "Aucune présence enregistrée" %}</p>
             {% endfor %}
         </section>
     </div>
@@ -118,29 +126,29 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
     <section class="ua-card ua-card-pad">
         <div class="flex items-center justify-between mb-4">
-            <h2 class="ua-section-title">Ressources récentes</h2>
-            <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Tout voir</a>
+            <h2 class="ua-section-title">{% translate "Ressources récentes" %}</h2>
+            <a href="{% url 'core:dashboard:student-resources' %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Tout voir" %}</a>
         </div>
         {% for resource in resources|slice:":6" %}
         <div class="ua-list-row">
             <div class="min-w-0">
                 <p class="text-sm font-semibold">{{ resource.title }}</p>
                 <p class="text-xs ua-muted">{{ resource.course.title }} · {{ resource.get_kind_display }}</p>
-                {% if resource.due_date %}<p class="text-xs ua-muted">Échéance : {{ resource.due_date|date:"d/m/Y H:i" }}</p>{% endif %}
+                {% if resource.due_date %}<p class="text-xs ua-muted">{% blocktrans with d=resource.due_date|date:"d/m/Y H:i" %}Échéance : {{ d }}{% endblocktrans %}</p>{% endif %}
             </div>
             {% if resource.file %}
-            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">Télécharger</a>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-download' resource.id %}">{% translate "Télécharger" %}</a>
             {% elif resource.html_content %}
-            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">Lire</a>
+            <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:resource-view' resource.id %}">{% translate "Lire" %}</a>
             {% endif %}
         </div>
         {% empty %}
-        <p class="ua-empty">Aucune ressource publiée pour le moment.</p>
+        <p class="ua-empty">{% translate "Aucune ressource publiée pour le moment." %}</p>
         {% endfor %}
     </section>
 
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Prochaines séances</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Prochaines séances" %}</h2>
         {% for record in upcoming_records %}
         <div class="ua-list-row">
             <div>
@@ -149,11 +157,11 @@ et {{ attendance_totals.total }} présence{{ attendance_totals.total|pluralize }
             </div>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucune séance planifiée.</p>
+        <p class="ua-empty">{% translate "Aucune séance planifiée." %}</p>
         {% endfor %}
         <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
-            <div><span class="text-xs ua-muted block">Net dû</span><strong>{{ total_due }} FCFA</strong></div>
-            <div><span class="text-xs ua-muted block">Total payé</span><strong>{{ total_paid }} FCFA</strong></div>
+            <div><span class="text-xs ua-muted block">{% translate "Net dû" %}</span><strong>{{ total_due }} FCFA</strong></div>
+            <div><span class="text-xs ua-muted block">{% translate "Total payé" %}</span><strong>{{ total_paid }} FCFA</strong></div>
         </div>
     </section>
 </div>

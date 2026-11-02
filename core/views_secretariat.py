@@ -8,8 +8,9 @@ from django.db.models import Q, Sum
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from .decorators import business_write_required, role_required
+from .decorators import business_write_required, enrollment_validation_required, role_required
 from .forms import (
     EnrollmentForm, NewEnrollmentForm, StudentDocumentForm, StudentEditForm,
     StudentForm,
@@ -133,9 +134,7 @@ def student_create(request):
             )
             messages.success(
                 request,
-                f"Étudiant {student.get_full_name()} créé "
-                f"({student.internal_code}) et inscrit à "
-                f"{enrollment.session.course.title}.",
+                _("Étudiant %(nom)s créé (%(code)s) et inscrit à %(formation)s.") % {'nom': student.get_full_name(), 'code': student.internal_code, 'formation': enrollment.session.course.title},
             )
             return redirect('core:dashboard:student-detail', student_id=student.id)
 
@@ -182,6 +181,10 @@ def student_detail(request, student_id):
         'total_paid': total_paid,
         'balance': sum(e.balance_due for e in enrollments),
         'doc_form': StudentDocumentForm(),
+        'can_manage_documents': (
+            not request.user.is_elevated
+            and request.user.has_any_role('SECRETAIRE', 'DIRECTION')
+        ),
         'audit_entries': AuditLog.objects.filter(
             entity_type='User', entity_id=str(student.id),
         ).select_related('actor').order_by('-created_at')[:20],
@@ -208,7 +211,7 @@ def student_edit(request, student_id):
                        'last_name': student.last_name,
                        'phone': student.phone},
             )
-            messages.success(request, "Fiche étudiant mise à jour.")
+            messages.success(request, _("Fiche étudiant mise à jour."))
             return redirect('core:dashboard:student-detail', student_id=student.id)
     return render(request, 'dashboard/secretaire/student_edit.html', {
         'form': form, 'student': student,
@@ -234,7 +237,7 @@ def enrollment_create(request):
                        'session': str(enrollment.session_id),
                        'net': enrollment.net_amount},
             )
-            messages.success(request, "Inscription enregistrée.")
+            messages.success(request, _("Inscription enregistrée."))
             return redirect('core:dashboard:enrollment-detail',
                             enrollment_id=enrollment.id)
     return render(request, 'dashboard/secretaire/enrollment_form.html', {
@@ -263,7 +266,7 @@ def enrollment_edit(request, enrollment_id):
                        'net_amount': enrollment.net_amount,
                        'session': str(enrollment.session_id)},
             )
-            messages.success(request, "Inscription mise à jour.")
+            messages.success(request, _("Inscription mise à jour."))
             return redirect('core:dashboard:enrollment-detail',
                             enrollment_id=enrollment.id)
     return render(request, 'dashboard/secretaire/enrollment_form.html', {
@@ -271,7 +274,39 @@ def enrollment_edit(request, enrollment_id):
     })
 
 
-@role_required(*SECRETARIAT_ROLES, 'COMPTABLE')
+@enrollment_validation_required
+def enrollment_validate(request, enrollment_id):
+    """Validation d'une inscription créée au guichet (direction, caisse,
+    supervision pédagogique, super administrateur)."""
+    enrollment = get_object_or_404(
+        Enrollment.objects.select_related('student', 'session__course'),
+        id=enrollment_id,
+    )
+    if request.method != 'POST':
+        return redirect('core:dashboard:enrollment-detail',
+                        enrollment_id=enrollment.id)
+    if enrollment.status != Enrollment.Status.PENDING:
+        messages.error(
+            request,
+            _("Seules les inscriptions en attente de validation peuvent être validées."),
+        )
+    else:
+        before = {'status': enrollment.status}
+        enrollment.status = Enrollment.Status.ACTIVE
+        enrollment.save(update_fields=['status', 'updated_at'])
+        log_audit(
+            request, 'ENROLLMENT_VALIDATE', 'Enrollment', str(enrollment.id),
+            before=before, after={'status': enrollment.status},
+        )
+        messages.success(
+            request,
+            _("Inscription validée : le dossier peut désormais être encaissé."),
+        )
+    return redirect('core:dashboard:enrollment-detail',
+                    enrollment_id=enrollment.id)
+
+
+@role_required(*SECRETARIAT_ROLES, 'COMPTABLE', 'RESP_PEDA')
 def enrollment_detail(request, enrollment_id):
     enrollment = get_object_or_404(
         Enrollment.objects.select_related('student', 'session__course'),
@@ -313,7 +348,7 @@ def student_document_upload(request, student_id):
             document.size_bytes = uploaded.size
             document.uploaded_by = request.user
             if uploaded.size > 10 * 1024 * 1024:
-                messages.error(request, "Le document dépasse 10 Mo.")
+                messages.error(request, _("Le document dépasse 10 Mo."))
             else:
                 document.save()
                 log_audit(
@@ -322,9 +357,9 @@ def student_document_upload(request, student_id):
                     after={'student': str(student.id),
                            'type': document.doc_type},
                 )
-                messages.success(request, "Document ajouté au dossier.")
+                messages.success(request, _("Document ajouté au dossier."))
         else:
-            messages.error(request, "Le document n'a pas pu être enregistré.")
+            messages.error(request, _("Le document n'a pas pu être enregistré."))
     return redirect('core:dashboard:student-detail', student_id=student.id)
 
 

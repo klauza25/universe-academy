@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Paiement étudiant — Univers Academy{% endblock %}
+{% block title %}{% translate "Paiement étudiant — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,23 +9,147 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Encaisser un paiement étudiant</h1>
-        <p class="ua-page-sub">Le paiement crée automatiquement une opération de caisse et un reçu.</p>
+        <h1 class="ua-page-title">{% translate "Encaisser un paiement étudiant" %}</h1>
+        <p class="ua-page-sub">{% translate "Choisissez l'étudiant, puis son inscription : le paiement crée une opération de caisse et un reçu." %}</p>
     </div>
-    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Journal comptable</a>
+    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">{% translate "Journal comptable" %}</a>
 </div>
 
 <section class="ua-card ua-card-pad max-w-2xl">
     <form method="post" class="ua-form">
         {% csrf_token %}
         {% include "dashboard/_form.html" with form=form %}
+        <p id="balance-hint" class="text-xs ua-muted" aria-live="polite"></p>
         <div class="flex flex-wrap gap-3 mt-5">
-            <button type="submit" class="ua-btn ua-btn-primary">{% icon "credit-card" %} Enregistrer le paiement</button>
-            <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">Annuler</a>
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "credit-card" %} {% translate "Enregistrer le paiement" %}</button>
+            <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">{% translate "Annuler" %}</a>
         </div>
     </form>
     <p class="text-xs ua-muted mt-4">
-        Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé après chaque règlement.
+        {% translate "Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé après chaque règlement." %}
+        {% translate "Seules les inscriptions validées sont encaissables." %}
     </p>
 </section>
+
+{% if selected_student and pending_enrollments %}
+<section class="ua-card ua-card-pad max-w-2xl mt-5">
+    <h2 class="ua-section-title mb-3">{% translate "Inscriptions en attente de validation" %}</h2>
+    <p class="ua-muted text-sm mb-4">
+        {% blocktrans with n=selected_student.get_full_name|default:selected_student.email %}{{ n }} a une inscription en attente : elle deviendra encaissable dès que la direction l'aura validée.{% endblocktrans %}
+    </p>
+    {% for enrollment in pending_enrollments %}
+    <div class="ua-list-row">
+        <div>
+            <span class="ua-cell-title">{{ enrollment.session.course.title }}</span>
+            <span class="ua-cell-sub block">
+                {% blocktrans with d=enrollment.enrolled_at|date:"d/m/Y H:i" n=enrollment.net_amount s=enrollment.get_status_display %}Créée le {{ d }} · net {{ n }} FCFA · {{ s }}{% endblocktrans %}
+            </span>
+        </div>
+        <span class="ua-badge ua-badge-amber">{% translate "En attente" %}</span>
+        <a class="ua-btn ua-btn-ghost ua-btn-sm"
+           href="{% url 'core:dashboard:enrollment-detail' enrollment.id %}">{% translate "Ouvrir le dossier" %}</a>
+    </div>
+    {% endfor %}
+</section>
+{% endif %}
+
+{% if can_enroll %}
+<section class="ua-card ua-card-pad max-w-2xl mt-5" id="inscription">
+    <details {% if counter_form.errors or selected_student and not form.enrollment.field.queryset %}open{% endif %}>
+        <summary class="ua-section-title cursor-pointer">{% translate "Inscrire un étudiant" %}</summary>
+        <p class="text-sm ua-muted mt-3 mb-4">
+            {% blocktrans %}L'inscription créée ici reste <strong>en attente</strong> : la direction doit la valider avant que le premier encaissement soit possible. Le tarif est repris du catalogue si le champ est laissé vide.{% endblocktrans %}
+        </p>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_kind" value="enroll">
+            {% include "dashboard/_form.html" with form=counter_form %}
+            <div class="flex flex-wrap gap-3 mt-5">
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Créer l'inscription" %}</button>
+            </div>
+        </form>
+    </details>
+</section>
+{% endif %}
+
+{% if students_without_enrollment %}
+<section class="ua-card ua-card-pad max-w-2xl mt-5">
+    <h2 class="ua-section-title mb-3">{% translate "Comptes étudiants sans inscription" %}</h2>
+    <p class="ua-empty mb-4">
+        {% translate "Un encaissement suppose une inscription validée : ces comptes actifs n'ont encore aucune inscription au dossier." %}
+    </p>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>{% translate "Étudiant" %}</th>
+                    <th>{% translate "Code" %}</th>
+                    <th>{% translate "Action" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students_without_enrollment %}
+                <tr>
+                    <td class="ua-cell-title">{{ student.get_full_name|default:student.email }}</td>
+                    <td class="ua-muted">{{ student.internal_code|default:"—" }}</td>
+                    <td>
+                        {% if can_enroll %}
+                        <a class="ua-btn ua-btn-ghost ua-btn-sm"
+                           href="?student={{ student.id }}#inscription">{% translate "Inscrire" %}</a>
+                        {% else %}
+                        <span class="ua-muted text-xs">{% translate "À inscrire par le secrétariat" %}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<script>
+(function () {
+    var hintReste = "{% translate 'Reste à payer sur ce dossier :' %}";
+    var hintSolde = "{% translate 'Dossier soldé : aucun montant ne reste à encaisser.' %}";
+    var student = document.getElementById('id_student');
+    if (student) {
+        student.addEventListener('change', function () {
+            var url = new URL(window.location.href);
+            if (student.value) {
+                url.searchParams.set('student', student.value);
+            } else {
+                url.searchParams.delete('student');
+            }
+            url.searchParams.delete('enrollment');
+            window.location.assign(url.toString());
+        });
+    }
+
+    var enrollment = document.getElementById('id_enrollment');
+    var amount = document.getElementById('id_amount');
+    var hint = document.getElementById('balance-hint');
+    if (!enrollment) { return; }
+
+    function sync() {
+        var option = enrollment.options[enrollment.selectedIndex];
+        var raw = option ? option.getAttribute('data-balance') : null;
+        if (raw === null || raw === '') {
+            if (hint) { hint.textContent = ''; }
+            if (amount) { amount.removeAttribute('max'); }
+            return;
+        }
+        var balance = parseInt(raw, 10) || 0;
+        if (amount) {
+            if (balance > 0) { amount.max = balance; } else { amount.removeAttribute('max'); }
+        }
+        if (hint) {
+            hint.textContent = balance > 0 ? hintReste + ' ' + balance.toLocaleString('fr-FR') + ' FCFA.' : hintSolde;
+        }
+    }
+
+    enrollment.addEventListener('change', sync);
+    sync();
+})();
+</script>
 {% endblock %}

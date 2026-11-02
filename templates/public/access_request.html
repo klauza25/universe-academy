@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Demande d'accès — Univers Academy{% endblock %}
+{% block title %}{% translate "Demande d'accès — Univers Academy" %}{% endblock %}
 
 {% block body %}
 <div class="min-h-screen bg-slate-50 px-4 py-10">
@@ -13,16 +13,15 @@
                 </div>
             </a>
             <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
-            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+            <p class="mt-1 text-sm text-slate-500">{% translate "Centre de Formation en Langues — Brazzaville" %}</p>
         </div>
 
         <div class="rounded-2xl bg-white shadow-xl shadow-slate-200/60 ring-1 ring-slate-200">
             <div class="px-6 py-8 sm:px-8">
                 <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-slate-900">Compléter ma demande d'accès</h2>
+                    <h2 class="text-xl font-semibold text-slate-900">{% translate "Compléter ma demande d'accès" %}</h2>
                     <p class="mt-1 text-sm text-slate-500">
-                        Votre identité est vérifiée. Choisissez le rôle que vous souhaitez
-                        demander : il sera examiné par l'administration.
+                        {% translate "Votre identité est vérifiée. Choisissez le rôle que vous souhaitez demander : il sera examiné par l'administration." %}
                     </p>
                 </div>
 
@@ -49,39 +48,39 @@
 
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
-                            <label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Prénom</label>
+                            <label for="{{ form.first_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{% translate "Prénom" %}</label>
                             {{ form.first_name }}
                             {% for error in form.first_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                         </div>
                         <div>
-                            <label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Nom</label>
+                            <label for="{{ form.last_name.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{% translate "Nom" %}</label>
                             {{ form.last_name }}
                             {% for error in form.last_name.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                         </div>
                     </div>
 
                     <div>
-                        <label for="{{ form.phone.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Téléphone</label>
+                        <label for="{{ form.phone.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{% translate "Téléphone" %}</label>
                         {{ form.phone }}
                         {% for error in form.phone.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                     </div>
 
                     <div>
-                        <label for="{{ form.requested_role.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">Rôle demandé</label>
+                        <label for="{{ form.requested_role.id_for_label }}" class="mb-1 block text-xs font-medium text-slate-600">{% translate "Rôle demandé" %}</label>
                         {{ form.requested_role }}
                         {% for error in form.requested_role.errors %}<p class="mt-1 text-xs text-rose-600">{{ error }}</p>{% endfor %}
                         <p class="mt-1 text-xs text-slate-500">{{ form.requested_role.help_text }}</p>
                     </div>
 
                     <button type="submit" class="mt-2 w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900/10">
-                        Envoyer ma demande
+                        {% translate "Envoyer ma demande" %}
                     </button>
                 </form>
 
                 <form method="post" action="{% url 'core:logout' %}" class="mt-4">
                     {% csrf_token %}
                     <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                        Se déconnecter
+                        {% translate "Se déconnecter" %}
                     </button>
                 </form>
             </div>

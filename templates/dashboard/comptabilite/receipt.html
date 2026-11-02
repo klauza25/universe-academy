@@ -1,11 +1,11 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Reçu {{ payment.reference }} — Univers Academy</title>
-    <style>
+    <title>{% translate "Reçu" %} {{ payment.reference }} — Univers Academy</title>
+    <style><!--
         @page { size: A5; margin: 12mm; }
         * { box-sizing: border-box; }
         body { font-family: "Segoe UI", system-ui, sans-serif; color: #1e2044; margin: 0; padding: 24px; background: #f4f5fb; }
@@ -33,56 +33,55 @@
             .sheet { box-shadow: none; border-radius: 0; padding: 0; }
             .actions { display: none; }
         }
-    </style>
+    --></style>
 </head>
 <body>
     <div class="sheet">
         <div class="head">
             <div class="brand">
                 Univers Academy
-                <small>Reçu de paiement étudiant</small>
+                <small>{% translate "Reçu de paiement étudiant" %}</small>
             </div>
             <div class="ref">
-                Reçu n°
+                {% translate "Reçu n°" %}
                 <strong>{{ payment.reference }}</strong>
                 {{ payment.paid_at|date:"d/m/Y H:i" }}
             </div>
         </div>
 
         <h1>{{ student.get_full_name|default:student.email }}</h1>
-        <p class="muted">Identifiant : {{ student.internal_code|default:"—" }} · {{ student.email }}</p>
+        <p class="muted">{% blocktrans with code=student.internal_code|default:"—" mail=student.email %}Identifiant : {{ code }} · {{ mail }}{% endblocktrans %}</p>
 
         <table>
-            <tr><th>Formation</th><td>{{ enrollment.session.course.title }}</td></tr>
-            <tr><th>Inscription</th><td>{{ enrollment.enrolled_at|date:"d/m/Y" }} · {{ enrollment.get_status_display }}</td></tr>
-            <tr><th>Moyen de paiement</th><td>{{ payment.get_method_display }}</td></tr>
-            <tr><th>Caisse / compte</th><td>{{ payment.transaction.account.name|default:"—" }}</td></tr>
-            <tr><th>Encaissé par</th><td>{{ payment.recorded_by.display_label|default:"—" }}</td></tr>
+            <tr><th>{% translate "Formation" %}</th><td>{{ enrollment.session.course.title }}</td></tr>
+            <tr><th>{% translate "Inscription" %}</th><td>{{ enrollment.enrolled_at|date:"d/m/Y" }} · {{ enrollment.get_status_display }}</td></tr>
+            <tr><th>{% translate "Moyen de paiement" %}</th><td>{{ payment.get_method_display }}</td></tr>
+            <tr><th>{% translate "Caisse / compte" %}</th><td>{{ payment.transaction.account.name|default:"—" }}</td></tr>
+            <tr><th>{% translate "Encaissé par" %}</th><td>{{ payment.recorded_by.display_label|default:"—" }}</td></tr>
         </table>
 
-        <p class="muted" style="margin:0;">Montant encaissé</p>
+        <p class="muted" style="margin:0;">{% translate "Montant encaissé" %}</p>
         <p class="amount">{{ payment.amount }} FCFA</p>
 
         <div class="grid">
-            <div><span>Net dû</span>{{ enrollment.net_amount }} FCFA</div>
-            <div><span>Total payé</span>{{ enrollment.total_paid }} FCFA</div>
-            <div><span>Reste à payer</span>{{ enrollment.balance_due }} FCFA</div>
-            <div><span>Statut du dossier</span>{{ enrollment.payment_state }}</div>
+            <div><span>{% translate "Net dû" %}</span>{{ enrollment.net_amount }} FCFA</div>
+            <div><span>{% translate "Total payé" %}</span>{{ enrollment.total_paid }} FCFA</div>
+            <div><span>{% translate "Reste à payer" %}</span>{{ enrollment.balance_due }} FCFA</div>
+            <div><span>{% translate "Statut du dossier" %}</span>{{ enrollment.payment_state }}</div>
         </div>
 
         {% if payment.note %}
-        <p class="muted" style="margin-top:16px;">Observations : {{ payment.note|linebreaksbr }}</p>
+        <p class="muted" style="margin-top:16px;">{% translate "Observations" %} : {{ payment.note|linebreaksbr }}</p>
         {% endif %}
 
         <div class="foot">
-            Reçu imprimé le {{ printed_at|date:"d/m/Y à H:i" }}. Ce reçu atteste uniquement du paiement
-            enregistré ci-dessus, et non du règlement total du dossier lorsque le solde restant est supérieur à zéro.
+            {% blocktrans with d=printed_at|date:"d/m/Y à H:i" %}Reçu imprimé le {{ d }}. Ce reçu atteste uniquement du paiement enregistré ci-dessus, et non du règlement total du dossier lorsque le solde restant est supérieur à zéro.{% endblocktrans %}
         </div>
     </div>
 
     <div class="actions">
-        <button class="btn btn-primary" onclick="window.print()">Imprimer / PDF</button>
-        <a class="btn btn-ghost" href="{% url 'core:dashboard:journal' %}">Journal comptable</a>
+        <button class="btn btn-primary" onclick="window.print()">{% translate "Imprimer / PDF" %}</button>
+        <a class="btn btn-ghost" href="{% url 'core:dashboard:journal' %}">{% translate "Journal comptable" %}</a>
     </div>
 </body>
 </html>

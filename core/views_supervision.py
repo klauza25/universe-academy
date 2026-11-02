@@ -11,6 +11,7 @@ from django.db.models import Count, Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .decorators import role_required
 from .models import CashAccount, CashTransaction, TransactionCategory, User
@@ -100,7 +101,7 @@ def _csv_row(tx):
         created.strftime('%d/%m/%Y'),
         created.strftime('%H:%M'),
         tx.get_status_display(),
-        'Oui' if tx.receipt else 'Non',
+        _('Oui') if tx.receipt else _('Non'),
         tx.note,
         payment.reference if payment else '',
         expense.category if expense else '',
@@ -119,12 +120,12 @@ def finance_supervision(request):
         response.write('\ufeff')
         writer = csv.writer(response, delimiter=';')
         writer.writerow([
-            'Référence', 'Date effective', 'Heure effective', 'Type',
-            'Catégorie', 'Montant', 'Devise', 'Libellé', 'Description',
-            'Payeur / Bénéficiaire', 'Moyen de paiement', 'Caisse',
-            'Compte destination', 'Auteur', 'Enregistrée le',
-            'Enregistrée à', 'Statut', 'Justificatif', 'Commentaire',
-            'Paiement étudiant', 'Dépense liée',
+            _('Référence'), _('Date effective'), _('Heure effective'), _('Type'),
+            _('Catégorie'), _('Montant'), _('Devise'), _('Libellé'), _('Description'),
+            _('Payeur / Bénéficiaire'), _('Moyen de paiement'), _('Caisse'),
+            _('Compte destination'), _('Auteur'), _('Enregistrée le'),
+            _('Enregistrée à'), _('Statut'), _('Justificatif'), _('Commentaire'),
+            _('Paiement étudiant'), _('Dépense liée'),
         ])
         rows = qs.order_by('-occurred_at', '-created_at')[:EXPORT_LIMIT]
         for tx in rows:

@@ -26,6 +26,19 @@ def outstanding_receivables():
     )['total'] or 0
 
 
+def enrollments_waiting_validation(limit=10):
+    """Inscriptions ouvertes au guichet, en attente d'une validation.
+
+    La file est la même sur chaque tableau de bord habilité à valider :
+    direction, caisse, supervision pédagogique, super administrateur.
+    """
+    return (
+        Enrollment.objects.filter(status=Enrollment.Status.PENDING)
+        .select_related('student', 'session__course')
+        .order_by('enrolled_at')[:limit]
+    )
+
+
 def get_client_ip(request):
     x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded:

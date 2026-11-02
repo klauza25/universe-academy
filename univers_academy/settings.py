@@ -27,6 +27,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -78,6 +79,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'fr-fr'
+LANGUAGES = [
+    ('fr', 'Français'),
+    ('en', 'English'),
+]
+LOCALE_PATHS = [BASE_DIR / 'locale']
 TIME_ZONE = os.getenv('TIME_ZONE', 'Africa/Brazzaville')
 USE_I18N = True
 USE_TZ = True
@@ -109,6 +115,9 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1', 'http://localhos
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 
+host = "192.168.1.114"
+
+ALLOWED_HOSTS = [host]
 # ---------------------------------------------------------------------------
 # Clerk authentication (Google + email/password)
 # ---------------------------------------------------------------------------

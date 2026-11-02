@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Universe Academy — Centre de Formation en Langues{% endblock %}
+{% block title %}Universe Academy — {% translate "Centre de Formation en Langues" %}{% endblock %}
 
 {% block body %}
 <div class="min-h-screen flex flex-col"
@@ -16,9 +16,7 @@
             <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">
                 Universe Academy
             </h1>
-            <p class="mt-2 text-sm sm:text-base text-blue-200">
-                Centre de Formation en Langues — Brazzaville
-            </p>
+            <p class="mt-2 text-sm sm:text-base text-blue-200">{% translate "Centre de Formation en Langues — Brazzaville" %}</p>
 
             {% if messages %}
             <div class="mt-6 space-y-2 text-left">
@@ -32,30 +30,22 @@
 
             <div class="mt-8 space-y-3">
                 <a href="{% url 'core:login' %}"
-                   class="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-900/20 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white/40">
-                    Se connecter
-                </a>
+                   class="inline-flex w-full items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg shadow-slate-900/20 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white/40">{% translate "Se connecter" %}</a>
                 <a href="{% url 'core:register' %}"
-                   class="inline-flex w-full items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10">
-                    Créer un compte
-                </a>
+                   class="inline-flex w-full items-center justify-center rounded-xl border border-white/25 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/10">{% translate "Créer un compte" %}</a>
             </div>
 
             <div class="mt-6">
                 <a href="{% url 'core:bourses:scholarship-apply' %}"
-                   class="text-sm text-blue-200 underline-offset-4 transition hover:text-white hover:underline">
-                    Candidater à une bourse d'études
-                </a>
+                   class="text-sm text-blue-200 underline-offset-4 transition hover:text-white hover:underline">{% translate "Candidater à une bourse d'études" %}</a>
             </div>
 
-            <p class="mt-10 text-xs text-blue-300/80">
-                Connexion sécurisée par Clerk — Google, Gmail ou email et mot de passe.
-            </p>
+            <p class="mt-10 text-xs text-blue-300/80">{% translate "Connexion sécurisée par Clerk — Google, Gmail ou email et mot de passe." %}</p>
         </div>
     </main>
 
     <footer class="border-t border-white/10 px-4 py-5 text-center text-xs text-blue-200/80">
-        <p>Immeuble Monte Cristo, Rond-point la Gare — Brazzaville</p>
+        <p>{% translate "Immeuble Monte Cristo, Rond-point la Gare — Brazzaville" %}</p>
         <p class="mt-1">+242 068 517 179 · universeacademy70@gmail.com</p>
     </footer>
 </div>

@@ -4,27 +4,133 @@
 
 /* ---------------------------------------------------------------------------
    Univers Academy — dashboard design system
-   Soft periwinkle canvas, floating white cards, indigo accents.
+   Soft periwinkle canvas, floating cards, indigo accents.
+   Toutes les couleurs passent par les tokens ci-dessous : le thème sombre ne
+   redéfinit que les tokens, jamais les règles.
 --------------------------------------------------------------------------- */
 
 :root {
     --ua-brand: #5b5bf6;
     --ua-brand-dark: #4646d6;
     --ua-brand-soft: #ecebfe;
+    --ua-brand-soft-hover: #e3e2fd;
     --ua-ink: #1e2044;
     --ua-muted: #8b8fb3;
     --ua-line: #f0f1fa;
     --ua-canvas: #e9eafb;
+
+    --ua-surface: #ffffff;
+    --ua-surface-2: #f8f8fe;
+    --ua-surface-3: #f7f7fe;
+    --ua-surface-hover: #fbfbff;
+    --ua-surface-scroll: #cbd5e1;
+    --ua-surface-scroll-hover: #94a3b8;
+
+    --ua-input-bg: #fbfbff;
+    --ua-input-border: #e6e7f5;
+    --ua-input-text: #3f4270;
+    --ua-input-focus: #a5b4fc;
+    --ua-chip-text: #6d719b;
+    --ua-nav-text: #7c80a6;
+    --ua-nav-hover-bg: #f5f6fe;
+    --ua-nav-hover-text: #41446f;
+    --ua-nav-label: #b3b6d4;
+    --ua-table-cell: #4a4d76;
+    --ua-table-head: #9a9dbe;
+    --ua-hint: #a2a5c4;
+
+    --ua-shadow: rgba(70, 75, 170, 0.07);
+    --ua-shadow-brand: rgba(91, 91, 246, 0.28);
+    --ua-shadow-ink: rgba(30, 32, 68, 0.14);
+    --ua-scheme: light;
+
+    --ua-tone-indigo-bg: #ecebfe;   --ua-tone-indigo-fg: #5b5bf6;
+    --ua-tone-green-bg: #e6f8ef;    --ua-tone-green-fg: #16a34a;
+    --ua-tone-amber-bg: #fdf1df;    --ua-tone-amber-fg: #d97706;
+    --ua-tone-rose-bg: #fde9ee;     --ua-tone-rose-fg: #e11d48;
+    --ua-tone-sky-bg: #e6f3fe;      --ua-tone-sky-fg: #0284c7;
+    --ua-tone-violet-bg: #f2e9fe;   --ua-tone-violet-fg: #7c3aed;
+
+    --ua-badge-green-bg: #e6f8ef;   --ua-badge-green-fg: #15803d;
+    --ua-badge-indigo-bg: #ecebfe;  --ua-badge-indigo-fg: #4f46e5;
+    --ua-badge-amber-bg: #fdf1df;   --ua-badge-amber-fg: #b45309;
+    --ua-badge-rose-bg: #fde9ee;    --ua-badge-rose-fg: #be123c;
+    --ua-badge-slate-bg: #f1f2f8;   --ua-badge-slate-fg: #5b5f85;
+
+    --ua-count-bg: #ffedd5;         --ua-count-fg: #c2410c;
+    --ua-avatar-fg: #3730a3;
+    --ua-avatar-from: #e0e7ff;      --ua-avatar-to: #a5b4fc;
+    --ua-mark-from: #6366f1;        --ua-mark-to: #a5b4fc;
+    --ua-hero-from: #5b5bf6;        --ua-hero-mid: #7c83f9;  --ua-hero-to: #aab4fc;
+}
+
+/* Le thème sombre n'est actif que si la donnée est résolue par le script de
+   base.html : data-theme vaut toujours "light" ou "dark", jamais "auto". */
+html[data-theme="dark"] {
+    --ua-brand: #8b8bff;
+    --ua-brand-dark: #a2a2ff;
+    --ua-brand-soft: #2b2c56;
+    --ua-brand-soft-hover: #35366a;
+    --ua-ink: #eef0fb;
+    --ua-muted: #a3a8cc;
+    --ua-line: #2c2e56;
+    --ua-canvas: #101127;
+
+    --ua-surface: #1a1c38;
+    --ua-surface-2: #22244a;
+    --ua-surface-3: #23254c;
+    --ua-surface-hover: #262852;
+    --ua-surface-scroll: #3b3e6b;
+    --ua-surface-scroll-hover: #4d5188;
+
+    --ua-input-bg: #22244a;
+    --ua-input-border: #34376a;
+    --ua-input-text: #dfe2f6;
+    --ua-input-focus: #8b8bff;
+    --ua-chip-text: #b6badb;
+    --ua-nav-text: #a3a8cc;
+    --ua-nav-hover-bg: #26284f;
+    --ua-nav-hover-text: #eef0fb;
+    --ua-nav-label: #7f84ad;
+    --ua-table-cell: #cfd3ec;
+    --ua-table-head: #9aa0c7;
+    --ua-hint: #8b90b8;
+
+    --ua-shadow: rgba(0, 0, 0, 0.35);
+    --ua-shadow-brand: rgba(91, 91, 246, 0.35);
+    --ua-shadow-ink: rgba(0, 0, 0, 0.4);
+    --ua-scheme: dark;
+
+    --ua-tone-indigo-bg: #2b2c56;   --ua-tone-indigo-fg: #a5b4fc;
+    --ua-tone-green-bg: #17352a;    --ua-tone-green-fg: #6ee7a8;
+    --ua-tone-amber-bg: #3a2b16;    --ua-tone-amber-fg: #fcd34d;
+    --ua-tone-rose-bg: #3d1c2a;     --ua-tone-rose-fg: #fda4af;
+    --ua-tone-sky-bg: #14303f;      --ua-tone-sky-fg: #7dd3fc;
+    --ua-tone-violet-bg: #301f45;   --ua-tone-violet-fg: #c4b5fd;
+
+    --ua-badge-green-bg: #17352a;   --ua-badge-green-fg: #86efac;
+    --ua-badge-indigo-bg: #2b2c56;  --ua-badge-indigo-fg: #a5b4fc;
+    --ua-badge-amber-bg: #3a2b16;   --ua-badge-amber-fg: #fcd34d;
+    --ua-badge-rose-bg: #3d1c2a;    --ua-badge-rose-fg: #fda4af;
+    --ua-badge-slate-bg: #26284f;   --ua-badge-slate-fg: #b6badb;
+
+    --ua-count-bg: #3a2b16;         --ua-count-fg: #fdba74;
+    --ua-avatar-fg: #c7d2fe;
+    --ua-avatar-from: #2b2c56;      --ua-avatar-to: #45488010;
+    --ua-mark-from: #6366f1;        --ua-mark-to: #8b8bff;
+    --ua-hero-from: #2f2f7a;        --ua-hero-mid: #4043a8;  --ua-hero-to: #55599c;
 }
 
 html {
     scroll-behavior: smooth;
+    color-scheme: var(--ua-scheme);
 }
 
 body {
     font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui,
         -apple-system, "Segoe UI", sans-serif;
     color: var(--ua-ink);
+    background: var(--ua-canvas);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -45,7 +151,7 @@ body {
 .ua-sidebar {
     width: 264px;
     flex-shrink: 0;
-    background: #ffffff;
+    background: var(--ua-surface);
     border-radius: 0 30px 30px 0;
     padding: 26px 20px 22px;
     display: flex;
@@ -54,7 +160,7 @@ body {
     height: 100vh;
     position: sticky;
     top: 0;
-    box-shadow: 14px 0 44px rgba(70, 75, 170, 0.07);
+    box-shadow: 14px 0 44px var(--ua-shadow);
     z-index: 30;
 }
 
@@ -73,8 +179,8 @@ body {
     display: grid;
     place-items: center;
     color: #ffffff;
-    background: linear-gradient(135deg, #6366f1, #a5b4fc);
-    box-shadow: 0 12px 22px rgba(99, 102, 241, 0.32);
+    background: linear-gradient(135deg, var(--ua-mark-from), var(--ua-mark-to));
+    box-shadow: 0 12px 22px var(--ua-shadow-brand);
 }
 
 .ua-brand-name {
@@ -108,7 +214,7 @@ body {
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #b3b6d4;
+    color: var(--ua-nav-label);
     padding: 0 12px;
     margin-bottom: 2px;
 }
@@ -119,7 +225,7 @@ body {
     gap: 13px;
     padding: 11px 14px;
     border-radius: 14px;
-    color: #7c80a6;
+    color: var(--ua-nav-text);
     font-size: 0.875rem;
     font-weight: 500;
     transition: background-color 0.18s ease, color 0.18s ease,
@@ -127,15 +233,15 @@ body {
 }
 
 .ua-nav-link:hover {
-    background: #f5f6fe;
-    color: #41446f;
+    background: var(--ua-nav-hover-bg);
+    color: var(--ua-nav-hover-text);
 }
 
 .ua-nav-link.is-active {
     background: var(--ua-brand-soft);
     color: var(--ua-brand-dark);
     font-weight: 700;
-    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.14);
+    box-shadow: inset 0 0 0 1px var(--ua-input-border);
 }
 
 .ua-nav-link.is-active .ua-icon {
@@ -148,8 +254,8 @@ body {
     height: 22px;
     padding: 0 6px;
     border-radius: 999px;
-    background: #ffedd5;
-    color: #c2410c;
+    background: var(--ua-count-bg);
+    color: var(--ua-count-fg);
     font-size: 0.68rem;
     font-weight: 700;
     display: inline-flex;
@@ -171,7 +277,7 @@ body {
     gap: 11px;
     padding: 10px 12px;
     border-radius: 16px;
-    background: #f8f8fe;
+    background: var(--ua-surface-2);
 }
 
 .ua-user-mini-name {
@@ -195,8 +301,8 @@ body {
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.02em;
-    color: #3730a3;
-    background: linear-gradient(135deg, #e0e7ff, #a5b4fc);
+    color: var(--ua-avatar-fg);
+    background: linear-gradient(135deg, var(--ua-avatar-from), var(--ua-mark-to));
     flex-shrink: 0;
 }
 
@@ -226,11 +332,11 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #ffffff;
+    background: var(--ua-surface);
     border-radius: 999px;
     padding: 12px 20px;
-    color: #a2a5c4;
-    box-shadow: 0 12px 30px rgba(70, 75, 170, 0.07);
+    color: var(--ua-hint);
+    box-shadow: 0 12px 30px var(--ua-shadow);
     flex: 0 1 380px;
     min-width: 0;
 }
@@ -240,12 +346,12 @@ body {
     outline: 0;
     background: transparent;
     font-size: 0.86rem;
-    color: #3f4270;
+    color: var(--ua-input-text);
     width: 100%;
 }
 
 .ua-search input::placeholder {
-    color: #a2a5c4;
+    color: var(--ua-hint);
 }
 
 .ua-topbar-right {
@@ -259,13 +365,13 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #ffffff;
+    background: var(--ua-surface);
     border-radius: 999px;
     padding: 10px 16px;
     font-size: 0.78rem;
     font-weight: 600;
-    color: #6d719b;
-    box-shadow: 0 12px 30px rgba(70, 75, 170, 0.07);
+    color: var(--ua-chip-text);
+    box-shadow: 0 12px 30px var(--ua-shadow);
     white-space: nowrap;
 }
 
@@ -275,11 +381,13 @@ body {
     border-radius: 14px;
     display: inline-grid;
     place-items: center;
-    background: #ffffff;
-    color: #6d719b;
-    box-shadow: 0 12px 30px rgba(70, 75, 170, 0.07);
+    background: var(--ua-surface);
+    color: var(--ua-chip-text);
+    box-shadow: 0 12px 30px var(--ua-shadow);
     transition: color 0.18s ease, transform 0.18s ease;
     position: relative;
+    border: 0;
+    cursor: pointer;
 }
 
 .ua-icon-btn:hover {
@@ -295,17 +403,17 @@ body {
     height: 8px;
     border-radius: 50%;
     background: #f97316;
-    border: 2px solid #ffffff;
+    border: 2px solid var(--ua-surface);
 }
 
 .ua-profile {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: #ffffff;
+    background: var(--ua-surface);
     padding: 7px 16px 7px 8px;
     border-radius: 999px;
-    box-shadow: 0 12px 30px rgba(70, 75, 170, 0.07);
+    box-shadow: 0 12px 30px var(--ua-shadow);
 }
 
 .ua-profile-name {
@@ -331,6 +439,47 @@ body {
 .ua-backdrop {
     display: none;
 }
+
+/* ---- Bascules de la barre (langue + thème) ------------------------------ */
+
+.ua-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--ua-surface);
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: 0 12px 30px var(--ua-shadow);
+}
+
+.ua-switch button,
+.ua-switch input[type="submit"] {
+    border: 0;
+    background: transparent;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--ua-muted);
+    cursor: pointer;
+}
+
+.ua-switch button:hover,
+.ua-switch input[type="submit"]:hover {
+    color: var(--ua-brand);
+}
+
+.ua-switch .is-on {
+    background: var(--ua-brand-soft);
+    color: var(--ua-brand-dark);
+}
+
+/* Une seule des deux icônes du bouton de thème est visible : celle qui propose
+   le thème vers lequel on va. Les libellés restent dans les gabarits, donc
+   traduits ; le JavaScript n'écrit aucun texte. */
+html[data-theme="dark"] .ua-icone-clair { display: none; }
+html[data-theme="light"] .ua-icone-sombre { display: none; }
 
 /* ---- Content ----------------------------------------------------------- */
 
@@ -371,8 +520,9 @@ body {
     border-radius: 28px;
     padding: 30px 34px;
     color: #ffffff;
-    background: linear-gradient(115deg, #5b5bf6 0%, #7c83f9 48%, #aab4fc 100%);
-    box-shadow: 0 24px 46px rgba(91, 91, 246, 0.26);
+    background: linear-gradient(115deg, var(--ua-hero-from) 0%,
+        var(--ua-hero-mid) 48%, var(--ua-hero-to) 100%);
+    box-shadow: 0 24px 46px var(--ua-shadow-brand);
     margin-bottom: 24px;
 }
 
@@ -467,10 +617,10 @@ body {
 /* ---- Cards & stats ----------------------------------------------------- */
 
 .ua-card {
-    background: #ffffff;
+    background: var(--ua-surface);
     border-radius: 22px;
-    border: 1px solid rgba(99, 102, 241, 0.06);
-    box-shadow: 0 16px 36px rgba(70, 75, 170, 0.07);
+    border: 1px solid var(--ua-line);
+    box-shadow: 0 16px 36px var(--ua-shadow);
 }
 
 .ua-card-pad {
@@ -486,6 +636,19 @@ body {
 
 .ua-muted {
     color: var(--ua-muted);
+}
+
+/* Chart.js rend dans un conteneur mesuré : sans hauteur posée ici, le canevas
+   s'agrandit à chaque repeinture et finit par déborder de la carte. */
+.ua-chart-box {
+    position: relative;
+    height: 300px;
+}
+
+@media (max-width: 640px) {
+    .ua-chart-box {
+        height: 240px;
+    }
 }
 
 .ua-stat {
@@ -516,12 +679,12 @@ body {
     height: 22px;
 }
 
-.ua-tone-indigo { background: #ecebfe; color: #5b5bf6; }
-.ua-tone-green  { background: #e6f8ef; color: #16a34a; }
-.ua-tone-amber  { background: #fdf1df; color: #d97706; }
-.ua-tone-rose   { background: #fde9ee; color: #e11d48; }
-.ua-tone-sky    { background: #e6f3fe; color: #0284c7; }
-.ua-tone-violet { background: #f2e9fe; color: #7c3aed; }
+.ua-tone-indigo { background: var(--ua-tone-indigo-bg); color: var(--ua-tone-indigo-fg); }
+.ua-tone-green  { background: var(--ua-tone-green-bg);  color: var(--ua-tone-green-fg); }
+.ua-tone-amber  { background: var(--ua-tone-amber-bg);  color: var(--ua-tone-amber-fg); }
+.ua-tone-rose   { background: var(--ua-tone-rose-bg);   color: var(--ua-tone-rose-fg); }
+.ua-tone-sky    { background: var(--ua-tone-sky-bg);    color: var(--ua-tone-sky-fg); }
+.ua-tone-violet { background: var(--ua-tone-violet-bg); color: var(--ua-tone-violet-fg); }
 
 .ua-stat-label {
     font-size: 0.76rem;
@@ -540,12 +703,12 @@ body {
 
 .ua-stat-hint {
     font-size: 0.7rem;
-    color: #a2a5c4;
+    color: var(--ua-hint);
     margin-top: 6px;
 }
 
 .ua-stat-hint strong {
-    color: #16a34a;
+    color: var(--ua-tone-green-fg);
     font-weight: 700;
 }
 
@@ -569,8 +732,8 @@ body {
     font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: #9a9dbe;
-    background: #f7f7fe;
+    color: var(--ua-table-head);
+    background: var(--ua-surface-3);
     padding: 10px 14px;
     white-space: nowrap;
 }
@@ -581,7 +744,7 @@ body {
 .ua-table td {
     padding: 13px 14px;
     border-bottom: 1px solid var(--ua-line);
-    color: #4a4d76;
+    color: var(--ua-table-cell);
     vertical-align: middle;
 }
 
@@ -590,7 +753,7 @@ body {
 }
 
 .ua-table tbody tr:hover td {
-    background: #fbfbff;
+    background: var(--ua-surface-hover);
 }
 
 .ua-table .ua-cell-title {
@@ -617,11 +780,11 @@ body {
     white-space: nowrap;
 }
 
-.ua-badge-green  { background: #e6f8ef; color: #15803d; }
-.ua-badge-indigo { background: #ecebfe; color: #4f46e5; }
-.ua-badge-amber  { background: #fdf1df; color: #b45309; }
-.ua-badge-rose   { background: #fde9ee; color: #be123c; }
-.ua-badge-slate  { background: #f1f2f8; color: #5b5f85; }
+.ua-badge-green  { background: var(--ua-badge-green-bg);  color: var(--ua-badge-green-fg); }
+.ua-badge-indigo { background: var(--ua-badge-indigo-bg); color: var(--ua-badge-indigo-fg); }
+.ua-badge-amber  { background: var(--ua-badge-amber-bg);  color: var(--ua-badge-amber-fg); }
+.ua-badge-rose   { background: var(--ua-badge-rose-bg);   color: var(--ua-badge-rose-fg); }
+.ua-badge-slate  { background: var(--ua-badge-slate-bg);  color: var(--ua-badge-slate-fg); }
 
 .ua-btn {
     display: inline-flex;
@@ -635,6 +798,7 @@ body {
     transition: transform 0.16s ease, background-color 0.16s ease,
         box-shadow 0.16s ease;
     cursor: pointer;
+    border: 0;
 }
 
 .ua-btn:hover {
@@ -649,7 +813,7 @@ body {
 .ua-btn-primary {
     background: var(--ua-brand);
     color: #ffffff;
-    box-shadow: 0 12px 24px rgba(91, 91, 246, 0.28);
+    box-shadow: 0 12px 24px var(--ua-shadow-brand);
 }
 
 .ua-btn-primary:hover {
@@ -657,13 +821,13 @@ body {
 }
 
 .ua-btn-light {
-    background: #ffffff;
+    background: var(--ua-surface);
     color: var(--ua-brand-dark);
-    box-shadow: 0 12px 24px rgba(30, 32, 68, 0.14);
+    box-shadow: 0 12px 24px var(--ua-shadow-ink);
 }
 
 .ua-btn-light:hover {
-    background: #f6f6ff;
+    background: var(--ua-surface-2);
 }
 
 .ua-btn-ghost {
@@ -672,7 +836,7 @@ body {
 }
 
 .ua-btn-ghost:hover {
-    background: #e3e2fd;
+    background: var(--ua-brand-soft-hover);
 }
 
 .ua-btn-sm {
@@ -686,7 +850,7 @@ body {
 .ua-empty {
     padding: 42px 20px;
     text-align: center;
-    color: #a2a5c4;
+    color: var(--ua-hint);
     font-size: 0.85rem;
 }
 
@@ -697,7 +861,7 @@ body {
 .ua-progress {
     height: 8px;
     border-radius: 999px;
-    background: #f0f1fa;
+    background: var(--ua-line);
     overflow: hidden;
 }
 
@@ -705,7 +869,7 @@ body {
     display: block;
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #6366f1, #a5b4fc);
+    background: linear-gradient(90deg, var(--ua-mark-from), var(--ua-mark-to));
 }
 
 .ua-list-row {
@@ -732,8 +896,8 @@ body {
     place-items: center;
     font-size: 0.7rem;
     font-weight: 800;
-    color: #4338ca;
-    background: #eef0ff;
+    color: var(--ua-avatar-fg);
+    background: var(--ua-brand-soft);
     flex-shrink: 0;
 }
 
@@ -747,7 +911,7 @@ body {
     display: block;
     font-size: 0.74rem;
     font-weight: 600;
-    color: #6d719b;
+    color: var(--ua-chip-text);
     margin-bottom: 6px;
 }
 
@@ -759,15 +923,18 @@ body {
 .ua-form input[type="datetime-local"],
 .ua-form input[type="time"],
 .ua-form input[type="search"],
+.ua-form input[type="url"],
+.ua-form input[type="tel"],
+.ua-form input[type="file"],
 .ua-form select,
 .ua-form textarea {
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid #e6e7f5;
+    border: 1px solid var(--ua-input-border);
     border-radius: 12px;
-    background: #fbfbff;
+    background: var(--ua-input-bg);
     font-size: 0.85rem;
-    color: #3f4270;
+    color: var(--ua-input-text);
     transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
@@ -775,15 +942,32 @@ body {
 .ua-form select:focus,
 .ua-form textarea:focus {
     outline: none;
-    border-color: #a5b4fc;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-    background: #ffffff;
+    border-color: var(--ua-input-focus);
+    box-shadow: 0 0 0 3px var(--ua-brand-soft);
+    background: var(--ua-surface);
+}
+
+/* Les listes déroulantes natives suivent le thème résolu : sans ces deux
+   lignes, un poste Windows en mode sombre rendait le texte des options
+   illisible (fond clair imposé par l'OS, texte clair imposé par le thème). */
+.ua-form select {
+    color-scheme: var(--ua-scheme);
+}
+
+.ua-form select option,
+.ua-form select optgroup {
+    background-color: var(--ua-surface);
+    color: var(--ua-ink);
+}
+
+.ua-form select option:disabled {
+    color: var(--ua-hint);
 }
 
 .ua-form .helptext {
     display: block;
     font-size: 0.7rem;
-    color: #a2a5c4;
+    color: var(--ua-hint);
     margin-top: 4px;
 }
 
@@ -793,25 +977,25 @@ body {
     margin: 4px 0 0;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #e11d48;
+    color: var(--ua-tone-rose-fg);
 }
 
 .ua-form input[type="checkbox"] {
     width: 16px;
     height: 16px;
-    accent-color: #5b5bf6;
+    accent-color: var(--ua-brand);
 }
 
 .ua-form input[type="file"] {
     width: 100%;
     font-size: 0.8rem;
-    color: #4b4f7d;
+    color: var(--ua-chip-text);
 }
 
 .ua-form input[type="file"]::file-selector-button {
-    border: 1px solid #e6e7f5;
-    background: #fbfbff;
-    color: #4b4f7d;
+    border: 1px solid var(--ua-input-border);
+    background: var(--ua-input-bg);
+    color: var(--ua-chip-text);
     padding: 8px 12px;
     border-radius: 10px;
     margin-right: 10px;
@@ -819,7 +1003,66 @@ body {
     font-weight: 600;
 }
 
-/* ---- Responsive -------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+   Utilitaires Tailwind utilisés tels quels dans les gabarits.
+   Le thème sombre les remappe sur les tokens : aucun gabarit n'a été touché
+   pour cela. La spécificité (html + attribut + classe) passe devant
+   l'utilitaire Tailwind, donc pas d'!important.
+--------------------------------------------------------------------------- */
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-gray-50,
+html[data-theme="dark"] .bg-slate-50 { background-color: var(--ua-surface); }
+
+html[data-theme="dark"] .bg-slate-100,
+html[data-theme="dark"] .bg-slate-200 { background-color: var(--ua-surface-2); }
+
+html[data-theme="dark"] .bg-slate-800,
+html[data-theme="dark"] .bg-slate-900 { background-color: var(--ua-ink); }
+
+html[data-theme="dark"] .bg-rose-50    { background-color: var(--ua-tone-rose-bg); }
+html[data-theme="dark"] .bg-sky-50     { background-color: var(--ua-tone-sky-bg); }
+html[data-theme="dark"] .bg-emerald-50 { background-color: var(--ua-tone-green-bg); }
+html[data-theme="dark"] .bg-amber-50   { background-color: var(--ua-tone-amber-bg); }
+
+html[data-theme="dark"] .text-slate-900,
+html[data-theme="dark"] .text-slate-700 { color: var(--ua-ink); }
+
+html[data-theme="dark"] .text-slate-600,
+html[data-theme="dark"] .text-slate-500 { color: var(--ua-muted); }
+
+html[data-theme="dark"] .text-slate-400 { color: var(--ua-hint); }
+
+html[data-theme="dark"] .text-rose-500,
+html[data-theme="dark"] .text-rose-600,
+html[data-theme="dark"] .text-rose-700 { color: var(--ua-tone-rose-fg); }
+
+html[data-theme="dark"] .text-indigo-600 { color: var(--ua-brand); }
+html[data-theme="dark"] .text-emerald-600,
+html[data-theme="dark"] .text-emerald-700 { color: var(--ua-tone-green-fg); }
+html[data-theme="dark"] .text-amber-600,
+html[data-theme="dark"] .text-amber-700 { color: var(--ua-tone-amber-fg); }
+html[data-theme="dark"] .text-sky-700,
+html[data-theme="dark"] .text-sky-100 { color: var(--ua-tone-sky-fg); }
+
+html[data-theme="dark"] .border-slate-200,
+html[data-theme="dark"] .border-slate-300,
+html[data-theme="dark"] .border-slate-400,
+html[data-theme="dark"] .border-indigo-300 { border-color: var(--ua-input-border); }
+
+html[data-theme="dark"] .ring-slate-200,
+html[data-theme="dark"] .ring-rose-100,
+html[data-theme="dark"] .ring-sky-100,
+html[data-theme="dark"] .ring-emerald-100,
+html[data-theme="dark"] .ring-amber-100 { --tw-ring-color: var(--ua-input-border); }
+
+html[data-theme="dark"] .divide-slate-100 > * + * { border-color: var(--ua-line); }
+html[data-theme="dark"] .placeholder-slate-400::placeholder { color: var(--ua-hint); }
+html[data-theme="dark"] .shadow-slate-200 { --tw-shadow-color: var(--ua-shadow); }
+
+/* ---------------------------------------------------------------------------
+   Responsive
+--------------------------------------------------------------------------- */
 
 @media (max-width: 899px) {
     .ua-sidebar {
@@ -894,4 +1137,37 @@ body {
     .ua-hero-title {
         font-size: 1.3rem;
     }
+}
+
+/* ---------------------------------------------------------------------------
+   Impression : le papier reste clair même si l'écran est en thème sombre.
+--------------------------------------------------------------------------- */
+
+@media print {
+    html[data-theme="dark"] {
+        --ua-brand: #5b5bf6;
+        --ua-brand-dark: #4646d6;
+        --ua-brand-soft: #ecebfe;
+        --ua-ink: #1e2044;
+        --ua-muted: #8b8fb3;
+        --ua-line: #f0f1fa;
+        --ua-canvas: #ffffff;
+        --ua-surface: #ffffff;
+        --ua-surface-2: #f8f8fe;
+        --ua-surface-3: #f7f7fe;
+        --ua-surface-hover: #ffffff;
+        --ua-input-bg: #ffffff;
+        --ua-input-border: #e6e7f5;
+        --ua-input-text: #1e2044;
+        --ua-chip-text: #6d719b;
+        --ua-table-cell: #4a4d76;
+        --ua-table-head: #9a9dbe;
+        --ua-hint: #a2a5c4;
+        --ua-shadow: transparent;
+        --ua-shadow-brand: transparent;
+        --ua-shadow-ink: transparent;
+        color-scheme: light;
+    }
+
+    html[data-theme="dark"] body { background: #ffffff; color: #1e2044; }
 }

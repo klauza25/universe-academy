@@ -139,7 +139,8 @@ class AdminRestrictedWriteTests(BusinessTestBase):
         response = self.client.post(reverse(
             'core:dashboard:access-request-review',
             args=[access_request.id]),
-            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT})
+            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT,
+             'session': self.session.pk})
         self.assertRedirects(
             response, reverse('core:dashboard:access-requests'),
             fetch_redirect_response=False,

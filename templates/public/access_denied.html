@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Accès refusé — Univers Academy{% endblock %}
+{% block title %}{% translate "Accès refusé — Univers Academy" %}{% endblock %}
 
 {% block body %}
 <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
@@ -11,7 +11,7 @@
                 <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
             </div>
             <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
-            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+            <p class="mt-1 text-sm text-slate-500">{% translate "Centre de Formation en Langues — Brazzaville" %}</p>
         </div>
 
         <div class="rounded-2xl bg-white px-6 py-8 text-center shadow-xl shadow-slate-200/60 ring-1 ring-slate-200 sm:px-8">
@@ -22,15 +22,14 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-xl font-semibold text-slate-900">Accès refusé</h2>
+            <h2 class="mt-4 text-xl font-semibold text-slate-900">{% translate "Accès refusé" %}</h2>
             <p class="mt-2 text-sm text-slate-500">
-                Votre compte est suspendu ou désactivé. Contactez l'administration
-                pour plus d'informations.
+                {% translate "Votre compte est suspendu ou désactivé. Contactez l'administration pour plus d'informations." %}
             </p>
 
             <a href="{% url 'core:home' %}"
                class="mt-6 flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
-                Retour à l'accueil
+                {% translate "Retour à l'accueil" %}
             </a>
         </div>
     </div>

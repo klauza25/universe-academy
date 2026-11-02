@@ -1,0 +1,502 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/comptabilite/_nav.html
+msgid "Tableau de bord"
+msgstr "Dashboard"
+
+msgid "Journal comptable"
+msgstr "Accounting journal"
+
+msgid "Nouvelle opération"
+msgstr "New transaction"
+
+msgid "Paiement étudiant"
+msgstr "Student payment"
+
+msgid "Caisses & comptes"
+msgstr "Cash accounts & bank accounts"
+
+msgid "Clôtures"
+msgstr "Closings"
+
+msgid "Étudiants"
+msgstr "Students"
+
+
+# templates/dashboard/comptabilite/accounts.html
+msgid "Caisses et comptes — Univers Academy"
+msgstr "Cash accounts and bank accounts — Univers Academy"
+
+msgid "Caisses et comptes"
+msgstr "Cash accounts and bank accounts"
+
+msgid "Solde = ouverture + entrées validées − sorties validées. Les transferts sont neutres globalement."
+msgstr "Balance = opening + validated entries − validated exits. Transfers are neutral overall."
+
+msgid "Aucune caisse active."
+msgstr "No active cash account."
+
+msgid "Consultation"
+msgstr "View only"
+
+msgid "Consultation seule : la création d'une caisse relève de la comptabilité."
+msgstr "Read-only: creating a cash account is handled by accounting."
+
+msgid "Nouvelle caisse / compte"
+msgstr "New cash account / account"
+
+msgid "Créer"
+msgstr "Create"
+
+msgid "Caisse / compte"
+msgstr "Cash account / account"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Devise"
+msgstr "Currency"
+
+msgid "Solde d'ouverture"
+msgstr "Opening balance"
+
+msgid "Solde calculé"
+msgstr "Calculated balance"
+
+msgid "Comptes désactivés"
+msgstr "Disabled accounts"
+
+
+# templates/dashboard/comptabilite/closure_form.html
+msgid "Nouvelle clôture — Univers Academy"
+msgstr "New closing — Univers Academy"
+
+msgid "Nouvelle clôture de caisse"
+msgstr "New cash account closing"
+
+msgid "Le solde théorique est calculé à partir des opérations validées de la journée."
+msgstr "The theoretical balance is calculated from the validated transactions of the day."
+
+msgid "Retour"
+msgstr "Back"
+
+msgid "Enregistrer la clôture"
+msgstr "Save the closing"
+
+msgid "Annuler"
+msgstr "Cancel"
+
+
+# templates/dashboard/comptabilite/closures.html
+msgid "Clôtures de caisse — Univers Academy"
+msgstr "Cash account closings — Univers Academy"
+
+msgid "Clôtures de caisse"
+msgstr "Cash account closings"
+
+msgid "Comparaison entre le solde théorique et le montant physiquement constaté."
+msgstr "Comparison between the theoretical balance and the amount physically counted."
+
+msgid "Nouvelle clôture"
+msgstr "New closing"
+
+msgid "Caisse"
+msgstr "Cash account"
+
+msgid "Toutes"
+msgstr "All"
+
+msgid "Filtrer"
+msgstr "Filter"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Ouverture"
+msgstr "Opening"
+
+msgid "Théorique"
+msgstr "Theoretical"
+
+msgid "Constaté"
+msgstr "Counted"
+
+msgid "Écart"
+msgstr "Difference"
+
+msgid "Clôturé par"
+msgstr "Closed by"
+
+msgid "Note"
+msgstr "Note"
+
+msgid "Aucune clôture enregistrée."
+msgstr "No closing recorded."
+
+
+# templates/dashboard/comptabilite/index.html
+msgid "Comptabilité — Univers Academy"
+msgstr "Accounting — Univers Academy"
+
+msgid "Santé financière du mois"
+msgstr "Monthly financial health"
+
+msgid "%(r)s FCFA de recettes pour %(d)s FCFA de dépenses enregistrées."
+msgstr "%(r)s FCFA of income against %(d)s FCFA of recorded expenses."
+
+msgid "Encaisser un paiement"
+msgstr "Collect a payment"
+
+msgid "FCFA de solde des caisses"
+msgstr "FCFA across cash accounts"
+
+msgid "Entrées du jour"
+msgstr "Today's entries"
+
+msgid "Sorties du jour"
+msgstr "Today's exits"
+
+msgid "Solde des caisses"
+msgstr "Cash account balance"
+
+msgid "En attente"
+msgstr "Pending"
+
+msgid "FCFA validés"
+msgstr "FCFA validated"
+
+msgid "Toutes caisses actives"
+msgstr "All active cash accounts"
+
+msgid "Opérations non validées"
+msgstr "Unvalidated transactions"
+
+msgid "Caisses"
+msgstr "Cash accounts"
+
+msgid "Gérer"
+msgstr "Manage"
+
+msgid "Clôtures aujourd'hui : %(c)s"
+msgstr "Closings today: %(c)s"
+
+msgid "Clôturer une caisse"
+msgstr "Close a cash account"
+
+msgid "Opérations récentes"
+msgstr "Recent transactions"
+
+msgid "Derniers mouvements enregistrés"
+msgstr "Latest recorded movements"
+
+msgid "Journal"
+msgstr "Journal"
+
+msgid "Référence"
+msgstr "Reference"
+
+msgid "Libellé"
+msgstr "Label"
+
+msgid "Montant"
+msgstr "Amount"
+
+msgid "Aucune opération enregistrée."
+msgstr "No transaction recorded."
+
+msgid "Paiements étudiants récents"
+msgstr "Recent student payments"
+
+msgid "Les 10 derniers encaissements"
+msgstr "The last 10 payments collected"
+
+msgid "Nouveau"
+msgstr "New"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Méthode"
+msgstr "Method"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Aucun paiement enregistré"
+msgstr "No payment recorded"
+
+
+# templates/dashboard/comptabilite/journal.html
+msgid "Journal comptable — Univers Academy"
+msgstr "Accounting journal — Univers Academy"
+
+msgid "Toutes les opérations financières, validées ou en attente."
+msgstr "All financial transactions, validated or pending."
+
+msgid "Export CSV"
+msgstr "CSV export"
+
+msgid "Entrées validées (filtre)"
+msgstr "Validated entries (filter)"
+
+msgid "Sorties validées (filtre)"
+msgstr "Validated exits (filter)"
+
+msgid "Opérations affichées"
+msgstr "Displayed transactions"
+
+msgid "lignes"
+msgstr "rows"
+
+msgid "Recherche"
+msgstr "Search"
+
+msgid "Référence, libellé, bénéficiaire…"
+msgstr "Reference, label, payee…"
+
+msgid "Tous"
+msgstr "All"
+
+msgid "Du"
+msgstr "From"
+
+msgid "Au"
+msgstr "To"
+
+msgid "Date effective"
+msgstr "Effective date"
+
+msgid "Catégorie"
+msgstr "Category"
+
+msgid "Bénéf. / payeur"
+msgstr "Payee / payer"
+
+msgid "Entrée"
+msgstr "Entry"
+
+msgid "Sortie"
+msgstr "Exit"
+
+msgid "Auteur"
+msgstr "Author"
+
+msgid "Aucune opération pour ces critères."
+msgstr "No transaction for these criteria."
+
+
+# templates/dashboard/comptabilite/payment_form.html
+msgid "Paiement étudiant — Univers Academy"
+msgstr "Student payment — Univers Academy"
+
+msgid "Encaisser un paiement étudiant"
+msgstr "Collect a student payment"
+
+msgid "Choisissez l'étudiant, puis son inscription : le paiement crée une opération de caisse et un reçu."
+msgstr "Choose the student, then their enrollment: the payment creates a cash transaction and a receipt."
+
+msgid "Enregistrer le paiement"
+msgstr "Save the payment"
+
+msgid "Un paiement partiel ne solde pas le dossier : le reste à payer est recalculé après chaque règlement."
+msgstr "A partial payment does not settle the record: the balance due is recomputed after every payment."
+
+msgid "Seules les inscriptions validées sont encaissables."
+msgstr "Only validated enrollments can be paid into."
+
+msgid "Inscriptions en attente de validation"
+msgstr "Enrollments awaiting validation"
+
+msgid "%(n)s a une inscription en attente : elle deviendra encaissable dès que la direction l'aura validée."
+msgstr "%(n)s has a pending enrollment: it will become payable as soon as management has validated it."
+
+msgid "Créée le %(d)s · net %(n)s FCFA · %(s)s"
+msgstr "Created on %(d)s · net %(n)s FCFA · %(s)s"
+
+msgid "Ouvrir le dossier"
+msgstr "Open the record"
+
+msgid "Inscrire un étudiant"
+msgstr "Enroll a student"
+
+msgid "L'inscription créée ici reste <strong>en attente</strong> : la direction doit la valider avant que le premier encaissement soit possible. Le tarif est repris du catalogue si le champ est laissé vide."
+msgstr "The enrollment created here stays <strong>pending</strong>: management must validate it before the first payment can be collected. The fee is taken from the catalog when this field is left blank."
+
+msgid "Créer l'inscription"
+msgstr "Create the enrollment"
+
+msgid "Comptes étudiants sans inscription"
+msgstr "Student accounts without enrollment"
+
+msgid "Un encaissement suppose une inscription validée : ces comptes actifs n'ont encore aucune inscription au dossier."
+msgstr "Collecting a payment requires a validated enrollment: these active accounts have no enrollment on file yet."
+
+msgid "Code"
+msgstr "Code"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Inscrire"
+msgstr "Enroll"
+
+msgid "À inscrire par le secrétariat"
+msgstr "To be enrolled by the secretary"
+
+msgid "Reste à payer sur ce dossier :"
+msgstr "Balance due on this record:"
+
+msgid "Dossier soldé : aucun montant ne reste à encaisser."
+msgstr "Record fully paid: no amount remains to collect."
+
+
+# templates/dashboard/comptabilite/receipt.html
+msgid "Reçu"
+msgstr "Receipt"
+
+msgid "Reçu de paiement étudiant"
+msgstr "Student payment receipt"
+
+msgid "Reçu n°"
+msgstr "Receipt no."
+
+msgid "Identifiant : %(code)s · %(mail)s"
+msgstr "ID: %(code)s · %(mail)s"
+
+msgid "Formation"
+msgstr "Program"
+
+msgid "Inscription"
+msgstr "Enrollment"
+
+msgid "Moyen de paiement"
+msgstr "Payment method"
+
+msgid "Encaissé par"
+msgstr "Collected by"
+
+msgid "Montant encaissé"
+msgstr "Amount collected"
+
+msgid "Net dû"
+msgstr "Net due"
+
+msgid "Total payé"
+msgstr "Total paid"
+
+msgid "Reste à payer"
+msgstr "Balance due"
+
+msgid "Statut du dossier"
+msgstr "Record status"
+
+msgid "Observations"
+msgstr "Notes"
+
+msgid "Reçu imprimé le %(d)s. Ce reçu atteste uniquement du paiement enregistré ci-dessus, et non du règlement total du dossier lorsque le solde restant est supérieur à zéro."
+msgstr "Receipt printed on %(d)s. This receipt only attests to the payment recorded above, not to the full settlement of the record while a balance remains."
+
+msgid "Imprimer / PDF"
+msgstr "Print / PDF"
+
+
+# templates/dashboard/comptabilite/transaction_detail.html
+msgid "Opération"
+msgstr "Transaction"
+
+msgid "Supervision financière"
+msgstr "Financial supervision"
+
+msgid "Retour au journal"
+msgstr "Back to the journal"
+
+msgid "Détail de l'opération"
+msgstr "Transaction details"
+
+msgid "Saisie"
+msgstr "Entered on"
+
+msgid "Bénéficiaire / payeur"
+msgstr "Payee / payer"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Commentaire"
+msgstr "Comment"
+
+msgid "Justificatif"
+msgstr "Supporting document"
+
+msgid "Ouvrir le fichier"
+msgstr "Open the file"
+
+msgid "Paiement étudiant lié"
+msgstr "Linked student payment"
+
+msgid "%(e)s · %(c)s · %(m)s · %(s)s · payé le %(d)s"
+msgstr "%(e)s · %(c)s · %(m)s · %(s)s · paid on %(d)s"
+
+msgid "Reste à payer sur le dossier : %(b)s FCFA"
+msgstr "Balance due on this record: %(b)s FCFA"
+
+msgid "Dépense liée"
+msgstr "Linked expense"
+
+msgid "Justificatif de la dépense"
+msgstr "Expense supporting document"
+
+msgid "Origine"
+msgstr "Source"
+
+msgid "Paiement étudiant (module Comptabilité)"
+msgstr "Student payment (Accounting module)"
+
+msgid "Dépense enregistrée"
+msgstr "Recorded expense"
+
+msgid "une seule transaction, aucun doublon"
+msgstr "a single transaction, no duplicates"
+
+msgid "Correction / annulation"
+msgstr "Correction / cancellation"
+
+msgid "Consultation seule : l'annulation d'une opération relève de la comptabilité."
+msgstr "Read-only: cancelling a transaction is handled by accounting."
+
+msgid "Cette opération est déjà annulée. Son historique est conservé."
+msgstr "This transaction is already cancelled. Its history is kept."
+
+msgid "Motif de l'annulation"
+msgstr "Cancellation reason"
+
+msgid "Annuler l'opération"
+msgstr "Cancel the transaction"
+
+msgid "L'annulation ne supprime rien : l'opération reste visible dans le journal avec son motif."
+msgstr "Cancelling deletes nothing: the transaction stays visible in the journal with its reason."
+
+msgid "Création, corrections et annulation enregistrées dans le journal d'audit."
+msgstr "Creation, corrections and cancellation recorded in the audit log."
+
+msgid "Aucun événement d'audit pour cette opération."
+msgstr "No audit event for this transaction."
+
+
+# templates/dashboard/comptabilite/transaction_form.html
+msgid "Nouvelle opération — Univers Academy"
+msgstr "New transaction — Univers Academy"
+
+msgid "Nouvelle opération comptable"
+msgstr "New accounting transaction"
+
+msgid "Entrée, sortie ou transfert entre deux caisses. La référence est générée automatiquement."
+msgstr "Entry, exit or transfer between two cash accounts. The reference is generated automatically."
+
+msgid "Enregistrer l'opération"
+msgstr "Save the transaction"

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Candidature soumise — Univers Academy{% endblock %}
+{% block title %}{% translate "Candidature soumise — Univers Academy" %}{% endblock %}
 
 {% block body %}
 <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
@@ -11,7 +11,7 @@
                 <img src="{% static 'img/logo-univers.jpg' %}" alt="Univers Academy" class="h-14 w-14 object-cover">
             </div>
             <h1 class="text-2xl font-semibold text-slate-900">Univers Academy</h1>
-            <p class="mt-1 text-sm text-slate-500">Centre de Formation en Langues — Brazzaville</p>
+            <p class="mt-1 text-sm text-slate-500">{% translate "Centre de Formation en Langues — Brazzaville" %}</p>
         </div>
 
         <div class="rounded-2xl bg-white px-6 py-8 text-center shadow-xl shadow-slate-200/60 ring-1 ring-slate-200 sm:px-8">
@@ -21,27 +21,23 @@
                 </svg>
             </div>
 
-            <h2 class="mt-4 text-xl font-semibold text-slate-900">Candidature soumise</h2>
-            <p class="mt-1 text-sm text-slate-500">Votre candidature a été enregistrée avec succès.</p>
+            <h2 class="mt-4 text-xl font-semibold text-slate-900">{% translate "Candidature soumise" %}</h2>
+            <p class="mt-1 text-sm text-slate-500">{% translate "Votre candidature a été enregistrée avec succès." %}</p>
 
             <div class="mt-6 rounded-xl bg-slate-50 px-4 py-4 ring-1 ring-slate-200">
-                <p class="text-xs uppercase tracking-wide text-slate-400">Référence de suivi</p>
+                <p class="text-xs uppercase tracking-wide text-slate-400">{% translate "Référence de suivi" %}</p>
                 <p class="mt-1 font-mono text-xl font-semibold text-slate-900">{{ application.reference }}</p>
-                <p class="mt-3 text-xs uppercase tracking-wide text-slate-400">Token</p>
+                <p class="mt-3 text-xs uppercase tracking-wide text-slate-400">{% translate "Token" %}</p>
                 <p class="mt-1 break-all font-mono text-xs text-slate-600">{{ application.tracking_token }}</p>
             </div>
 
-            <p class="mt-4 text-xs text-slate-500">Conservez ces informations pour suivre l'état de votre candidature.</p>
+            <p class="mt-4 text-xs text-slate-500">{% translate "Conservez ces informations pour suivre l'état de votre candidature." %}</p>
 
             <div class="mt-6 space-y-3">
                 <a href="{% url 'core:bourses:scholarship-tracking' %}"
-                   class="flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">
-                    Suivre ma candidature
-                </a>
+                   class="flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800">{% translate "Suivre ma candidature" %}</a>
                 <a href="{% url 'core:home' %}"
-                   class="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
-                    Retour à l'accueil
-                </a>
+                   class="flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50">{% translate "Retour à l'accueil" %}</a>
             </div>
         </div>
     </div>

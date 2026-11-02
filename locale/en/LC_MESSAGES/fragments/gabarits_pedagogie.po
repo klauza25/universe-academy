@@ -1,0 +1,708 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/pedagogie/_nav.html
+msgid "Mon tableau de bord"
+msgstr "My dashboard"
+
+msgid "Groupes"
+msgstr "Class groups"
+
+msgid "Séances"
+msgstr "Sessions"
+
+msgid "Cahier de texte"
+msgstr "Class register"
+
+msgid "Présences"
+msgstr "Attendance"
+
+msgid "Ressources"
+msgstr "Resources"
+
+msgid "Progression"
+msgstr "Progress"
+
+msgid "Programmes"
+msgstr "Programs"
+
+# templates/dashboard/pedagogie/attendance_history.html
+msgid "Présences — Univers Academy"
+msgstr "Attendance — Univers Academy"
+
+msgid "Historique des présences"
+msgstr "Attendance history"
+
+msgid "Par étudiant, formation, séance et période."
+msgstr "By student, program, session and period."
+
+msgid "Enregistrements"
+msgstr "Records"
+
+msgid "Présents"
+msgstr "Present"
+
+msgid "Absents"
+msgstr "Absent"
+
+msgid "Retards"
+msgstr "Late"
+
+msgid "Excusés"
+msgstr "Excused"
+
+msgid "lignes"
+msgstr "rows"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Tous"
+msgstr "All"
+
+msgid "Formation"
+msgstr "Program"
+
+msgid "Toutes"
+msgstr "All"
+
+msgid "Du"
+msgstr "From"
+
+msgid "Au"
+msgstr "To"
+
+msgid "Filtrer"
+msgstr "Filter"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Séance"
+msgstr "Session"
+
+msgid "Motif"
+msgstr "Reason"
+
+msgid "Aucune présence pour ces critères."
+msgstr "No attendance record for these criteria."
+
+msgid "Étudiants les plus absents"
+msgstr "Most absent students"
+
+msgid "Aucune absence sur la période."
+msgstr "No absence over the period."
+
+# templates/dashboard/pedagogie/attendance_sheet.html
+msgid "Présences du %(d)s"
+msgstr "Attendance for %(d)s"
+
+msgid "Retour à la séance"
+msgstr "Back to the session"
+
+msgid "Inscrits"
+msgstr "Enrolled"
+
+msgid "groupe"
+msgstr "class group"
+
+msgid "validés"
+msgstr "validated"
+
+msgid "sans justification"
+msgstr "unexcused"
+
+msgid "arrivées tardives"
+msgstr "late arrivals"
+
+msgid "justifiés"
+msgstr "excused"
+
+msgid "Heure d'arrivée"
+msgstr "Arrival time"
+
+msgid "Motif d'absence"
+msgstr "Absence reason"
+
+msgid "Observation"
+msgstr "Observation"
+
+msgid "Aucun étudiant inscrit à ce groupe."
+msgstr "No student enrolled in this class group."
+
+msgid "Enregistrer les présences"
+msgstr "Save attendance"
+
+msgid "Annuler"
+msgstr "Cancel"
+
+# templates/dashboard/pedagogie/course_session_form.html
+msgid "Nouveau groupe"
+msgstr "New class group"
+
+msgid "Modifier le groupe"
+msgstr "Edit class group"
+
+msgid "Un groupe réunit les étudiants d'une formation sur une période donnée."
+msgstr "A class group brings together the students of a program over a given period."
+
+msgid "Retour"
+msgstr "Back"
+
+msgid "Enregistrer"
+msgstr "Save"
+
+# templates/dashboard/pedagogie/course_session_list.html
+msgid "Groupes — Univers Academy"
+msgstr "Class groups — Univers Academy"
+
+msgid "Groupes de formation"
+msgstr "Training class groups"
+
+msgid "Périodes, capacités et formateurs affectés à chaque groupe."
+msgstr "Periods, capacity and trainers assigned to each class group."
+
+msgid "Recherche"
+msgstr "Search"
+
+msgid "Formation, horaires…"
+msgstr "Program, schedule…"
+
+msgid "Planifier"
+msgstr "Plan"
+
+msgid "Horaires"
+msgstr "Schedule"
+
+msgid "Formateurs"
+msgstr "Trainers"
+
+msgid "Aucun formateur affecté"
+msgstr "No trainer assigned"
+
+msgid "Modifier"
+msgstr "Edit"
+
+msgid "Aucun groupe pour ces critères."
+msgstr "No class group for these criteria."
+
+# templates/dashboard/pedagogie/lesson_form.html
+msgid "Nouvelle leçon"
+msgstr "New lesson"
+
+msgid "Modifier la leçon"
+msgstr "Edit lesson"
+
+msgid "Une leçon appartient à un module et peut recevoir des ressources."
+msgstr "A lesson belongs to a module and can hold resources."
+
+# templates/dashboard/pedagogie/module_form.html
+msgid "Nouveau module"
+msgstr "New module"
+
+msgid "Modifier le module"
+msgstr "Edit module"
+
+msgid "Un module regroupe les leçons d'une formation."
+msgstr "A module groups the lessons of a program."
+
+# templates/dashboard/pedagogie/programs.html
+msgid "%(m)s mois"
+msgstr "%(m)s months"
+
+msgid "Module %(n)s · %(t)s"
+msgstr "Module %(n)s · %(t)s"
+
+msgid "%(h)s h prévues · %(c)s leçon(s)"
+msgstr "%(h)s planned hours · %(c)s lesson(s)"
+
+msgid "Programmes — Univers Academy"
+msgstr "Programs — Univers Academy"
+
+msgid "Programmes pédagogiques"
+msgstr "Academic programs"
+
+msgid "Modules et leçons par formation."
+msgstr "Modules and lessons per program."
+
+msgid "Ajouter un module"
+msgstr "Add a module"
+
+msgid "Module"
+msgstr "Module"
+
+msgid "Leçon"
+msgstr "Lesson"
+
+msgid "Aucun module pour cette formation."
+msgstr "No module for this program."
+
+msgid "Aucune formation accessible."
+msgstr "No accessible program."
+
+# templates/dashboard/pedagogie/progression.html
+msgid "Progression — Univers Academy"
+msgstr "Progress — Univers Academy"
+
+msgid "Progression des programmes"
+msgstr "Program progress"
+
+msgid "Heures prévues, heures réalisées et séances terminées."
+msgstr "Planned hours, delivered hours and completed sessions."
+
+msgid "Formation / groupe"
+msgstr "Program / class group"
+
+msgid "Réalisées"
+msgstr "Delivered"
+
+msgid "Heures prévues"
+msgstr "Planned hours"
+
+msgid "Heures réalisées"
+msgstr "Delivered hours"
+
+msgid "Restantes"
+msgstr "Remaining"
+
+msgid "Leçons terminées"
+msgstr "Completed lessons"
+
+msgid "Dernier point"
+msgstr "Latest update"
+
+msgid "Aucune séance pour ces critères."
+msgstr "No session for these criteria."
+
+# templates/dashboard/pedagogie/resource_form.html
+msgid "Nouvelle ressource"
+msgstr "New resource"
+
+msgid "Modifier la ressource"
+msgstr "Edit resource"
+
+msgid "Publier une ressource"
+msgstr "Publish a resource"
+
+msgid "Formats acceptés : PDF, DOC/DOCX, HTML, PPT, XLS, ZIP — 10 Mo maximum."
+msgstr "Accepted formats: PDF, DOC/DOCX, HTML, PPT, XLS, ZIP — 10 MB maximum."
+
+# templates/dashboard/pedagogie/resource_view.html
+msgid "%(n)s retour(s)"
+msgstr "%(n)s feedback"
+
+msgid "Vous avez déjà donné votre retour le %(d)s — le renvoyer le met à jour."
+msgstr "You already gave your feedback on %(d)s — resending it updates it."
+
+msgid "Ressource"
+msgstr "Resource"
+
+msgid "Télécharger le fichier"
+msgstr "Download the file"
+
+msgid "Contenu"
+msgstr "Content"
+
+msgid "Aucun contenu HTML. Téléchargez le fichier joint."
+msgstr "No HTML content. Download the attached file."
+
+msgid "Retours des étudiants"
+msgstr "Student feedback"
+
+msgid "Envoyer mon retour"
+msgstr "Send my feedback"
+
+msgid "Vous"
+msgstr "You"
+
+msgid "(aucun commentaire)"
+msgstr "(no comment)"
+
+msgid "Aucun retour pour le moment."
+msgstr "No feedback yet."
+
+msgid "Soyez le premier à partager votre avis."
+msgstr "Be the first to share your opinion."
+
+# templates/dashboard/pedagogie/resources.html
+msgid "%(n)s avis"
+msgstr "%(n)s reviews"
+
+msgid "Ressources pédagogiques — Univers Academy"
+msgstr "Learning resources — Univers Academy"
+
+msgid "Ressources pédagogiques"
+msgstr "Learning resources"
+
+msgid "Cours, exercices et devoirs publiés aux groupes."
+msgstr "Lessons, exercises and assignments published to class groups."
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Titre"
+msgstr "Title"
+
+msgid "Groupe"
+msgstr "Class group"
+
+msgid "Publication"
+msgstr "Publication"
+
+msgid "Échéance"
+msgstr "Due date"
+
+msgid "Fichier"
+msgstr "File"
+
+msgid "Lire"
+msgstr "Read"
+
+msgid "Aucune ressource pour ces critères."
+msgstr "No resource for these criteria."
+
+# templates/dashboard/pedagogie/session_detail.html
+msgid "Séance %(d)s"
+msgstr "Session %(d)s"
+
+msgid "Présences enregistrées (%(n)s)"
+msgstr "Recorded attendance (%(n)s)"
+
+msgid "%(p)s présent(s) · %(a)s absent(s) · %(l)s retard(s) · %(e)s excusé(s)"
+msgstr "%(p)s present · %(a)s absent · %(l)s late · %(e)s excused"
+
+msgid "Fiches des apprenants (%(n)s)"
+msgstr "Learner sheets (%(n)s)"
+
+msgid "Gérer les présences"
+msgstr "Manage attendance"
+
+msgid "Durée prévue"
+msgstr "Planned duration"
+
+msgid "Durée réalisée"
+msgstr "Actual duration"
+
+msgid "étudiants"
+msgstr "students"
+
+msgid "Groupe / session"
+msgstr "Class group / session"
+
+msgid "Début prévu / réel"
+msgstr "Planned / actual start"
+
+msgid "Fin prévue / réelle"
+msgstr "Planned / actual end"
+
+msgid "Compte rendu par"
+msgstr "Report by"
+
+msgid "Contenu terminé"
+msgstr "Completed content"
+
+msgid "Contenu restant"
+msgstr "Remaining content"
+
+msgid "Prochaine séance"
+msgstr "Next session"
+
+msgid "Difficultés"
+msgstr "Difficulties"
+
+msgid "Commentaires"
+msgstr "Comments"
+
+msgid "Compte rendu pédagogique"
+msgstr "Teaching report"
+
+msgid "Consultation seule : vous n'êtes pas affecté à cette session."
+msgstr "Read-only: you are not assigned to this session."
+
+msgid "Arrivée"
+msgstr "Arrival"
+
+msgid "Aucune présence enregistrée pour cette séance."
+msgstr "No attendance recorded for this session."
+
+msgid "Historique de la séance"
+msgstr "Session history"
+
+msgid "Création du compte rendu et pointage des présences."
+msgstr "Report creation and attendance check-in."
+
+msgid "Aucun événement d'audit pour cette séance."
+msgstr "No audit event for this session."
+
+msgid "Notions retenues et difficultés déclarées après le cours."
+msgstr "Concepts learned and difficulties reported after class."
+
+msgid "Apprenant"
+msgstr "Learner"
+
+msgid "Notions retenues"
+msgstr "Concepts learned"
+
+msgid "Observations"
+msgstr "Observations"
+
+msgid "Mise à jour"
+msgstr "Updated"
+
+msgid "Aucune fiche remplie par les apprenants pour cette séance."
+msgstr "No learner sheet filled in for this session."
+
+# templates/dashboard/pedagogie/session_form.html
+msgid "Nouvelle séance"
+msgstr "New session"
+
+msgid "Planifier une séance"
+msgstr "Plan a session"
+
+msgid "Enregistrer la séance"
+msgstr "Save the session"
+
+# templates/dashboard/pedagogie/sessions.html
+msgid "Séances — Univers Academy"
+msgstr "Sessions — Univers Academy"
+
+msgid "Séances et comptes rendus"
+msgstr "Sessions and reports"
+
+msgid "Séances planifiées, réalisées, annulées ou reportées."
+msgstr "Scheduled, delivered, cancelled or postponed sessions."
+
+msgid "Sujet, formation, contenu…"
+msgstr "Topic, program, content…"
+
+msgid "Session"
+msgstr "Session"
+
+msgid "Module / leçon"
+msgstr "Module / lesson"
+
+msgid "Sujet"
+msgstr "Topic"
+
+msgid "Prévu"
+msgstr "Planned"
+
+msgid "Réalisé"
+msgstr "Delivered"
+
+# templates/dashboard/pedagogie/textbook_form.html
+msgid "Modifier une ligne"
+msgstr "Edit an entry"
+
+msgid "Modifier la séance"
+msgstr "Edit the session"
+
+# templates/dashboard/pedagogie/textbook_index.html
+msgid "Cahier de texte — Univers Academy"
+msgstr "Class register — Univers Academy"
+
+msgid "Une ligne par cours : date, heures, notions enseignées, nombre d'apprenants et observations."
+msgstr "One line per class: date, hours, concepts taught, number of learners and observations."
+
+msgid "Formation, filière…"
+msgstr "Program, field of study…"
+
+msgid "Horaire non défini"
+msgstr "Schedule not set"
+
+msgid "Filière / domaine"
+msgstr "Field of study / area"
+
+msgid "Formateur(s)"
+msgstr "Trainer(s)"
+
+msgid "Non affecté"
+msgstr "Unassigned"
+
+msgid "Ouvrir"
+msgstr "Open"
+
+msgid "Imprimer"
+msgstr "Print"
+
+msgid "Aucune formation ne correspond à cette recherche."
+msgstr "No program matches this search."
+
+# templates/dashboard/pedagogie/textbook_print.html
+msgid "1<sup>er</sup> étage immeuble Monte Cristo"
+msgstr "1st floor, Monte Cristo building"
+
+msgid "Total : %(n)s séance(s)"
+msgstr "Total: %(n)s session(s)"
+
+msgid "Édité le %(d)s"
+msgstr "Issued on %(d)s"
+
+msgid "Retour au cahier"
+msgstr "Back to the register"
+
+msgid "Formateur"
+msgstr "Trainer"
+
+msgid "Filière"
+msgstr "Field of study"
+
+msgid "Classe"
+msgstr "Class"
+
+msgid "Dates"
+msgstr "Dates"
+
+msgid "Heures"
+msgstr "Hours"
+
+msgid "Notions enseignées"
+msgstr "Concepts taught"
+
+msgid "Nombre d'apprenants"
+msgstr "Number of learners"
+
+msgid "Aucune séance enregistrée pour cette classe."
+msgstr "No session recorded for this class."
+
+# templates/dashboard/pedagogie/textbook_session.html
+msgid "Heures assurées"
+msgstr "Hours delivered"
+
+msgid "Apprenants"
+msgstr "Learners"
+
+msgid "Notions saisies"
+msgstr "Concepts entered"
+
+msgid "lignes du cahier"
+msgstr "register lines"
+
+msgid "cumul"
+msgstr "total"
+
+msgid "cumul des présences"
+msgstr "total attendance"
+
+msgid "séances renseignées"
+msgstr "sessions filled in"
+
+msgid "Ajouter la séance du jour"
+msgstr "Add today's session"
+
+msgid "Consultation seule : seuls le formateur affecté, le responsable pédagogique et la direction peuvent remplir le cahier de texte."
+msgstr "Read-only: only the assigned trainer, the academic manager and the direction can fill in the class register."
+
+msgid "Aucune séance enregistrée pour cette formation."
+msgstr "No session recorded for this program."
+
+# templates/dashboard/formateur/attendance.html
+msgid "%(n)s étudiant(s) inscrit(s)"
+msgstr "%(n)s enrolled student(s)"
+
+msgid "Mes sessions"
+msgstr "My sessions"
+
+msgid "Retour aux sessions"
+msgstr "Back to the sessions"
+
+msgid "Date de la séance"
+msgstr "Session date"
+
+msgid "Feuille de présence"
+msgstr "Attendance sheet"
+
+msgid "Présent"
+msgstr "Present"
+
+msgid "Absent"
+msgstr "Absent"
+
+msgid "En retard"
+msgstr "Late"
+
+msgid "Excusé"
+msgstr "Excused"
+
+msgid "Aucun étudiant inscrit à cette session"
+msgstr "No student enrolled in this session"
+
+# templates/dashboard/formateur/index.html
+msgid "%(s)s session(s) à animer et %(n)s étudiant(s) inscrit(s)."
+msgstr "%(s)s training session(s) to run and %(n)s enrolled student(s)."
+
+msgid "%(a)s / %(b)s inscrits"
+msgstr "%(a)s of %(b)s enrolled"
+
+msgid "%(n)s places prises"
+msgstr "%(n)s seats taken"
+
+msgid "Formateur — Univers Academy"
+msgstr "Trainer — Univers Academy"
+
+msgid "Vos sessions de formation"
+msgstr "Your training sessions"
+
+msgid "Mes ressources"
+msgstr "My resources"
+
+msgid "Étudiants suivis"
+msgstr "Students followed"
+
+msgid "Heures restantes"
+msgstr "Remaining hours"
+
+msgid "Planifiées ou en cours"
+msgstr "Planned or ongoing"
+
+msgid "Inscriptions actives"
+msgstr "Active enrollments"
+
+msgid "Comptes rendus validés"
+msgstr "Validated reports"
+
+msgid "Sur les séances planifiées"
+msgstr "Over scheduled sessions"
+
+msgid "Planning du jour"
+msgstr "Today's schedule"
+
+msgid "Aucune séance planifiée aujourd'hui."
+msgstr "No session scheduled today."
+
+msgid "Prochaines séances"
+msgstr "Upcoming sessions"
+
+msgid "Aucune séance à venir."
+msgstr "No upcoming session."
+
+msgid "Absences récentes"
+msgstr "Recent absences"
+
+msgid "Historique"
+msgstr "History"
+
+msgid "Aucune absence récente."
+msgstr "No recent absence."
+
+msgid "Mes groupes"
+msgstr "My class groups"
+
+msgid "À définir"
+msgstr "To be defined"
+
+msgid "Période"
+msgstr "Period"
+
+msgid "Saisie rapide"
+msgstr "Quick entry"
+
+msgid "Aucune session ne vous est attribuée pour le moment."
+msgstr "No session is assigned to you at the moment."

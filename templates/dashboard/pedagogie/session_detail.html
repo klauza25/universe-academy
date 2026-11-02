@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Séance {{ record.date|date:"d/m/Y" }} — {{ record.session.course.title }}{% endblock %}
+{% block title %}{% blocktrans with d=record.date|date:"d/m/Y" %}Séance {{ d }}{% endblocktrans %} — {{ record.session.course.title }}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -13,61 +13,66 @@
         <p class="ua-page-sub">{{ record.date|date:"d/m/Y" }} · {{ record.get_status_display }}{% if record.topic %} · {{ record.topic }}{% endif %}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        <a href="{% url 'core:dashboard:session-record-attendance' record.id %}" class="ua-btn ua-btn-primary">{% icon "clipboard" %} Gérer les présences</a>
-        <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">Retour</a>
+        <a href="{% url 'core:dashboard:session-record-attendance' record.id %}" class="ua-btn ua-btn-primary">{% icon "clipboard" %} {% translate "Gérer les présences" %}</a>
+        <a href="{% url 'core:dashboard:session-records' %}" class="ua-btn ua-btn-ghost">{% translate "Retour" %}</a>
     </div>
 </div>
 
+{% translate "Durée prévue" as lbl_duree_prevue %}
+{% translate "Durée réalisée" as lbl_duree_realisee %}
+{% translate "Présents" as lbl_presents %}
+{% translate "Absents" as lbl_absents %}
+{% translate "étudiants" as hint_etudiants %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-5">
-    {% include "dashboard/_stat.html" with label="Durée prévue" value=record.planned_hours icon="clock" tone="indigo" hint="heures" %}
-    {% include "dashboard/_stat.html" with label="Durée réalisée" value=record.actual_hours icon="check-circle" tone="green" hint="heures" %}
-    {% include "dashboard/_stat.html" with label="Présents" value=summary.present icon="user-check" tone="sky" hint="étudiants" %}
-    {% include "dashboard/_stat.html" with label="Absents" value=summary.absent icon="users" tone="rose" hint="étudiants" %}
+    {% include "dashboard/_stat.html" with label=lbl_duree_prevue value=record.planned_minutes|duree icon="clock" tone="indigo" %}
+    {% include "dashboard/_stat.html" with label=lbl_duree_realisee value=record.actual_minutes|duree icon="check-circle" tone="green" %}
+    {% include "dashboard/_stat.html" with label=lbl_presents value=summary.present icon="user-check" tone="sky" hint=hint_etudiants %}
+    {% include "dashboard/_stat.html" with label=lbl_absents value=summary.absent icon="users" tone="rose" hint=hint_etudiants %}
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Séance</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Séance" %}</h2>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-xs ua-muted">Groupe / session</dt><dd>{{ record.session }}</dd></div>
-            <div><dt class="text-xs ua-muted">Module</dt><dd>{{ record.module.title|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Leçon</dt><dd>{{ record.lesson.title|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Début prévu / réel</dt><dd>{{ record.planned_start|time:"H:i"|default:"—" }} / {{ record.actual_start|time:"H:i"|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Fin prévue / réelle</dt><dd>{{ record.planned_end|time:"H:i"|default:"—" }} / {{ record.actual_end|time:"H:i"|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Compte rendu par</dt><dd>{{ record.recorded_by.display_label|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Contenu terminé</dt><dd>{{ record.content_covered|default:"—"|linebreaksbr }}</dd></div>
-            <div><dt class="text-xs ua-muted">Contenu restant</dt><dd>{{ record.content_remaining|default:"—"|linebreaksbr }}</dd></div>
-            <div><dt class="text-xs ua-muted">Prochaine séance</dt><dd>{{ record.next_content|default:"—"|linebreaksbr }}</dd></div>
-            <div><dt class="text-xs ua-muted">Difficultés</dt><dd>{{ record.difficulties|default:"—"|linebreaksbr }}</dd></div>
-            <div><dt class="text-xs ua-muted">Commentaires</dt><dd>{{ record.notes|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Groupe / session" %}</dt><dd>{{ record.session }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Module" %}</dt><dd>{{ record.module.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Leçon" %}</dt><dd>{{ record.lesson.title|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Début prévu / réel" %}</dt><dd>{{ record.planned_start|time:"H:i"|default:"—" }} / {{ record.actual_start|time:"H:i"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Fin prévue / réelle" %}</dt><dd>{{ record.planned_end|time:"H:i"|default:"—" }} / {{ record.actual_end|time:"H:i"|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Compte rendu par" %}</dt><dd>{{ record.recorded_by.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Contenu terminé" %}</dt><dd>{{ record.content_covered|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Contenu restant" %}</dt><dd>{{ record.content_remaining|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Prochaine séance" %}</dt><dd>{{ record.next_content|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Difficultés" %}</dt><dd>{{ record.difficulties|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Commentaires" %}</dt><dd>{{ record.notes|default:"—"|linebreaksbr }}</dd></div>
         </dl>
     </section>
 
     <section class="ua-card ua-card-pad xl:col-span-2">
-        <h2 class="ua-section-title mb-4">Compte rendu pédagogique</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Compte rendu pédagogique" %}</h2>
         {% if can_manage %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             {% include "dashboard/_form.html" with form=form %}
             <div class="flex flex-wrap gap-3 mt-4">
-                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Enregistrer</button>
-                <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">Annuler</a>
+                <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Enregistrer" %}</button>
+                <a href="{% url 'core:dashboard:session-record-detail' record.id %}" class="ua-btn ua-btn-ghost">{% translate "Annuler" %}</a>
             </div>
         </form>
         {% else %}
-        <p class="ua-empty">Consultation seule : vous n'êtes pas affecté à cette session.</p>
+        <p class="ua-empty">{% translate "Consultation seule : vous n'êtes pas affecté à cette session." %}</p>
         {% endif %}
     </section>
 </div>
 
 <section class="ua-card ua-card-pad mt-5">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <h2 class="ua-section-title">Présences enregistrées ({{ summary.total }})</h2>
-        <span class="ua-muted text-sm">{{ summary.present }} présent(s) · {{ summary.absent }} absent(s) · {{ summary.late }} retard(s) · {{ summary.excused }} excusé(s)</span>
+        <h2 class="ua-section-title">{% blocktrans with n=summary.total %}Présences enregistrées ({{ n }}){% endblocktrans %}</h2>
+        <span class="ua-muted text-sm">{% blocktrans with p=summary.present a=summary.absent l=summary.late e=summary.excused %}{{ p }} présent(s) · {{ a }} absent(s) · {{ l }} retard(s) · {{ e }} excusé(s){% endblocktrans %}</span>
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
-            <thead><tr><th>Étudiant</th><th>Statut</th><th>Arrivée</th><th>Motif</th></tr></thead>
+            <thead><tr><th>{% translate "Étudiant" %}</th><th>{% translate "Statut" %}</th><th>{% translate "Arrivée" %}</th><th>{% translate "Motif" %}</th></tr></thead>
             <tbody>
                 {% for attendance in attendances %}
                 <tr>
@@ -77,30 +82,31 @@
                     <td>{{ attendance.absence_reason|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="ua-empty">Aucune présence enregistrée pour cette séance.</td></tr>
+                <tr><td colspan="4" class="ua-empty">{% translate "Aucune présence enregistrée pour cette séance." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
 
-{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title="Historique de la séance" audit_subtitle="Création du compte rendu et pointage des présences." audit_empty="Aucun événement d'audit pour cette séance." %}
+{% translate "Historique de la séance" as audit_titre_seance %}
+{% translate "Création du compte rendu et pointage des présences." as audit_sous_titre_seance %}
+{% translate "Aucun événement d'audit pour cette séance." as audit_vide_seance %}
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_title=audit_titre_seance audit_subtitle=audit_sous_titre_seance audit_empty=audit_vide_seance %}
 
 <section class="ua-card overflow-hidden mt-5">
     <div class="px-6 pt-6 pb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h2 class="ua-section-title">Fiches des apprenants ({{ student_notes|length }})</h2>
-            <p class="text-xs ua-muted mt-1">
-                Notions retenues et difficultés déclarées après le cours.
-            </p>
+            <h2 class="ua-section-title">{% blocktrans with n=student_notes|length %}Fiches des apprenants ({{ n }}){% endblocktrans %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Notions retenues et difficultés déclarées après le cours." %}</p>
         </div>
         <a href="{% url 'core:dashboard:textbook-session' record.session.id %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-            {% icon "book-open" %} Cahier de texte
+            {% icon "book-open" %} {% translate "Cahier de texte" %}
         </a>
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
-            <thead><tr><th>Apprenant</th><th>Notions retenues</th><th>Difficultés</th><th>Observations</th><th>Mise à jour</th></tr></thead>
+            <thead><tr><th>{% translate "Apprenant" %}</th><th>{% translate "Notions retenues" %}</th><th>{% translate "Difficultés" %}</th><th>{% translate "Observations" %}</th><th>{% translate "Mise à jour" %}</th></tr></thead>
             <tbody>
                 {% for note in student_notes %}
                 <tr>
@@ -111,7 +117,7 @@
                     <td class="ua-muted whitespace-nowrap">{{ note.updated_at|date:"d/m/Y H:i" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="ua-empty">Aucune fiche remplie par les apprenants pour cette séance.</td></tr>
+                <tr><td colspan="5" class="ua-empty">{% translate "Aucune fiche remplie par les apprenants pour cette séance." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

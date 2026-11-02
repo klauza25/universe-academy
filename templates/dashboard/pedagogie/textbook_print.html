@@ -1,9 +1,10 @@
-{% load static %}<!DOCTYPE html>
-<html lang="fr">
+{% load static ui i18n %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
 <head>
     <meta charset="utf-8">
-    <title>Cahier de texte — {{ session.course.title }}</title>
-    <style>
+    <title>{% translate "Cahier de texte" %} — {{ session.course.title }}</title>
+    <style><!--
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -121,12 +122,12 @@
             table.entries th { background: #eef0fb !important; -webkit-print-color-adjust: exact; }
         }
         @page { size: A4; margin: 12mm; }
-    </style>
+    --></style>
 </head>
 <body>
     <div class="toolbar">
-        <a href="{% url 'core:dashboard:textbook-session' session.id %}">← Retour au cahier</a>
-        <button type="button" onclick="window.print()">Imprimer</button>
+        <a href="{% url 'core:dashboard:textbook-session' session.id %}">← {% translate "Retour au cahier" %}</a>
+        <button type="button" onclick="window.print()">{% translate "Imprimer" %}</button>
     </div>
 
     <div class="sheet">
@@ -137,25 +138,25 @@
                 N° RCCM : CG-BZV-01-2025-A10-02201<br>
                 NIU : P23000000257459H<br>
                 CNSS : 12052348/65<br>
-                1<sup>er</sup> étage immeuble Monte Cristo<br>
+                {% blocktrans %}1<sup>er</sup> étage immeuble Monte Cristo{% endblocktrans %}<br>
                 +242-06-851-7179<br>
                 universacademy70@gmail.com
             </div>
         </div>
 
-        <h1>Cahier de texte</h1>
+        <h1>{% translate "Cahier de texte" %}</h1>
 
         <table class="identity">
             <tr>
-                <th>Formateur</th>
+                <th>{% translate "Formateur" %}</th>
                 <td>{{ header.formateur }}</td>
             </tr>
             <tr>
-                <th>Filière</th>
+                <th>{% translate "Filière" %}</th>
                 <td>{{ header.filiere }}</td>
             </tr>
             <tr>
-                <th>Classe</th>
+                <th>{% translate "Classe" %}</th>
                 <td>{{ header.classe }}</td>
             </tr>
         </table>
@@ -163,11 +164,11 @@
         <table class="entries">
             <thead>
                 <tr>
-                    <th style="width:84px;">Dates</th>
-                    <th style="width:92px;">Heures</th>
-                    <th>Notions enseignées</th>
-                    <th style="width:92px;">Nombre d'apprenants</th>
-                    <th style="width:150px;">Observations</th>
+                    <th style="width:84px;">{% translate "Dates" %}</th>
+                    <th style="width:92px;">{% translate "Heures" %}</th>
+                    <th>{% translate "Notions enseignées" %}</th>
+                    <th style="width:92px;">{% translate "Nombre d'apprenants" %}</th>
+                    <th style="width:150px;">{% translate "Observations" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -187,14 +188,14 @@
                     <td>{{ record.notes|default:"—"|linebreaksbr }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="empty">Aucune séance enregistrée pour cette classe.</td></tr>
+                <tr><td colspan="5" class="empty">{% translate "Aucune séance enregistrée pour cette classe." %}</td></tr>
                 {% endfor %}
             </tbody>
             {% if records %}
             <tfoot>
                 <tr>
-                    <td colspan="2">Total : {{ totals.seances }} séance{{ totals.seances|pluralize }}</td>
-                    <td>{{ totals.heures }} heure{{ totals.heures|pluralize }} assurée{{ totals.heures|pluralize }}</td>
+                    <td colspan="2">{% blocktrans with n=totals.seances %}Total : {{ n }} séance(s){% endblocktrans %}</td>
+                    <td>{{ totals.duration_minutes|duree }}</td>
                     <td class="center">{{ totals.apprenants }}</td>
                     <td></td>
                 </tr>
@@ -203,8 +204,8 @@
         </table>
 
         <div class="footer">
-            <span>Univers Academy — Cahier de texte</span>
-            <span>Édité le {{ today|date:"d/m/Y" }}</span>
+            <span>Univers Academy — {% translate "Cahier de texte" %}</span>
+            <span>{% blocktrans with d=today|date:"d/m/Y" %}Édité le {{ d }}{% endblocktrans %}</span>
         </div>
     </div>
 </body>

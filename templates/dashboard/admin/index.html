@@ -1,57 +1,72 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Administrateur — Univers Academy{% endblock %}
+{% block title %}{% translate "Administrateur — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
 
-{% block hero_title %}Pilotage de la vie académique{% endblock %}
+{% block hero_title %}{% translate "Pilotage de la vie académique" %}{% endblock %}
 {% block hero_text %}
-{{ active_students }} étudiant{{ active_students|pluralize }} actif{{ active_students|pluralize }}
-et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en attente sur la plateforme.
+{% blocktrans with a=active_students p=pending_requests %}{{ a }} étudiant(s) actif(s) et {{ p }} demande(s) d'accès en attente sur la plateforme.{% endblocktrans %}
 {% endblock %}
 {% block hero_actions %}
 <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-light">
-    {% icon "users" %} Consulter les utilisateurs
+    {% icon "users" %} {% translate "Consulter les utilisateurs" %}
 </a>
 <a href="{% url 'core:dashboard:audit-log' %}" class="ua-btn ua-btn-ghost">
-    {% icon "shield" %} Journal d'audit
+    {% icon "shield" %} {% translate "Journal d'audit" %}
 </a>
 {% endblock %}
 {% block hero_aside %}
 <div class="ua-hero-card">
     <p class="ua-hero-card-value">{{ total_trainers }}</p>
-    <p class="ua-hero-card-label">Formateurs actifs</p>
+    <p class="ua-hero-card-label">{% translate "Formateurs actifs" %}</p>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
+{% translate "Rôle à définir" as var_role_definir %}
+{% translate "Étudiants actifs" as lbl_etudiants %}
+{% translate "Comptes étudiants ouverts" as hint_etudiants %}
+{% translate "Demandes en attente" as lbl_demandes %}
+{% translate "En attente de validation" as hint_demandes %}
+{% translate "Formateurs" as lbl_formateurs %}
+{% translate "Encadrants actifs" as hint_formateurs %}
+{% translate "Formations actives" as lbl_formations %}
+{% translate "Catalogue en cours" as hint_formations %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-    {% include "dashboard/_stat.html" with label="Étudiants actifs" value=active_students icon="graduation" tone="green" hint="Comptes étudiants ouverts" %}
-    {% include "dashboard/_stat.html" with label="Demandes en attente" value=pending_requests icon="clipboard" tone="amber" hint="En attente de validation" %}
-    {% include "dashboard/_stat.html" with label="Formateurs" value=total_trainers icon="presentation" tone="indigo" hint="Encadrants actifs" %}
-    {% include "dashboard/_stat.html" with label="Formations actives" value=active_courses icon="book-open" tone="sky" hint="Catalogue en cours" %}
+    {% include "dashboard/_stat.html" with label=lbl_etudiants value=active_students icon="graduation" tone="green" hint=hint_etudiants %}
+    {% include "dashboard/_stat.html" with label=lbl_demandes value=pending_requests icon="clipboard" tone="amber" hint=hint_demandes %}
+    {% include "dashboard/_stat.html" with label=lbl_formateurs value=total_trainers icon="presentation" tone="indigo" hint=hint_formateurs %}
+    {% include "dashboard/_stat.html" with label=lbl_formations value=active_courses icon="book-open" tone="sky" hint=hint_formations %}
 </div>
 
+{% translate "Entrées du mois" as lbl_entrees %}
+{% translate "Opérations validées" as hint_operations %}
+{% translate "Sorties du mois" as lbl_sorties %}
+{% translate "Solde des caisses" as lbl_solde %}
+{% translate "Tous comptes actifs" as hint_solde %}
+{% translate "Reste à recouvrer" as lbl_reste %}
+{% translate "Inscriptions en cours" as hint_reste %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-    {% include "dashboard/_stat.html" with label="Entrées du mois" value=month_income|floatformat:0 icon="wallet" tone="green" hint="Opérations validées" %}
-    {% include "dashboard/_stat.html" with label="Sorties du mois" value=month_expense|floatformat:0 icon="trending-up" tone="rose" hint="Opérations validées" %}
-    {% include "dashboard/_stat.html" with label="Solde des caisses" value=cash_total|floatformat:0 icon="credit-card" tone="indigo" hint="Tous comptes actifs" %}
-    {% include "dashboard/_stat.html" with label="Reste à recouvrer" value=outstanding_amount|floatformat:0 icon="chart" tone="amber" hint="Inscriptions en cours" %}
+    {% include "dashboard/_stat.html" with label=lbl_entrees value=month_income|floatformat:0 icon="wallet" tone="green" hint=hint_operations %}
+    {% include "dashboard/_stat.html" with label=lbl_sorties value=month_expense|floatformat:0 icon="trending-up" tone="rose" hint=hint_operations %}
+    {% include "dashboard/_stat.html" with label=lbl_solde value=cash_total|floatformat:0 icon="credit-card" tone="indigo" hint=hint_solde %}
+    {% include "dashboard/_stat.html" with label=lbl_reste value=outstanding_amount|floatformat:0 icon="chart" tone="amber" hint=hint_reste %}
 </div>
 
 <section class="ua-card overflow-hidden mb-6">
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
         <div>
-            <h2 class="ua-section-title">Finances — soldes par caisse</h2>
-            <p class="text-xs ua-muted mt-1">{{ new_enrollments }} nouvelle{{ new_enrollments|pluralize }} inscription{{ new_enrollments|pluralize }} ce mois-ci</p>
+            <h2 class="ua-section-title">{% translate "Finances — soldes par caisse" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% blocktrans with n=new_enrollments %}{{ n }} nouvelle(s) inscription(s) ce mois-ci{% endblocktrans %}</p>
         </div>
         <div class="flex flex-wrap gap-2">
             <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-                Journal comptable {% icon "arrow-right" %}
+                {% translate "Journal comptable" %} {% icon "arrow-right" %}
             </a>
             <a href="{% url 'core:dashboard:accounts' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-                Caisses &amp; comptes {% icon "arrow-right" %}
+                {% translate "Caisses & comptes" %} {% icon "arrow-right" %}
             </a>
         </div>
     </div>
@@ -59,9 +74,9 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Caisse / compte</th>
-                    <th>Type</th>
-                    <th class="text-right">Solde</th>
+                    <th>{% translate "Caisse / compte" %}</th>
+                    <th>{% translate "Type" %}</th>
+                    <th class="text-right">{% translate "Solde" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +87,7 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
                     <td class="text-right font-semibold">{{ row.balance|floatformat:0 }} {{ row.account.currency }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="3" class="ua-empty">Aucune caisse active</td></tr>
+                <tr><td colspan="3" class="ua-empty">{% translate "Aucune caisse active" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -80,50 +95,49 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
 </section>
 
 <section class="ua-card ua-card-pad mb-6">
-    <h2 class="ua-section-title">Tous les modules</h2>
-    <p class="text-xs ua-muted mt-1 mb-4">L'administrateur a un accès de lecture complet à chaque module
-        de l'établissement.</p>
+    <h2 class="ua-section-title">{% translate "Tous les modules" %}</h2>
+    <p class="text-xs ua-muted mt-1 mb-4">{% translate "L'administrateur a un accès de lecture complet à chaque module de l'établissement." %}</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         <a href="{% url 'core:dashboard:student-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-green">{% icon "graduation" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Étudiants</span>
-                <span class="ua-cell-sub block">Dossiers, inscriptions, documents</span>
+                <span class="ua-cell-title block">{% translate "Étudiants" %}</span>
+                <span class="ua-cell-sub block">{% translate "Dossiers, inscriptions, documents" %}</span>
             </span>
         </a>
         <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-amber">{% icon "wallet" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Finances</span>
-                <span class="ua-cell-sub block">Caisses, journal, clôtures</span>
+                <span class="ua-cell-title block">{% translate "Finances" %}</span>
+                <span class="ua-cell-sub block">{% translate "Caisses, journal, clôtures" %}</span>
             </span>
         </a>
         <a href="{% url 'core:dashboard:programs' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-sky">{% icon "book-open" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Pédagogie</span>
-                <span class="ua-cell-sub block">Programmes, séances, présences</span>
+                <span class="ua-cell-title block">{% translate "Pédagogie" %}</span>
+                <span class="ua-cell-sub block">{% translate "Programmes, séances, présences" %}</span>
             </span>
         </a>
         <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-indigo">{% icon "users" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Visiteurs &amp; prospects</span>
-                <span class="ua-cell-sub block">Visites, relances, conversions</span>
+                <span class="ua-cell-title block">{% translate "Visiteurs & prospects" %}</span>
+                <span class="ua-cell-sub block">{% translate "Visites, relances, conversions" %}</span>
             </span>
         </a>
         <a href="{% url 'core:dashboard:scholarship-review-list' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-violet">{% icon "mail" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Bourses</span>
-                <span class="ua-cell-sub block">Candidatures à examiner</span>
+                <span class="ua-cell-title block">{% translate "Bourses" %}</span>
+                <span class="ua-cell-sub block">{% translate "Candidatures à examiner" %}</span>
             </span>
         </a>
         <a href="{% url 'core:dashboard:audit-log' %}" class="ua-card ua-card-pad flex items-start gap-3">
             <span class="ua-stat-icon ua-tone-rose">{% icon "shield" %}</span>
             <span class="min-w-0">
-                <span class="ua-cell-title block">Audit</span>
-                <span class="ua-cell-sub block">Historique de toutes les actions</span>
+                <span class="ua-cell-title block">{% translate "Audit" %}</span>
+                <span class="ua-cell-sub block">{% translate "Historique de toutes les actions" %}</span>
             </span>
         </a>
     </div>
@@ -132,20 +146,20 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
 <section class="ua-card overflow-hidden mb-6">
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
         <div>
-            <h2 class="ua-section-title">Demandes d'accès en attente</h2>
-            <p class="text-xs ua-muted mt-1">Rôle suggéré à la création du compte — à valider ou modifier</p>
+            <h2 class="ua-section-title">{% translate "Demandes d'accès en attente" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Rôle suggéré à la création du compte — à valider ou modifier" %}</p>
         </div>
         <a href="{% url 'core:dashboard:access-requests' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-            Toutes les demandes {% icon "arrow-right" %}
+            {% translate "Toutes les demandes" %} {% icon "arrow-right" %}
         </a>
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Demandeur</th>
-                    <th>Rôle suggéré</th>
-                    <th>Créé le</th>
+                    <th>{% translate "Demandeur" %}</th>
+                    <th>{% translate "Rôle suggéré" %}</th>
+                    <th>{% translate "Créé le" %}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -165,17 +179,17 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
                     </td>
                     <td>
                         <span class="ua-badge ua-badge-amber">
-                            {{ ar.get_requested_role_display|default:"Rôle à définir" }}
+                            {{ ar.get_requested_role_display|default:var_role_definir }}
                         </span>
                     </td>
                     <td class="ua-muted whitespace-nowrap">{{ ar.created_at|date:"d/m/Y H:i" }}</td>
                     <td class="text-right">
                         <a href="{% url 'core:dashboard:access-requests' %}?statut=PENDING"
-                           class="ua-btn ua-btn-ghost ua-btn-sm">Examiner</a>
+                           class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Examiner" %}</a>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="ua-empty">Aucune demande en attente</td></tr>
+                <tr><td colspan="4" class="ua-empty">{% translate "Aucune demande en attente" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -185,22 +199,22 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
 <section class="ua-card overflow-hidden">
     <div class="flex items-center justify-between gap-3 px-6 pt-6 pb-4">
         <div>
-            <h2 class="ua-section-title">Derniers comptes créés</h2>
-            <p class="text-xs ua-muted mt-1">Les 6 inscriptions les plus récentes</p>
+            <h2 class="ua-section-title">{% translate "Derniers comptes créés" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% translate "Les 6 inscriptions les plus récentes" %}</p>
         </div>
         <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
-            Tous les utilisateurs {% icon "arrow-right" %}
+            {% translate "Tous les utilisateurs" %} {% icon "arrow-right" %}
         </a>
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Utilisateur</th>
-                    <th>Code interne</th>
-                    <th>Rôle</th>
-                    <th>Statut</th>
-                    <th>Créé le</th>
+                    <th>{% translate "Utilisateur" %}</th>
+                    <th>{% translate "Code interne" %}</th>
+                    <th>{% translate "Rôle" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th>{% translate "Créé le" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -236,7 +250,7 @@ et {{ pending_requests }} demande{{ pending_requests|pluralize }} d'accès en at
                     <td class="ua-muted whitespace-nowrap">{{ u.date_joined|date:"d/m/Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="ua-empty">Aucun utilisateur pour le moment</td></tr>
+                <tr><td colspan="5" class="ua-empty">{% translate "Aucun utilisateur pour le moment" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

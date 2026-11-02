@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Présences — Univers Academy{% endblock %}
+{% block title %}{% translate "Présences — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/pedagogie/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,52 +9,58 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Historique des présences</h1>
-        <p class="ua-page-sub">Par étudiant, formation, séance et période.</p>
+        <h1 class="ua-page-title">{% translate "Historique des présences" %}</h1>
+        <p class="ua-page-sub">{% translate "Par étudiant, formation, séance et période." %}</p>
     </div>
 </div>
 
+{% translate "Enregistrements" as lbl_enregistrements %}
+{% translate "Présents" as lbl_presents %}
+{% translate "Absents" as lbl_absents %}
+{% translate "Retards" as lbl_retards %}
+{% translate "Excusés" as lbl_excuses %}
+{% translate "lignes" as hint_lignes %}
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
-    {% include "dashboard/_stat.html" with label="Enregistrements" value=totals.total icon="clipboard" tone="indigo" hint="lignes" %}
-    {% include "dashboard/_stat.html" with label="Présents" value=totals.presents icon="user-check" tone="green" hint="lignes" %}
-    {% include "dashboard/_stat.html" with label="Absents" value=totals.absents icon="close" tone="rose" hint="lignes" %}
-    {% include "dashboard/_stat.html" with label="Retards" value=totals.retards icon="clock" tone="amber" hint="lignes" %}
-    {% include "dashboard/_stat.html" with label="Excusés" value=totals.excuses icon="info" tone="sky" hint="lignes" %}
+    {% include "dashboard/_stat.html" with label=lbl_enregistrements value=totals.total icon="clipboard" tone="indigo" hint=hint_lignes %}
+    {% include "dashboard/_stat.html" with label=lbl_presents value=totals.presents icon="user-check" tone="green" hint=hint_lignes %}
+    {% include "dashboard/_stat.html" with label=lbl_absents value=totals.absents icon="close" tone="rose" hint=hint_lignes %}
+    {% include "dashboard/_stat.html" with label=lbl_retards value=totals.retards icon="clock" tone="amber" hint=hint_lignes %}
+    {% include "dashboard/_stat.html" with label=lbl_excuses value=totals.excuses icon="info" tone="sky" hint=hint_lignes %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end">
         <div class="md:col-span-2">
-            <label class="text-xs ua-muted block mb-1">Étudiant</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Étudiant" %}</label>
             <input type="search" name="q" value="{{ query }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Statut" %}</label>
             <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for value, label in status_choices %}
                 <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Formation</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Formation" %}</label>
             <select name="course" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
+                <option value="">{% translate "Toutes" %}</option>
                 {% for course in courses %}
                 <option value="{{ course.id }}" {% if course_filter == course.id|stringformat:'s' %}selected{% endif %}>{{ course.title }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Du</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Du" %}</label>
             <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Au</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Au" %}</label>
             <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
-        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} Filtrer</button>
+        <button type="submit" class="ua-btn ua-btn-primary justify-center">{% icon "search" %} {% translate "Filtrer" %}</button>
     </form>
 </section>
 
@@ -62,7 +68,7 @@
     <section class="ua-card overflow-hidden xl:col-span-2">
         <div class="ua-table-wrap">
             <table class="ua-table">
-                <thead><tr><th>Date</th><th>Étudiant</th><th>Formation</th><th>Séance</th><th>Statut</th><th>Motif</th></tr></thead>
+                <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Étudiant" %}</th><th>{% translate "Formation" %}</th><th>{% translate "Séance" %}</th><th>{% translate "Statut" %}</th><th>{% translate "Motif" %}</th></tr></thead>
                 <tbody>
                     {% for attendance in page %}
                     <tr>
@@ -74,7 +80,7 @@
                         <td>{{ attendance.absence_reason|default:"—" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="ua-empty">Aucune présence pour ces critères.</td></tr>
+                    <tr><td colspan="6" class="ua-empty">{% translate "Aucune présence pour ces critères." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -83,7 +89,7 @@
     </section>
 
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Étudiants les plus absents</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Étudiants les plus absents" %}</h2>
         {% for row in recurrent %}
         <div class="ua-list-row">
             <div>
@@ -93,7 +99,7 @@
             <span class="ua-badge ua-badge-amber">{{ row.count }}</span>
         </div>
         {% empty %}
-        <p class="ua-empty">Aucune absence sur la période.</p>
+        <p class="ua-empty">{% translate "Aucune absence sur la période." %}</p>
         {% endfor %}
     </section>
 </div>

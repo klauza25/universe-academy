@@ -12,7 +12,8 @@ from django.urls import reverse
 
 from core.clerk import sync_clerk_user
 from core.models import (
-    AccessRequest, AccountStatus, AuditLog, Notification, RoleKey, User,
+    AccessRequest, AccountStatus, AuditLog, CourseSession, Enrollment,
+    Notification, RoleKey, User,
 )
 
 from .base import BusinessTestBase, TEST_PASSWORD
@@ -218,11 +219,15 @@ class AccessApprovalTests(BusinessTestBase):
             user=self.pending, requested_role=RoleKey.FORMATEUR,
         )
 
-    def approve(self, role_key, note='Dossier conforme'):
+    def approve(self, role_key, note='Dossier conforme', *, session=None,
+                with_session=True, access_request=None):
+        payload = {'decision': 'approve', 'role_key': role_key, 'note': note}
+        if with_session:
+            payload['session'] = (session or self.session).pk
+        target = access_request or self.access_request
         return self.client_for(self.super_admin).post(
-            reverse('core:dashboard:access-request-review',
-                    args=[self.access_request.id]),
-            {'decision': 'approve', 'role_key': role_key, 'note': note},
+            reverse('core:dashboard:access-request-review', args=[target.id]),
+            payload,
         )
 
     def test_review_screen_never_defaults_to_super_admin(self):
@@ -376,6 +381,62 @@ class AccessApprovalTests(BusinessTestBase):
         self.assertContains(response, 'Postulant Test')
         self.assertTrue(
             self.pending.internal_code.startswith('UA-ETU'))
+
+    def test_student_approval_without_group_stays_pending(self):
+        self.access_request.requested_role = RoleKey.ETUDIANT
+        self.access_request.save(update_fields=['requested_role'])
+
+        response = self.approve(RoleKey.ETUDIANT, with_session=False)
+        self.assertRedirects(
+            response, reverse('core:dashboard:access-requests'),
+            fetch_redirect_response=False,
+        )
+        self.access_request.refresh_from_db()
+        self.pending.refresh_from_db()
+        self.assertEqual(
+            self.access_request.status, AccessRequest.Status.PENDING
+        )
+        self.assertEqual(
+            self.pending.account_status, AccountStatus.PENDING_APPROVAL
+        )
+        self.assertFalse(self.pending.roles.exists())
+        self.assertFalse(Enrollment.objects.filter(student=self.pending).exists())
+
+    def test_student_approval_enrolls_him_in_the_payment_form(self):
+        self.approve(RoleKey.ETUDIANT)
+        enrollment = Enrollment.objects.get(student=self.pending)
+        self.assertEqual(enrollment.session, self.session)
+        self.assertEqual(enrollment.status, Enrollment.Status.ACTIVE)
+        self.assertEqual(enrollment.net_amount, self.course.fee_amount)
+        self.assertEqual(enrollment.registered_by, self.super_admin)
+        self.assert_audited('ENROLLMENT_CREATE', enrollment.id)
+
+        page = self.client_for(self.comptable).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertContains(page, 'Postulant Test')
+        self.assertContains(page, str(enrollment.id))
+
+    def test_approval_never_adds_a_second_enrollment(self):
+        other_group = CourseSession.objects.create(
+            course=self.course, starts_at=self.today, ends_at=self.today,
+            schedule='Sam 09h-12h', capacity=20,
+            status=CourseSession.Status.PLANNED,
+        )
+        self.approve(RoleKey.ETUDIANT)
+        second = AccessRequest.objects.create(
+            user=self.pending, requested_role=RoleKey.ETUDIANT,
+        )
+        self.approve(RoleKey.ETUDIANT, session=other_group,
+                     access_request=second)
+
+        second.refresh_from_db()
+        self.assertEqual(second.status, AccessRequest.Status.APPROVED)
+        self.assertEqual(
+            Enrollment.objects.filter(student=self.pending).count(), 1)
+
+    def test_non_student_approval_ignores_the_group_field(self):
+        self.approve(RoleKey.FORMATEUR)
+        self.assertFalse(Enrollment.objects.filter(student=self.pending).exists())
 
     def test_rejection_blocks_access_and_keeps_trace(self):
         response = self.client_for(self.super_admin).post(
@@ -546,7 +607,8 @@ class RoleTamperingTests(BusinessTestBase):
         self.client_for(self.super_admin).post(
             reverse('core:dashboard:access-request-review',
                     args=[access_request.id]),
-            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT},
+            {'decision': 'approve', 'role_key': RoleKey.ETUDIANT,
+             'session': self.session.pk},
         )
         self.assertEqual(
             client.get(reverse('core:dashboard:etudiant-dashboard')).status_code,

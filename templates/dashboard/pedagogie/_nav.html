@@ -1,25 +1,25 @@
-{% load ui %}
+{% load ui i18n %}
 <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-nav-link">
-    {% icon "grid" %}<span>Mon tableau de bord</span>
+    {% icon "grid" %}<span>{% translate "Mon tableau de bord" %}</span>
 </a>
 <a href="{% url 'core:dashboard:course-sessions' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'course-sessions' or request.resolver_match.url_name == 'course-session-create' or request.resolver_match.url_name == 'course-session-edit' %}is-active{% endif %}">
-    {% icon "users" %}<span>Groupes</span>
+    {% icon "users" %}<span>{% translate "Groupes" %}</span>
 </a>
 <a href="{% url 'core:dashboard:session-records' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'session-records' or request.resolver_match.url_name == 'session-record-detail' or request.resolver_match.url_name == 'session-record-attendance' %}is-active{% endif %}">
-    {% icon "presentation" %}<span>Séances</span>
+    {% icon "presentation" %}<span>{% translate "Séances" %}</span>
 </a>
 <a href="{% url 'core:dashboard:textbook' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'textbook' or request.resolver_match.url_name == 'textbook-session' or request.resolver_match.url_name == 'textbook-create' or request.resolver_match.url_name == 'textbook-edit' or request.resolver_match.url_name == 'textbook-print' %}is-active{% endif %}">
-    {% icon "file-text" %}<span>Cahier de texte</span>
+    {% icon "file-text" %}<span>{% translate "Cahier de texte" %}</span>
 </a>
 <a href="{% url 'core:dashboard:attendance-history' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'attendance-history' %}is-active{% endif %}">
-    {% icon "clipboard" %}<span>Présences</span>
+    {% icon "clipboard" %}<span>{% translate "Présences" %}</span>
 </a>
 <a href="{% url 'core:dashboard:resources' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'resources' or request.resolver_match.url_name == 'resource-create' or request.resolver_match.url_name == 'resource-edit' %}is-active{% endif %}">
-    {% icon "book-open" %}<span>Ressources</span>
+    {% icon "book-open" %}<span>{% translate "Ressources" %}</span>
 </a>
 <a href="{% url 'core:dashboard:progression' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'progression' %}is-active{% endif %}">
-    {% icon "chart" %}<span>Progression</span>
+    {% icon "chart" %}<span>{% translate "Progression" %}</span>
 </a>
 <a href="{% url 'core:dashboard:programs' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'programs' or request.resolver_match.url_name == 'module-create' or request.resolver_match.url_name == 'lesson-create' %}is-active{% endif %}">
-    {% icon "book-open" %}<span>Programmes</span>
+    {% icon "book-open" %}<span>{% translate "Programmes" %}</span>
 </a>

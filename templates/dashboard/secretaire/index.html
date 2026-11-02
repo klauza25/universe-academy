@@ -1,60 +1,67 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Secrétaire — Univers Academy{% endblock %}
+{% block title %}{% translate "Secrétaire — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/secretaire/_nav.html" %}{% endblock %}
 
-{% block hero_title %}Suivi des inscriptions{% endblock %}
+{% block hero_title %}{% translate "Suivi des inscriptions" %}{% endblock %}
 {% block hero_text %}
-{{ pending_enrollments }} inscription{{ pending_enrollments|pluralize }} en attente
-sur {{ total_enrollments }} dossier{{ total_enrollments|pluralize }} au total,
-{{ total_students }} étudiant{{ total_students|pluralize }} au fichier.
+{% blocktrans trimmed with p=pending_enrollments t=total_enrollments s=total_students %}{{ p }} inscription(s) en attente sur {{ t }} dossier(s) au total, {{ s }} étudiant(s) au fichier.{% endblocktrans %}
 {% endblock %}
-
 {% block hero_actions %}
+{% translate "Nouvel étudiant" as act_etudiant %}
+{% translate "Nouvelle inscription" as act_inscription %}
 {% if not is_elevated %}
-<a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-light">{% icon "user-plus" %} Nouvel étudiant</a>
-<a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-btn ua-btn-ghost">{% icon "clipboard" %} Nouvelle inscription</a>
+<a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-light">{% icon "user-plus" %} {{ act_etudiant }}</a>
+<a href="{% url 'core:dashboard:enrollment-create' %}" class="ua-btn ua-btn-ghost">{% icon "clipboard" %} {{ act_inscription }}</a>
 {% endif %}
 {% endblock %}
 
 {% block dashboard_content %}
+{% translate "Inscriptions en attente" as lbl_attente %}
+{% translate "Dossiers d'inscription" as lbl_dossiers %}
+{% translate "Étudiants au fichier" as lbl_etudiants %}
+{% translate "Prospects convertis" as lbl_convertis %}
+{% translate "À confirmer" as hint_attente %}
+{% translate "Toutes sessions" as hint_dossiers %}
+{% translate "Comptes étudiants" as hint_etudiants %}
+{% translate "Vers une inscription" as hint_convertis %}
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-6">
-    {% include "dashboard/_stat.html" with label="Inscriptions en attente" value=pending_enrollments icon="clock" tone="amber" hint="À confirmer" %}
-    {% include "dashboard/_stat.html" with label="Dossiers d'inscription" value=total_enrollments icon="clipboard" tone="indigo" hint="Toutes sessions" %}
-    {% include "dashboard/_stat.html" with label="Étudiants au fichier" value=total_students icon="graduation" tone="green" hint="Comptes étudiants" %}
-    {% include "dashboard/_stat.html" with label="Prospects convertis" value=converted_prospects icon="user-check" tone="sky" hint="Vers une inscription" %}
+    {% include "dashboard/_stat.html" with label=lbl_attente value=pending_enrollments icon="clock" tone="amber" hint=hint_attente %}
+    {% include "dashboard/_stat.html" with label=lbl_dossiers value=total_enrollments icon="clipboard" tone="indigo" hint=hint_dossiers %}
+    {% include "dashboard/_stat.html" with label=lbl_etudiants value=total_students icon="graduation" tone="green" hint=hint_etudiants %}
+    {% include "dashboard/_stat.html" with label=lbl_convertis value=converted_prospects icon="user-check" tone="sky" hint=hint_convertis %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
-            <h2 class="ua-section-title">Actions rapides</h2>
-            <p class="text-xs ua-muted mt-1">{{ awaiting_prospects }} prospect(s) à traiter · {{ documents_count }} document(s) au fichier</p>
+            <h2 class="ua-section-title">{% translate "Actions rapides" %}</h2>
+            <p class="text-xs ua-muted mt-1">{% blocktrans trimmed with p=awaiting_prospects d=documents_count %}{{ p }} prospect(s) à traiter · {{ d }} document(s) au fichier{% endblocktrans %}</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Étudiants</a>
-            <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Prospects</a>
-            <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">Visites</a>
+            <a href="{% url 'core:dashboard:student-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Étudiants" %}</a>
+            <a href="{% url 'core:dashboard:prospect-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Prospects" %}</a>
+            <a href="{% url 'core:dashboard:visit-list' %}" class="ua-btn ua-btn-ghost ua-btn-sm">{% translate "Visites" %}</a>
         </div>
     </div>
 </section>
 
 <section class="ua-card overflow-hidden">
     <div class="px-6 pt-6 pb-4">
-        <h2 class="ua-section-title">Inscriptions récentes</h2>
-        <p class="text-xs ua-muted mt-1">Les 10 derniers dossiers enregistrés</p>
+        <h2 class="ua-section-title">{% translate "Inscriptions récentes" %}</h2>
+        <p class="text-xs ua-muted mt-1">{% translate "Les 10 derniers dossiers enregistrés" %}</p>
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Étudiant</th>
-                    <th>Formation</th>
-                    <th>Session</th>
-                    <th>Statut</th>
-                    <th>Date</th>
+                    <th>{% translate "Étudiant" %}</th>
+                    <th>{% translate "Formation" %}</th>
+                    <th>{% translate "Session" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th>{% translate "Date" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -89,7 +96,7 @@ sur {{ total_enrollments }} dossier{{ total_enrollments|pluralize }} au total,
                     <td class="ua-muted whitespace-nowrap">{{ enrollment.enrolled_at|date:"d/m/Y" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="ua-empty">Aucune inscription enregistrée</td></tr>
+                <tr><td colspan="5" class="ua-empty">{% translate "Aucune inscription enregistrée" %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

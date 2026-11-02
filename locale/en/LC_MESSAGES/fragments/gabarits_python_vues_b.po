@@ -1,0 +1,192 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/views_comptabilite.py
+msgid "Référence"
+msgstr "Reference"
+
+msgid "Date effective"
+msgstr "Effective date"
+
+msgid "Saisie"
+msgstr "Entered on"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Catégorie"
+msgstr "Category"
+
+msgid "Libellé"
+msgstr "Label"
+
+msgid "Bénéficiaire/Payeur"
+msgstr "Payee/Payer"
+
+msgid "Entrée"
+msgstr "Income"
+
+msgid "Sortie"
+msgstr "Expense"
+
+msgid "Moyen"
+msgstr "Method"
+
+msgid "Caisse"
+msgstr "Cash account"
+
+msgid "Auteur"
+msgstr "Author"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Opération %(reference)s enregistrée."
+msgstr "Transaction %(reference)s recorded."
+
+msgid "Consultation seule : cette action relève du rôle métier."
+msgstr "Read-only: this action belongs to the operational role."
+
+msgid "Un motif est obligatoire pour annuler."
+msgstr "A reason is required to cancel."
+
+msgid "Cette opération est déjà annulée."
+msgstr "This transaction is already cancelled."
+
+msgid "Annulation : %(motif)s"
+msgstr "Cancellation: %(motif)s"
+
+msgid "Opération annulée et historisée."
+msgstr "Transaction cancelled and added to the history."
+
+msgid "Caisse / compte créé."
+msgstr "Cash account created."
+
+msgid "Cette caisse est déjà clôturée pour cette date."
+msgstr "This cash account is already closed for this date."
+
+msgid "Clôture enregistrée. Écart : %(ecart)s FCFA."
+msgstr "Closing recorded. Difference: %(ecart)s FCFA."
+
+msgid "Cet étudiant est déjà inscrit à cette formation."
+msgstr "This student is already enrolled in this program."
+
+msgid "Inscription créée. Elle doit être validée par la direction avant tout encaissement."
+msgstr "Enrollment created. It must be approved by management before any payment is collected."
+
+msgid "Un paiement identique vient d'être enregistré. Vérifiez le journal avant de réessayer."
+msgstr "An identical payment has just been recorded. Check the journal before trying again."
+
+msgid "Paiement étudiant %(reference)s"
+msgstr "Student payment %(reference)s"
+
+msgid "Paiement %(reference)s enregistré. Reste à payer : %(reste)s FCFA."
+msgstr "Payment %(reference)s recorded. Balance due: %(reste)s FCFA."
+
+msgid "Accès au reçu non autorisé."
+msgstr "Access to this receipt is not allowed."
+
+# core/views_pedagogie.py
+msgid "Module créé."
+msgstr "Module created."
+
+msgid "Module mis à jour."
+msgstr "Module updated."
+
+msgid "Leçon créée."
+msgstr "Lesson created."
+
+msgid "Leçon mise à jour."
+msgstr "Lesson updated."
+
+msgid "Groupe créé."
+msgstr "Class group created."
+
+msgid "Groupe mis à jour."
+msgstr "Class group updated."
+
+msgid "Séance enregistrée."
+msgstr "Session recorded."
+
+msgid "Compte rendu de séance mis à jour."
+msgstr "Session report updated."
+
+msgid "%(nb)s présence(s) enregistrée(s)."
+msgstr "%(nb)s attendance(s) recorded."
+
+msgid "Ressource enregistrée."
+msgstr "Resource saved."
+
+msgid "Ressource mise à jour."
+msgstr "Resource updated."
+
+msgid "Merci, votre retour a été enregistré."
+msgstr "Thank you, your feedback has been recorded."
+
+msgid "%(titre)s — du %(de)s au %(au)s"
+msgstr "%(titre)s — from %(de)s to %(au)s"
+
+msgid "Séance enregistrée dans le cahier de texte."
+msgstr "Session recorded in the class register."
+
+msgid "Ligne du cahier de texte mise à jour."
+msgstr "Class register line updated."
+
+msgid "Séance hors de votre parcours."
+msgstr "Session outside your program."
+
+msgid "Cette séance n'est pas encore réalisée."
+msgstr "This session has not taken place yet."
+
+msgid "Votre fiche de cours a été enregistrée."
+msgstr "Your course sheet has been saved."
+
+# core/views_profile.py
+msgid "Votre profil a été mis à jour."
+msgstr "Your profile has been updated."
+
+msgid "Photo de profil enregistrée."
+msgstr "Profile photo saved."
+
+msgid "Photo supprimée, avatar par défaut rétabli."
+msgstr "Photo deleted, default avatar restored."
+
+msgid "Confirmation de votre nouvelle adresse — Univers Academy"
+msgstr "Confirmation of your new address — Univers Academy"
+
+msgid "Bonjour,"
+msgstr "Hello,"
+
+msgid "Vous avez demandé à utiliser cette adresse pour votre compte Univers Academy."
+msgstr "You asked to use this address for your Univers Academy account."
+
+msgid "Confirmez le changement en ouvrant ce lien :"
+msgstr "Confirm the change by opening this link:"
+
+msgid "Ce lien expire dans 24 heures. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message."
+msgstr "This link expires within 24 hours. If you did not request this change, ignore this message."
+
+msgid "Un lien de confirmation a été envoyé à la nouvelle adresse."
+msgstr "A confirmation link has been sent to the new address."
+
+msgid "L'email de vérification n'a pas pu être envoyé. Le changement n'a pas été appliqué."
+msgstr "The verification email could not be sent. The change was not applied."
+
+msgid "Ce lien de confirmation a expiré."
+msgstr "This confirmation link has expired."
+
+msgid "Lien de confirmation invalide."
+msgstr "Invalid confirmation link."
+
+msgid "Ce lien ne correspond pas à votre compte."
+msgstr "This link does not match your account."
+
+msgid "Cette adresse est déjà utilisée par un autre compte."
+msgstr "This address is already used by another account."
+
+msgid "Votre adresse e-mail a été mise à jour."
+msgstr "Your email address has been updated."

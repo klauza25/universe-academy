@@ -1,0 +1,224 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/views.py
+msgid "Votre compte est désactivé ou suspendu."
+msgstr "Your account is disabled or suspended."
+
+msgid "Identifiant ou mot de passe incorrect."
+msgstr "Incorrect username or password."
+
+msgid "Connexion Clerk impossible : jeton manquant."
+msgstr "Clerk sign-in failed: missing token."
+
+msgid "Connexion Clerk impossible. Veuillez reessayer."
+msgstr "Clerk sign-in failed. Please try again."
+
+msgid "Votre compte est desactive. Contactez l'administration."
+msgstr "Your account is disabled. Contact the administration."
+
+msgid "Votre compte est desactive ou suspendu."
+msgstr "Your account is disabled or suspended."
+
+msgid "Votre demande d'accès a été enregistrée."
+msgstr "Your access request has been recorded."
+
+msgid "Le fichier %(nom)s est trop volumineux (max 10 Mo)."
+msgstr "File %(nom)s is too large (max 10 MB)."
+
+msgid "Aucune candidature trouvée avec ces informations."
+msgstr "No application found with these details."
+
+msgid "Inscription créée à la création du compte."
+msgstr "Enrollment created when the account was created."
+
+msgid "Utilisateur %(nom)s créé avec succès."
+msgstr "User %(nom)s created successfully."
+
+msgid "Ce compte étudiant est actif sans inscription : le secrétariat doit l'inscrire à un groupe pour qu'il figure dans la liste des inscrits."
+msgstr "This student account is active without an enrollment: the secretary must enroll it in a group so that it appears in the enrolled list."
+
+msgid "Utilisateur modifié."
+msgstr "User updated."
+
+msgid "Vous ne pouvez pas modifier vos propres rôles."
+msgstr "You cannot change your own roles."
+
+msgid "Action sur le rôle inconnue."
+msgstr "Unknown role action."
+
+msgid "Rôle inconnu."
+msgstr "Unknown role."
+
+msgid "Impossible d'attribuer un rôle privilégié."
+msgstr "Cannot assign a privileged role."
+
+msgid "Rôle %(role)s ajouté."
+msgstr "Role %(role)s added."
+
+msgid "Ce compte n'a aucune inscription : le secrétariat doit l'inscrire à un groupe pour qu'il figure dans la liste des inscrits."
+msgstr "This account has no enrollment: the secretary must enroll it in a group so that it appears in the enrolled list."
+
+msgid "Le rôle %(role)s est déjà attribué."
+msgstr "Role %(role)s is already assigned."
+
+msgid "Impossible de retirer le rôle SUPER_ADMIN au dernier super administrateur actif."
+msgstr "Cannot remove the SUPER_ADMIN role from the last active super administrator."
+
+msgid "Rôle %(role)s retiré."
+msgstr "Role %(role)s removed."
+
+msgid "Le rôle %(role)s n'était pas attribué."
+msgstr "Role %(role)s was not assigned."
+
+msgid "Vous ne pouvez pas modifier le statut de votre propre compte."
+msgstr "You cannot change the status of your own account."
+
+msgid "Statut de compte invalide."
+msgstr "Invalid account status."
+
+msgid "Le compte a déjà ce statut."
+msgstr "The account already has this status."
+
+msgid "Impossible de désactiver le dernier super administrateur actif."
+msgstr "Cannot disable the last active super administrator."
+
+msgid "Statut du compte passé à « %(statut)s »."
+msgstr "Account status set to « %(statut)s »."
+
+msgid "Cette demande a déjà été traitée."
+msgstr "This request has already been processed."
+
+msgid "Vous ne pouvez pas traiter votre propre demande d'accès."
+msgstr "You cannot process your own access request."
+
+msgid "Rôle invalide : choisissez le rôle à attribuer dans la liste."
+msgstr "Invalid role: choose the role to assign from the list."
+
+msgid "Groupe invalide : choisissez-le dans la liste proposée."
+msgstr "Invalid group: choose it from the suggested list."
+
+msgid "Un compte étudiant doit être inscrit à un groupe : choisissez la formation / le groupe avant d'approuver."
+msgstr "A student account must be enrolled in a group: choose the program / group before approving."
+
+msgid "Ce compte a déjà une inscription : la nouvelle inscription se crée au secrétariat."
+msgstr "This account already has an enrollment: new enrollments are created by the secretary."
+
+msgid "Inscription créée à la validation du compte."
+msgstr "Enrollment created when the account was approved."
+
+msgid "Compte de %(nom)s approuvé. Inscrit à %(cours)s."
+msgstr "Account for %(nom)s approved. Enrolled in %(cours)s."
+
+msgid "Compte de %(nom)s approuvé."
+msgstr "Account for %(nom)s approved."
+
+msgid "Compte approuvé"
+msgstr "Account approved"
+
+msgid "Votre compte a été approuvé avec le rôle %(role)s. Votre code : %(code)s"
+msgstr "Your account was approved with the %(role)s role. Your code: %(code)s"
+
+msgid "Demande refusée"
+msgstr "Request declined"
+
+msgid "Votre demande d'accès a été refusée."
+msgstr "Your access request was declined."
+
+msgid "Demande refusée."
+msgstr "Request declined."
+
+msgid "Décision invalide."
+msgstr "Invalid decision."
+
+msgid "La décision de bourse est réservée au super administrateur."
+msgstr "Scholarship decisions are reserved for the super administrator."
+
+msgid "Statut mis à jour : %(statut)s"
+msgstr "Status updated: %(statut)s"
+
+msgid "Vous n'êtes pas affecté à cette session."
+msgstr "You are not assigned to this session."
+
+msgid "Présences enregistrées."
+msgstr "Attendance recorded."
+
+msgid "Consultation seule : cette action relève du rôle métier."
+msgstr "Read-only: this action belongs to the operational role."
+
+msgid "Événement enregistré."
+msgstr "Event recorded."
+
+# core/views_supervision.py
+msgid "Oui"
+msgstr "Yes"
+
+msgid "Non"
+msgstr "No"
+
+msgid "Référence"
+msgstr "Reference"
+
+msgid "Date effective"
+msgstr "Effective date"
+
+msgid "Heure effective"
+msgstr "Effective time"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Catégorie"
+msgstr "Category"
+
+msgid "Montant"
+msgstr "Amount"
+
+msgid "Devise"
+msgstr "Currency"
+
+msgid "Libellé"
+msgstr "Label"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Payeur / Bénéficiaire"
+msgstr "Payer / Payee"
+
+msgid "Moyen de paiement"
+msgstr "Payment method"
+
+msgid "Caisse"
+msgstr "Cash account"
+
+msgid "Compte destination"
+msgstr "Destination account"
+
+msgid "Auteur"
+msgstr "Author"
+
+msgid "Enregistrée le"
+msgstr "Recorded on"
+
+msgid "Enregistrée à"
+msgstr "Recorded at"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Justificatif"
+msgstr "Supporting document"
+
+msgid "Commentaire"
+msgstr "Comment"
+
+msgid "Paiement étudiant"
+msgstr "Student payment"
+
+msgid "Dépense liée"
+msgstr "Linked expense"

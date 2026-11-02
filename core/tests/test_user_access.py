@@ -2,7 +2,9 @@
 from django.urls import reverse
 from django.utils import timezone
 
-from core.models import AccountStatus, AuditLog, RoleKey, UserRole
+from core.models import (
+    AccountStatus, AuditLog, Enrollment, RoleKey, User, UserRole,
+)
 from core.views import _is_last_active_super_admin
 
 from .base import BusinessTestBase
@@ -10,6 +12,7 @@ from .base import BusinessTestBase
 DETAIL_URL = 'core:dashboard:user-detail'
 ROLES_URL = 'core:dashboard:user-role-assign'
 STATUS_URL = 'core:dashboard:user-status-change'
+USER_EDIT_URL = 'core:dashboard:user-edit'
 
 
 class UserDetailAccessPanelTests(BusinessTestBase):
@@ -88,6 +91,16 @@ class RoleAssignmentTests(BusinessTestBase):
         self.assertTrue(
             self.secretaire.roles.filter(key=RoleKey.COMPTABLE).exists())
         self.assert_audited('ROLE_ASSIGN', self.secretaire.id)
+
+    def test_role_assignment_generates_internal_code(self):
+        user = self.make_user(RoleKey.ACCUEIL, 'sanscode@test.local')
+        self.assertIsNone(user.internal_code)
+
+        response = self.post_role(user, RoleKey.ETUDIANT)
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        self.assertTrue(user.internal_code.startswith('UA-ETU'))
+        self.assert_audited('ROLE_ASSIGN', user.id)
 
     def test_adding_an_existing_role_is_idempotent(self):
         RoleAssignmentTests.post_role(self, self.secretaire, RoleKey.SECRETAIRE)
@@ -274,3 +287,119 @@ class AccountStatusChangeTests(BusinessTestBase):
         self.super_admin.account_status = AccountStatus.SUSPENDED
         self.super_admin.save(update_fields=['account_status'])
         self.assertFalse(_is_last_active_super_admin(self.super_admin))
+
+
+class StudentAccountEnrollmentTests(BusinessTestBase):
+    """Un compte étudiant est créé inscrit : il apparaît dans les formulaires."""
+
+    def payload(self, **overrides):
+        data = {
+            'first_name': 'Nouvelle',
+            'last_name': 'Promo',
+            'email': 'nouvelle.promo@test.local',
+            'phone': '+242060000001',
+            'role': RoleKey.ETUDIANT,
+            'session': self.session.pk,
+            'password': 'PromoPass123!',
+        }
+        data.update(overrides)
+        return data
+
+    def create_client(self):
+        return self.client_for(self.super_admin)
+
+    def test_student_account_without_group_is_refused(self):
+        before = User.objects.count()
+        response = self.create_client().post(
+            reverse('core:dashboard:user-create'), self.payload(session=''))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(User.objects.count(), before)
+
+    def test_student_account_is_enrolled_on_creation(self):
+        response = self.create_client().post(
+            reverse('core:dashboard:user-create'), self.payload())
+        self.assertRedirects(
+            response, reverse('core:dashboard:user-list'),
+            fetch_redirect_response=False,
+        )
+        student = User.objects.get(email='nouvelle.promo@test.local')
+        self.assertTrue(student.internal_code.startswith('UA-ETU'))
+
+        enrollment = Enrollment.objects.get(student=student)
+        self.assertEqual(enrollment.session, self.session)
+        self.assertEqual(enrollment.net_amount, self.course.fee_amount)
+        self.assert_audited('ENROLLMENT_CREATE', enrollment.id)
+
+        payment_form = self.client_for(self.comptable).get(
+            reverse('core:dashboard:payment-create'))
+        self.assertContains(payment_form, 'Nouvelle Promo')
+
+    def test_non_student_account_needs_no_group(self):
+        response = self.create_client().post(
+            reverse('core:dashboard:user-create'),
+            self.payload(role=RoleKey.ACCUEIL,
+                         email='accueil2@test.local', session=''))
+        self.assertRedirects(
+            response, reverse('core:dashboard:user-list'),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(Enrollment.objects.count(), 1)
+
+    def test_role_assignment_without_enrollment_is_flagged(self):
+        user = self.make_user(RoleKey.ACCUEIL, 'sansinscription@test.local')
+        response = self.create_client().post(
+            reverse(ROLES_URL, args=[user.id]),
+            {'role_key': RoleKey.ETUDIANT, 'action': 'add'},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "aucune inscription")
+
+    def test_reactivation_without_enrollment_is_flagged(self):
+        student = self.make_user(
+            RoleKey.ETUDIANT, 'suspendu@test.local',
+            status=AccountStatus.SUSPENDED,
+        )
+        response = self.create_client().post(
+            reverse(USER_EDIT_URL, args=[student.id]),
+            {
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'email': student.email,
+                'phone': student.phone,
+                'account_status': AccountStatus.ACTIVE,
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        student.refresh_from_db()
+        self.assertEqual(student.account_status, AccountStatus.ACTIVE)
+        self.assertContains(response, "sans inscription")
+
+    def test_reactivation_of_enrolled_student_is_not_flagged(self):
+        self.etudiant.account_status = AccountStatus.SUSPENDED
+        self.etudiant.save(update_fields=['account_status'])
+        response = self.create_client().post(
+            reverse(USER_EDIT_URL, args=[self.etudiant.id]),
+            {
+                'first_name': self.etudiant.first_name,
+                'last_name': self.etudiant.last_name,
+                'email': self.etudiant.email,
+                'phone': self.etudiant.phone,
+                'account_status': AccountStatus.ACTIVE,
+            },
+            follow=True,
+        )
+        self.assertNotContains(response, "sans inscription")
+
+    def test_status_change_without_enrollment_is_flagged(self):
+        student = self.make_user(
+            RoleKey.ETUDIANT, 'rehabilitation@test.local',
+            status=AccountStatus.SUSPENDED,
+        )
+        response = self.create_client().post(
+            reverse(STATUS_URL, args=[student.id]),
+            {'account_status': AccountStatus.ACTIVE},
+            follow=True,
+        )
+        self.assertContains(response, "sans inscription")

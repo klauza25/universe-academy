@@ -1,0 +1,235 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/super_admin/users.html
+msgid "Gestion des utilisateurs — Univers Academy"
+msgstr "User management — Univers Academy"
+
+msgid "Utilisateurs"
+msgstr "Users"
+
+msgid "%(c)s compte{{ c|pluralize }} enregistré{{ c|pluralize }}"
+msgstr "%(c)s registered account(s)"
+
+msgid "Créer un compte"
+msgstr "Create an account"
+
+msgid "Nom, email, code…"
+msgstr "Name, email, code…"
+
+msgid "Utilisateur"
+msgstr "User"
+
+msgid "Rôle(s)"
+msgstr "Role(s)"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Aucun"
+msgstr "None"
+
+msgid "Rôles & accès"
+msgstr "Roles & access"
+
+msgid "Aucun utilisateur trouvé"
+msgstr "No user found"
+
+# templates/dashboard/super_admin/user_form.html
+msgid "Créer/Modifier utilisateur — Univers Academy"
+msgstr "Create/Edit user — Univers Academy"
+
+msgid "Créer un utilisateur"
+msgstr "Create a user"
+
+msgid "Modifier un utilisateur"
+msgstr "Edit a user"
+
+msgid "Mettez à jour les informations du compte et son statut d'accès."
+msgstr "Update the account details and its access status."
+
+msgid "Renseignez l'identité, le rôle et les identifiants du nouveau compte."
+msgstr "Enter the identity, role and credentials of the new account."
+
+# templates/dashboard/super_admin/user_detail.html
+msgid "Détail utilisateur — Univers Academy"
+msgstr "User details — Univers Academy"
+
+msgid "Code non attribué"
+msgstr "No code assigned"
+
+msgid "Aucun rôle"
+msgstr "No role"
+
+msgid "Code interne"
+msgstr "Internal code"
+
+msgid "Compte Clerk"
+msgstr "Clerk account"
+
+msgid "Non lié — liaison automatique à la première connexion"
+msgstr "Not linked — automatic linking at first sign-in"
+
+msgid "Historique d'audit"
+msgstr "Audit history"
+
+msgid "20 derniers événements"
+msgstr "Last 20 events"
+
+msgid "Aucun historique"
+msgstr "No history"
+
+msgid "Rôles et accès"
+msgstr "Roles and access"
+
+msgid "Attribuez les rôles métier et le statut d'accès de ce compte."
+msgstr "Assign the business roles and the access status of this account."
+
+msgid "Chaque changement est tracé dans le journal d'audit."
+msgstr "Every change is tracked in the audit log."
+
+msgid "Super administrateur uniquement"
+msgstr "Super administrator only"
+
+msgid "Rôles attribués"
+msgstr "Assigned roles"
+
+msgid "privilégié"
+msgstr "privileged"
+
+msgid "Retirer le rôle %(label)s à ce compte ?"
+msgstr "Remove the role %(label)s from this account?"
+
+msgid "Retirer"
+msgstr "Remove"
+
+msgid "Aucun rôle attribué."
+msgstr "No role assigned."
+
+msgid "Ajouter un rôle"
+msgstr "Add a role"
+
+msgid "Attribuer"
+msgstr "Assign"
+
+msgid "Tous les rôles existants sont déjà attribués à ce compte."
+msgstr "All existing roles are already assigned to this account."
+
+msgid "Statut d'accès"
+msgstr "Access status"
+
+msgid "Statut actuel :"
+msgstr "Current status:"
+
+msgid "depuis le %(d)s"
+msgstr "since %(d)s"
+
+msgid "Nouveau statut"
+msgstr "New status"
+
+msgid "Appliquer"
+msgstr "Apply"
+
+msgid "Un compte suspendu, désactivé ou refusé perd immédiatement l'accès au back-office ; les données restent consultables par le super administrateur."
+msgstr "A suspended, disabled or refused account immediately loses access to the back office; the data remains viewable by the super administrator."
+
+msgid "Vous consultez votre propre fiche : vos rôles et votre statut ne peuvent pas être modifiés ici. Utilisez un autre compte super administrateur."
+msgstr "You are viewing your own profile: your roles and your status cannot be changed here. Use another super administrator account."
+
+# templates/dashboard/responsable_pedagogique/index.html
+msgid "Responsable Pédagogique — Univers Academy"
+msgstr "Academic manager — Univers Academy"
+
+msgid "Suivi pédagogique"
+msgstr "Academic follow-up"
+
+msgid "%(c)s formation{{ c|pluralize }} au catalogue, %(s)s séance{{ s|pluralize }} documentée{{ s|pluralize }} et %(m)s réalisées."
+msgstr "%(c)s program(s) in the catalog, %(s)s documented session(s) and %(m)s delivered."
+
+msgid "Formations actives"
+msgstr "Active programs"
+
+msgid "Catalogue"
+msgstr "Catalog"
+
+msgid "Séances documentées"
+msgstr "Documented sessions"
+
+msgid "Comptes rendus"
+msgstr "Session reports"
+
+msgid "Sur les séances"
+msgstr "Across sessions"
+
+msgid "Déclarées"
+msgstr "Reported"
+
+msgid "Sans sujet"
+msgstr "No topic"
+
+msgid "Horaires à définir"
+msgstr "Schedule to be defined"
+
+msgid "Aucune séance planifiée."
+msgstr "No planned session."
+
+msgid "Derniers comptes rendus"
+msgstr "Latest session reports"
+
+msgid "Aucun compte rendu."
+msgstr "No session report."
+
+msgid "Modules"
+msgstr "Modules"
+
+msgid "Leçons"
+msgstr "Lessons"
+
+msgid "Absences"
+msgstr "Absences"
+
+msgid "Toutes périodes"
+msgstr "All periods"
+
+msgid "Ressources publiées"
+msgstr "Published resources"
+
+msgid "Supports et exercices"
+msgstr "Materials and exercises"
+
+msgid "Catalogue des formations"
+msgstr "Program catalog"
+
+msgid "Programmes actuellement proposés"
+msgstr "Programs currently offered"
+
+msgid "Durée"
+msgstr "Duration"
+
+msgid "Frais"
+msgstr "Fees"
+
+msgid "%(d)s mois"
+msgstr "%(d)s months"
+
+msgid "Aucune formation au catalogue"
+msgstr "No program in the catalog"
+
+msgid "Sessions en cours"
+msgstr "Ongoing class groups"
+
+msgid "Encadrement et remplissage"
+msgstr "Teaching staff and enrollment"
+
+msgid "Formateurs :"
+msgstr "Trainers:"
+
+msgid "non affecté"
+msgstr "none assigned"
+
+msgid "Aucune session active"
+msgstr "No active class group"

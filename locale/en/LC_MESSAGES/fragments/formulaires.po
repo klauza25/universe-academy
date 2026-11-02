@@ -1,0 +1,360 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+msgid "Identifiant"
+msgstr "Username"
+
+msgid "Email ou code interne"
+msgstr "Email or internal code"
+
+msgid "Mot de passe"
+msgstr "Password"
+
+msgid "Minimum 8 caractères"
+msgstr "Minimum 8 characters"
+
+msgid "Confirmer le mot de passe"
+msgstr "Confirm password"
+
+msgid "Rôle demandé"
+msgstr "Requested role"
+
+msgid "-- Choisir un rôle --"
+msgstr "-- Select a role --"
+
+msgid "Votre demande sera examinée : aucun accès n'est accordé avant validation."
+msgstr "Your request will be reviewed: no access is granted before approval."
+
+msgid "Prénom"
+msgstr "First name"
+
+msgid "Nom"
+msgstr "Last name"
+
+msgid "email@exemple.com"
+msgstr "email@example.com"
+
+msgid "Les mots de passe ne correspondent pas."
+msgstr "The passwords do not match."
+
+msgid "Rôle"
+msgstr "Role"
+
+msgid "Les rôles SUPER_ADMIN et ADMIN s'attribuent ensuite depuis la fiche utilisateur, par un super administrateur."
+msgstr "SUPER_ADMIN and ADMIN roles are assigned later from the user profile, by a super administrator."
+
+msgid "Formation / groupe"
+msgstr "Program / class group"
+
+msgid "-- Choisir un groupe --"
+msgstr "-- Select a class group --"
+
+msgid "Obligatoire pour un étudiant : le compte est inscrit dès sa création."
+msgstr "Required for a student: the account is enrolled as soon as it is created."
+
+msgid "Laisser vide pour envoyer une invitation par email"
+msgstr "Leave blank to send an invitation by email"
+
+msgid "Un compte étudiant doit être inscrit à un groupe."
+msgstr "A student account must be enrolled in a class group."
+
+msgid "Ex: Licence, Master"
+msgstr "Ex: Bachelor, Master"
+
+msgid "Ex: Informatique, Médecine"
+msgstr "Ex: Computer science, Medicine"
+
+msgid "Pièce d'identité"
+msgstr "ID document"
+
+msgid "Diplômes"
+msgstr "Diplomas"
+
+msgid "Relevés de notes"
+msgstr "Transcripts"
+
+msgid "Photo d'identité"
+msgstr "ID photo"
+
+msgid "Lettre de motivation"
+msgstr "Motivation letter"
+
+msgid "Nom du visiteur (si pas inscrit)"
+msgstr "Visitor name (if not registered)"
+
+msgid "Motif (optionnel)"
+msgstr "Reason (optional)"
+
+msgid "Nom affiché dans l'interface"
+msgstr "Name displayed in the interface"
+
+msgid "Photo de profil"
+msgstr "Profile photo"
+
+msgid "L'image ne doit pas dépasser 2 Mo."
+msgstr "The image must not exceed 2 MB."
+
+msgid "Nouvelle adresse e-mail"
+msgstr "New email address"
+
+msgid "Mot de passe actuel"
+msgstr "Current password"
+
+msgid "Cette adresse est déjà utilisée."
+msgstr "This address is already in use."
+
+msgid "Mot de passe incorrect."
+msgstr "Incorrect password."
+
+msgid "Téléphone"
+msgstr "Phone"
+
+msgid "Téléphone secondaire"
+msgstr "Secondary phone"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Le départ ne peut pas précéder l'arrivée."
+msgstr "Departure cannot precede arrival."
+
+msgid "Téléphone principal"
+msgstr "Main phone"
+
+msgid "Ex: janvier 2027"
+msgstr "Ex: January 2027"
+
+msgid "Mot de passe initial"
+msgstr "Initial password"
+
+msgid "Laisser vide pour créer un compte sans mot de passe (invitation)."
+msgstr "Leave blank to create an account without a password (invitation)."
+
+msgid "Un compte utilise déjà cette adresse."
+msgstr "An account already uses this address."
+
+msgid "La remise ne peut pas dépasser le tarif."
+msgstr "The discount cannot exceed the fee."
+
+msgid "Statut de l'inscription"
+msgstr "Enrollment status"
+
+msgid "Date de début"
+msgstr "Start date"
+
+msgid "Frais de formation prévus (FCFA)"
+msgstr "Expected program fees (FCFA)"
+
+msgid "Remise (FCFA)"
+msgstr "Discount (FCFA)"
+
+msgid "Modalités de paiement"
+msgstr "Payment terms"
+
+msgid "Ex: 2 versements — 50 % à l'inscription"
+msgstr "Ex: 2 installments — 50% at enrollment"
+
+msgid "Observations"
+msgstr "Notes"
+
+msgid "Formation"
+msgstr "Program"
+
+msgid "Date de fin"
+msgstr "End date"
+
+msgid "Horaires"
+msgstr "Schedule"
+
+msgid "Capacité"
+msgstr "Capacity"
+
+msgid "Statut"
+msgstr "Status"
+
+msgid "Formateurs"
+msgstr "Trainers"
+
+msgid "Ex: Lun-Ven 13h-15h"
+msgstr "Ex: Mon-Fri 1pm-3pm"
+
+msgid "Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs formateurs."
+msgstr "Hold Ctrl (or Cmd) to select multiple trainers."
+
+msgid "La date de fin doit suivre la date de début."
+msgstr "The end date must be after the start date."
+
+msgid "L'heure de fin doit suivre le début."
+msgstr "The end time must be after the start time."
+
+msgid "Renseignez l'heure réelle de début pour une séance réalisée."
+msgstr "Enter the actual start time for a completed session."
+
+msgid "Cette leçon n'appartient pas au module choisi."
+msgstr "This lesson does not belong to the selected module."
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Heure de début"
+msgstr "Start time"
+
+msgid "Heure de fin"
+msgstr "End time"
+
+msgid "Notions enseignées"
+msgstr "Topics taught"
+
+msgid "Nombre d'apprenants"
+msgstr "Number of learners"
+
+msgid "Statut de la séance"
+msgstr "Session status"
+
+msgid "Ex : les composants d'un ordinateur"
+msgstr "Ex: the components of a computer"
+
+msgid "Observations, matériel, incident…"
+msgstr "Notes, equipment, incident…"
+
+msgid "Une séance est déjà enregistrée à cette date et à cette heure pour ce groupe."
+msgstr "A session is already recorded at this date and time for this class group."
+
+msgid "Notions retenues"
+msgstr "Topics learned"
+
+msgid "Difficultés rencontrées"
+msgstr "Difficulties encountered"
+
+msgid "J'étais présent à cette séance"
+msgstr "I attended this session"
+
+msgid "Heure de début suivie"
+msgstr "Start time attended"
+
+msgid "Heure de fin suivie"
+msgstr "End time attended"
+
+msgid "Ce que j'ai appris pendant cette séance"
+msgstr "What I learned during this session"
+
+msgid "Ce que je n'ai pas compris"
+msgstr "What I did not understand"
+
+msgid "Remarque, question pour le formateur…"
+msgstr "Remark, question for the trainer…"
+
+msgid "L'heure de fin suivie doit être après l'heure de début."
+msgstr "The end time attended must be after the start time."
+
+msgid "Joignez un fichier ou saisissez un contenu HTML."
+msgstr "Attach a file or enter HTML content."
+
+msgid "Le fichier ne doit pas dépasser 10 Mo."
+msgstr "The file must not exceed 10 MB."
+
+msgid "Ma note"
+msgstr "My rating"
+
+msgid "— Sans note —"
+msgstr "— No rating —"
+
+msgid "Mon retour"
+msgstr "My feedback"
+
+msgid "Ce que j'ai compris, ce qui m'a aidé, mes questions au formateur…"
+msgstr "What I understood, what helped me, my questions for the trainer…"
+
+msgid "Donnez une note ou écrivez un retour."
+msgstr "Give a rating or write a feedback."
+
+msgid "Choisissez le compte destinataire."
+msgstr "Choose the destination account."
+
+msgid "Le compte destinataire doit être différent."
+msgstr "The destination account must be different."
+
+msgid "Cette catégorie ne correspond pas au type."
+msgstr "This category does not match the transaction type."
+
+msgid "montant net à définir"
+msgstr "net amount to be set"
+
+msgid "soldé"
+msgstr "paid in full"
+
+msgid "reste %(amount)s FCFA"
+msgstr "balance due %(amount)s FCFA"
+
+msgid "Étudiant"
+msgstr "Student"
+
+msgid "— Choisir un étudiant —"
+msgstr "— Select a student —"
+
+msgid "La liste des inscriptions se filtre sur l'étudiant choisi. Un étudiant absent de cette liste n'a pas encore de compte actif."
+msgstr "The enrollment list is filtered by the selected student. A student missing from this list does not have an active account yet."
+
+msgid "Inscription à encaisser"
+msgstr "Enrollment to collect"
+
+msgid "— Choisir un dossier —"
+msgstr "— Select an enrollment —"
+
+msgid "Choisissez l'inscription à encaisser."
+msgstr "Choose the enrollment to collect payment for."
+
+msgid "Cette inscription n'est pas encaissable : elle est annulée, en attente de validation ou n'appartient pas à l'étudiant sélectionné."
+msgstr "This enrollment is not payable: it is cancelled, pending approval, or does not belong to the selected student."
+
+msgid "Montant encaissé"
+msgstr "Amount collected"
+
+msgid "Moyen de paiement"
+msgstr "Payment method"
+
+msgid "Caisse / compte destinataire"
+msgstr "Cash desk / destination account"
+
+msgid "Date et heure du paiement"
+msgstr "Payment date and time"
+
+msgid "Chaque ligne rappelle l'étudiant, la formation et le reste à payer."
+msgstr "Each line shows the student, the program and the balance due."
+
+msgid "Aucune inscription pour cet étudiant : elle se crée au secrétariat avant tout encaissement."
+msgstr "No enrollment for this student: it must be created at the secretary's office before any payment is collected."
+
+msgid "Ce dossier n'est pas encore encaissable : le secrétariat l'a créé, il attend une validation."
+msgstr "This enrollment is not payable yet: the front office created it and it is waiting for validation."
+
+msgid "Cette inscription n'appartient pas à l'étudiant sélectionné."
+msgstr "This enrollment does not belong to the selected student."
+
+msgid "L'inscription de cet étudiant est en attente de validation : elle ne peut pas encore être encaissée."
+msgstr "This student's enrollment is still awaiting validation: no payment can be recorded yet."
+
+msgid "Cet étudiant n'a pas encore d'inscription. Créez-la dans le panneau « Inscrire un étudiant », puis faites-la valider avant l'encaissement."
+msgstr "This student has no enrollment yet. Create one in the \"Enroll a student\" panel, then have it validated before collecting payment."
+
+msgid "Le montant net du dossier n'est pas défini : complétez l'inscription avant d'encaisser."
+msgstr "The net amount of this enrollment is not set: complete the enrollment before collecting payment."
+
+msgid "Ce dossier est soldé : aucun montant ne reste à encaisser."
+msgstr "This enrollment is fully paid: no amount remains to collect."
+
+msgid "Le montant dépasse le reste à payer (%(montant)s FCFA)."
+msgstr "The amount exceeds the balance due (%(montant)s FCFA)."
+
+msgid "Tarif appliqué (FCFA)"
+msgstr "Applied fee (FCFA)"
+
+msgid "Laisser vide pour reprendre le tarif catalogue du groupe."
+msgstr "Leave blank to use the class group's catalog fee."
+
+msgid "Cet étudiant est déjà inscrit à cette formation."
+msgstr "This student is already enrolled in this program."

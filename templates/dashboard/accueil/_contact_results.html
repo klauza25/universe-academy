@@ -1,6 +1,7 @@
+{% load i18n %}
 {% if contacts %}
 <table class="ua-table">
-    <thead><tr><th>Nom</th><th>Téléphone</th><th>Email</th></tr></thead>
+    <thead><tr><th>{% translate "Nom" %}</th><th>{% translate "Téléphone" %}</th><th>{% translate "Email" %}</th></tr></thead>
     <tbody>
         {% for contact in contacts %}
         <tr>
@@ -12,5 +13,5 @@
     </tbody>
 </table>
 {% else %}
-<p class="text-sm ua-muted">Aucune fiche contact trouvée.</p>
+<p class="text-sm ua-muted">{% translate "Aucune fiche contact trouvée." %}</p>
 {% endif %}

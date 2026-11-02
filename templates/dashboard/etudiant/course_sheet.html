@@ -1,9 +1,10 @@
-{% load static %}<!DOCTYPE html>
-<html lang="fr">
+{% load static i18n %}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
 <head>
     <meta charset="utf-8">
-    <title>Feuille de suivi — {{ enrollment.student.get_full_name|default:enrollment.student.email }}</title>
-    <style>
+    <title>{% translate "Feuille de suivi" %} — {{ enrollment.student.get_full_name|default:enrollment.student.email }}</title>
+    <style><!--
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -119,12 +120,12 @@
             table.entries th { background: #eef0fb !important; -webkit-print-color-adjust: exact; }
         }
         @page { size: A4; margin: 12mm; }
-    </style>
+    --></style>
 </head>
 <body>
     <div class="toolbar">
-        <a href="{% url 'core:dashboard:student-notebook' %}">← Retour à mes fiches</a>
-        <button type="button" onclick="window.print()">Imprimer</button>
+        <a href="{% url 'core:dashboard:student-notebook' %}">← {% translate "Retour à mes fiches" %}</a>
+        <button type="button" onclick="window.print()">{% translate "Imprimer" %}</button>
     </div>
 
     <div class="sheet">
@@ -135,29 +136,29 @@
                 N° RCCM : CG-BZV-01-2025-A10-02201<br>
                 NIU : P23000000257459H<br>
                 CNSS : 12052348/65<br>
-                1<sup>er</sup> étage immeuble Monte Cristo<br>
+                {% blocktrans %}1<sup>er</sup> étage immeuble Monte Cristo{% endblocktrans %}<br>
                 +242-06-851-7179<br>
                 universacademy70@gmail.com
             </div>
         </div>
 
-        <h1>Feuille de suivi de l'apprenant</h1>
+        <h1>{% translate "Feuille de suivi de l'apprenant" %}</h1>
 
         <table class="identity">
             <tr>
-                <th>Apprenant</th>
+                <th>{% translate "Apprenant" %}</th>
                 <td>{{ enrollment.student.get_full_name|default:enrollment.student.email }}</td>
             </tr>
             <tr>
-                <th>Filière</th>
+                <th>{% translate "Filière" %}</th>
                 <td>{{ enrollment.session.course.domain|default:"—" }}</td>
             </tr>
             <tr>
-                <th>Classe</th>
+                <th>{% translate "Classe" %}</th>
                 <td>{{ enrollment.session.course.title }}{% if enrollment.session.schedule %} — {{ enrollment.session.schedule }}{% endif %}</td>
             </tr>
             <tr>
-                <th>Formateur</th>
+                <th>{% translate "Formateur" %}</th>
                 <td>
                     {% for formateur in enrollment.session.formateurs.all %}{{ formateur.get_full_name|default:formateur.email }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}
                 </td>
@@ -167,11 +168,11 @@
         <table class="entries">
             <thead>
                 <tr>
-                    <th style="width:84px;">Dates</th>
-                    <th style="width:110px;">Heures suivies</th>
-                    <th>Notions retenues</th>
-                    <th style="width:80px;">Présence</th>
-                    <th style="width:150px;">Observations</th>
+                    <th style="width:84px;">{% translate "Dates" %}</th>
+                    <th style="width:110px;">{% translate "Heures suivies" %}</th>
+                    <th>{% translate "Notions retenues" %}</th>
+                    <th style="width:80px;">{% translate "Présence" %}</th>
+                    <th style="width:150px;">{% translate "Observations" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -182,18 +183,18 @@
                         {% if note.followed_start %}{{ note.followed_start|time:"H:i" }}{% else %}—{% endif %}{% if note.followed_end %} – {{ note.followed_end|time:"H:i" }}{% endif %}
                     </td>
                     <td>{{ note.notions_learned|linebreaksbr }}</td>
-                    <td class="center">{% if note.attended %}Oui{% else %}Non{% endif %}</td>
+                    <td class="center">{% if note.attended %}{% translate "Oui" %}{% else %}{% translate "Non" %}{% endif %}</td>
                     <td>{{ note.observations|default:"—"|linebreaksbr }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5" class="empty">Aucune fiche remplie pour cette formation.</td></tr>
+                <tr><td colspan="5" class="empty">{% translate "Aucune fiche remplie pour cette formation." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>
 
         <div class="footer">
-            <span>Univers Academy — Feuille de suivi de l'apprenant</span>
-            <span>Édité le {{ today|date:"d/m/Y" }}</span>
+            <span>Univers Academy — {% translate "Feuille de suivi de l'apprenant" %}</span>
+            <span>{% blocktrans with d=today|date:"d/m/Y" %}Édité le {{ d }}{% endblocktrans %}</span>
         </div>
     </div>
 </body>

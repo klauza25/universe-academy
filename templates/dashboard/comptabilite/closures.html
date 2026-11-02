@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Clôtures de caisse — Univers Academy{% endblock %}
+{% block title %}{% translate "Clôtures de caisse — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -9,33 +9,33 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Clôtures de caisse</h1>
-        <p class="ua-page-sub">Comparaison entre le solde théorique et le montant physiquement constaté.</p>
+        <h1 class="ua-page-title">{% translate "Clôtures de caisse" %}</h1>
+        <p class="ua-page-sub">{% translate "Comparaison entre le solde théorique et le montant physiquement constaté." %}</p>
     </div>
     {% if not is_elevated %}
-    <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-primary">{% icon "check-circle" %} Nouvelle clôture</a>
+    <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Nouvelle clôture" %}</a>
     {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="flex flex-wrap gap-3 items-end">
         <div>
-            <label class="text-xs ua-muted block mb-1">Caisse</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Caisse" %}</label>
             <select name="account" class="px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Toutes</option>
+                <option value="">{% translate "Toutes" %}</option>
                 {% for account in accounts %}
                 <option value="{{ account.id }}" {% if account_filter == account.id|stringformat:'s' %}selected{% endif %}>{{ account.name }}</option>
                 {% endfor %}
             </select>
         </div>
-        <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} Filtrer</button>
+        <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %} {% translate "Filtrer" %}</button>
     </form>
 </section>
 
 <section class="ua-card overflow-hidden">
     <div class="ua-table-wrap">
         <table class="ua-table">
-            <thead><tr><th>Date</th><th>Caisse</th><th>Ouverture</th><th>Théorique</th><th>Constaté</th><th>Écart</th><th>Clôturé par</th><th>Note</th></tr></thead>
+            <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Caisse" %}</th><th>{% translate "Ouverture" %}</th><th>{% translate "Théorique" %}</th><th>{% translate "Constaté" %}</th><th>{% translate "Écart" %}</th><th>{% translate "Clôturé par" %}</th><th>{% translate "Note" %}</th></tr></thead>
             <tbody>
                 {% for closure in page %}
                 <tr>
@@ -52,7 +52,7 @@
                     <td>{{ closure.note|default:"—"|truncatechars:60 }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="ua-empty">Aucune clôture enregistrée.</td></tr>
+                <tr><td colspan="8" class="ua-empty">{% translate "Aucune clôture enregistrée." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

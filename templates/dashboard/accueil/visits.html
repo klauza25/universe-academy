@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui %}
+{% load ui i18n %}
 
-{% block title %}Visites — Univers Academy{% endblock %}
+{% block title %}{% translate "Visites — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/accueil/_nav.html" %}{% endblock %}
 
@@ -10,12 +10,12 @@
 {% block dashboard_content %}
 <div class="ua-page-head">
     <div>
-        <h1 class="ua-page-title">Visites au centre</h1>
-        <p class="ua-page-sub">Personnes reçues à l'accueil, présentes ou déjà reparties.</p>
+        <h1 class="ua-page-title">{% translate "Visites au centre" %}</h1>
+        <p class="ua-page-sub">{% translate "Personnes reçues à l'accueil, présentes ou déjà reparties." %}</p>
     </div>
     {% if not is_elevated %}
     <a href="{% url 'core:dashboard:visit-create' %}" class="ua-btn ua-btn-primary">
-        {% icon "user-plus" %} Enregistrer une visite
+        {% icon "user-plus" %} {% translate "Enregistrer une visite" %}
     </a>
     {% endif %}
 </div>
@@ -23,26 +23,26 @@
 <section class="ua-card ua-card-pad mb-5">
     <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
         <div class="md:col-span-2">
-            <label class="text-xs ua-muted block mb-1">Recherche</label>
-            <input type="search" name="q" value="{{ query }}" placeholder="Nom, téléphone, référence…"
+            <label class="text-xs ua-muted block mb-1">{% translate "Recherche" %}</label>
+            <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Nom, téléphone, référence…' %}"
                    class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Statut</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Statut" %}</label>
             <select name="status" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
-                <option value="">Tous</option>
+                <option value="">{% translate "Tous" %}</option>
                 {% for value, label in status_choices %}
                 <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label class="text-xs ua-muted block mb-1">Du</label>
+            <label class="text-xs ua-muted block mb-1">{% translate "Du" %}</label>
             <input type="date" name="from" value="{{ date_from }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
         </div>
         <div class="flex gap-2">
             <div class="flex-1">
-                <label class="text-xs ua-muted block mb-1">Au</label>
+                <label class="text-xs ua-muted block mb-1">{% translate "Au" %}</label>
                 <input type="date" name="to" value="{{ date_to }}" class="w-full px-3 py-2 rounded-xl border" style="border-color:#e6e7f5;">
             </div>
             <button type="submit" class="ua-btn ua-btn-primary">{% icon "search" %}</button>
@@ -55,14 +55,14 @@
         <table class="ua-table">
             <thead>
                 <tr>
-                    <th>Référence</th>
-                    <th>Visiteur</th>
-                    <th>Téléphone</th>
-                    <th>Motif</th>
-                    <th>Arrivée</th>
-                    <th>Départ</th>
-                    <th>Statut</th>
-                    <th>Agent</th>
+                    <th>{% translate "Référence" %}</th>
+                    <th>{% translate "Visiteur" %}</th>
+                    <th>{% translate "Téléphone" %}</th>
+                    <th>{% translate "Motif" %}</th>
+                    <th>{% translate "Arrivée" %}</th>
+                    <th>{% translate "Départ" %}</th>
+                    <th>{% translate "Statut" %}</th>
+                    <th>{% translate "Agent" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -86,7 +86,7 @@
                     <td>{{ visit.agent.display_label|default:"—" }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8" class="ua-empty">Aucune visite enregistrée pour ces critères.</td></tr>
+                <tr><td colspan="8" class="ua-empty">{% translate "Aucune visite enregistrée pour ces critères." %}</td></tr>
                 {% endfor %}
             </tbody>
         </table>

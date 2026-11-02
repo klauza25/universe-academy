@@ -1,0 +1,296 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Destination"
+msgstr "Destination"
+
+msgid "Direction — Univers Academy"
+msgstr "Management — Univers Academy"
+
+msgid "Documents publiés pour vos formations et vos groupes."
+msgstr "Documents published for your programs and class groups."
+
+msgid "Documents à fournir"
+msgstr "Documents to provide"
+
+msgid "Domaine d'études"
+msgstr "Field of study"
+
+msgid "Dossier %(r)s · %(d)s"
+msgstr "Record %(r)s · %(d)s"
+
+msgid "Dossiers, inscriptions, documents"
+msgstr "Records, enrollments, documents"
+
+msgid "Début"
+msgstr "Start"
+
+msgid "Décision"
+msgstr "Decision"
+
+msgid "Dépenses"
+msgstr "Expenses"
+
+msgid "Détails & avis"
+msgstr "Details & reviews"
+
+msgid "Effectif"
+msgstr "Headcount"
+
+msgid "Effectifs par session active"
+msgstr "Headcount per active class group"
+
+msgid "En attente d'approbation — Universe Academy"
+msgstr "Awaiting approval — Universe Academy"
+
+msgid "En attente de validation"
+msgstr "Awaiting validation"
+
+msgid "Encadrants actifs"
+msgstr "Active supervisors"
+
+msgid "Enregistrer ma fiche"
+msgstr "Save my sheet"
+
+msgid "Enregistrée par"
+msgstr "Recorded by"
+
+msgid "Entité"
+msgstr "Entity"
+
+msgid "Entrées du mois"
+msgstr "This month's entries"
+
+msgid "Entrées validées"
+msgstr "Validated entries"
+
+msgid "Entrées − sorties validées"
+msgstr "Validated entries − exits"
+
+msgid "Examiner"
+msgstr "Review"
+
+msgid "FCFA de recettes"
+msgstr "FCFA of income"
+
+msgid "FCFA encaissés ce mois"
+msgstr "FCFA collected this month"
+
+msgid "FCFA versés ce mois"
+msgstr "FCFA paid out this month"
+
+msgid "FCFA — selon filtres"
+msgstr "FCFA — depending on filters"
+
+msgid "Feuille de suivi"
+msgstr "Tracking sheet"
+
+msgid "Feuille de suivi de l'apprenant"
+msgstr "Learner tracking sheet"
+
+msgid "Feuille imprimable"
+msgstr "Printable sheet"
+
+msgid "Feuille imprimable de la formation"
+msgstr "Printable sheet for the program"
+
+msgid "Fiche de cours"
+msgstr "Class sheet"
+
+msgid "Fiche de cours du %(d)s — Univers Academy"
+msgstr "Class sheet for %(d)s — Univers Academy"
+
+msgid "Fiches remplies"
+msgstr "Sheets filled in"
+
+msgid "Finances"
+msgstr "Finances"
+
+msgid "Finances — soldes par caisse"
+msgstr "Finances — balances per cash account"
+
+msgid "Formateurs actifs"
+msgstr "Active trainers"
+
+msgid "Formation / notions"
+msgstr "Program / concepts"
+
+msgid "Formation%(fp)s"
+msgstr "Program%(fp)s"
+
+msgid "Formations en cours"
+msgstr "Programs in progress"
+
+msgid "Gérer les utilisateurs"
+msgstr "Manage users"
+
+msgid "Heures suivies"
+msgstr "Hours attended"
+
+msgid "Historique de toutes les actions"
+msgstr "History of all actions"
+
+msgid "Historique personnel. Une erreur doit être signalée au secrétariat."
+msgstr ""
+"Personal history. Any error must be reported to the secretary's office."
+
+msgid "IP"
+msgstr "IP"
+
+msgid "Immeuble Monte Cristo, Rond-point la Gare — Brazzaville"
+msgstr "Immeuble Monte Cristo, Rond-point la Gare — Brazzaville"
+
+msgid "Informations du candidat"
+msgstr "Applicant information"
+
+msgid "Inscriptions en cours"
+msgstr "Enrollments in progress"
+
+msgid "J'ai déjà un compte"
+msgstr "I already have an account"
+
+msgid "Jour"
+msgstr "Day"
+
+msgid "Journal d'audit"
+msgstr "Audit log"
+
+msgid "Journal d'audit — Univers Academy"
+msgstr "Audit log — Univers Academy"
+
+msgid "Justif."
+msgstr "Supporting doc."
+
+msgid "Justification"
+msgstr "Reason"
+
+msgid ""
+"L'administrateur a un accès de lecture complet à chaque module de "
+"l'établissement."
+msgstr ""
+"The administrator has full read access to every module of the institution."
+
+msgid "La séance"
+msgstr "The session"
+
+msgid "Le solde des caisses ci-contre porte sur toutes les périodes."
+msgstr "The cash account balances shown here cover all periods."
+
+msgid "Les 10 dernières actions enregistrées"
+msgstr "The 10 most recent actions"
+
+msgid "Les 6 inscriptions les plus récentes"
+msgstr "The 6 most recent enrollments"
+
+msgid "Libellé / tiers"
+msgstr "Label / party"
+
+msgid "Ma fiche"
+msgstr "My sheet"
+
+msgid "Ma fiche enregistrée"
+msgstr "My saved sheet"
+
+msgid "Ma présence"
+msgstr "My attendance"
+
+msgid "Mes cours & ressources"
+msgstr "My courses & resources"
+
+msgid "Mes cours et ressources"
+msgstr "My courses and resources"
+
+msgid "Mes cours et ressources — Univers Academy"
+msgstr "My courses and resources — Univers Academy"
+
+msgid "Mes fiches de cours"
+msgstr "My class sheets"
+
+msgid "Mes fiches de cours — Univers Academy"
+msgstr "My class sheets — Univers Academy"
+
+msgid "Mes formations"
+msgstr "My programs"
+
+msgid "Mes paiements"
+msgstr "My payments"
+
+msgid "Mes présences"
+msgstr "My attendance"
+
+msgid "Mes présences — Univers Academy"
+msgstr "My attendance — Univers Academy"
+
+msgid "Mois en cours"
+msgstr "Current month"
+
+msgid "Mon espace — Univers Academy"
+msgstr "My workspace — Univers Academy"
+
+msgid "Motif (facultatif)"
+msgstr "Reason (optional)"
+
+msgid "Mouvements validés de la période"
+msgstr "Validated transactions for the period"
+
+msgid "Moyen"
+msgstr "Method"
+
+msgid "Non"
+msgstr "No"
+
+msgid "Non catégorisé"
+msgstr "Uncategorized"
+
+msgid "Non pointée"
+msgstr "Not marked"
+
+msgid "Note interne"
+msgstr "Internal note"
+
+msgid "Notion, formation, sujet…"
+msgstr "Concept, program, topic…"
+
+msgid "Nouvelles inscriptions"
+msgstr "New enrollments"
+
+msgid "Opérations en attente"
+msgstr "Pending transactions"
+
+msgid "Opérations validées"
+msgstr "Validated transactions"
+
+msgid "Oui"
+msgstr "Yes"
+
+msgid "PDF, JPG ou PNG — 10 Mo maximum par fichier."
+msgstr "PDF, JPG or PNG — 10 MB maximum per file."
+
+msgid "Paiements effectués"
+msgstr "Payments made"
+
+msgid "Paiements incomplets"
+msgstr "Incomplete payments"
+
+msgid "Paiements étudiants"
+msgstr "Student payments"
+
+msgid "Parcours en cours"
+msgstr "Programs in progress"
+
+msgid "Pilotage de la vie académique"
+msgstr "Oversight of academic life"
+
+msgid "Pilotage financier et académique"
+msgstr "Financial and academic oversight"
+
+msgid "Programme"
+msgstr "Program"
+
+msgid "Programme visé"
+msgstr "Targeted program"

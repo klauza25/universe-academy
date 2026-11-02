@@ -1,7 +1,7 @@
 {% extends "dashboard/base_dashboard.html" %}
-{% load ui core_tags %}
+{% load ui core_tags i18n %}
 
-{% block title %}{{ tx.reference }} — Opération{% endblock %}
+{% block title %}{{ tx.reference }} — {% translate "Opération" %}{% endblock %}
 
 {% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
 {% block hero %}{% endblock %}
@@ -15,86 +15,84 @@
     <div class="flex flex-wrap gap-2">
         {% if 'SUPER_ADMIN' in user_roles or 'ADMIN' in user_roles %}
         <a href="{% url 'core:dashboard:finance-supervision' %}?q={{ tx.reference }}" class="ua-btn ua-btn-light">
-            {% icon "shield" %} Supervision financière
+            {% icon "shield" %} {% translate "Supervision financière" %}
         </a>
         {% endif %}
-        <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">Retour au journal</a>
+        <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">{% translate "Retour au journal" %}</a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad xl:col-span-2">
-        <h2 class="ua-section-title mb-4">Détail de l'opération</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Détail de l'opération" %}</h2>
         <dl class="space-y-3 text-sm">
-            <div><dt class="text-xs ua-muted">Type</dt><dd>{{ tx.get_tx_type_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Catégorie</dt><dd>{{ tx.category.name|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Montant</dt><dd><strong>{{ tx.amount }} {{ tx.currency }}</strong></dd></div>
-            <div><dt class="text-xs ua-muted">Date effective</dt><dd>{{ tx.occurred_at|date:"d/m/Y H:i" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Saisie</dt><dd>{{ tx.created_at|date:"d/m/Y H:i" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Moyen de paiement</dt><dd>{{ tx.get_method_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Caisse / compte</dt><dd>{{ tx.account.name }}{% if tx.destination_account %} → {{ tx.destination_account.name }}{% endif %}</dd></div>
-            <div><dt class="text-xs ua-muted">Bénéficiaire / payeur</dt><dd>{{ tx.counterparty|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Auteur</dt><dd>{{ tx.created_by.display_label|default:"—" }}</dd></div>
-            <div><dt class="text-xs ua-muted">Statut</dt><dd>{{ tx.get_status_display }}</dd></div>
-            <div><dt class="text-xs ua-muted">Description</dt><dd>{{ tx.description|default:"—"|linebreaksbr }}</dd></div>
-            <div><dt class="text-xs ua-muted">Commentaire</dt><dd>{{ tx.note|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Type" %}</dt><dd>{{ tx.get_tx_type_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Catégorie" %}</dt><dd>{{ tx.category.name|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Montant" %}</dt><dd><strong>{{ tx.amount }} {{ tx.currency }}</strong></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Date effective" %}</dt><dd>{{ tx.occurred_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Saisie" %}</dt><dd>{{ tx.created_at|date:"d/m/Y H:i" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Moyen de paiement" %}</dt><dd>{{ tx.get_method_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Caisse / compte" %}</dt><dd>{{ tx.account.name }}{% if tx.destination_account %} → {{ tx.destination_account.name }}{% endif %}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Bénéficiaire / payeur" %}</dt><dd>{{ tx.counterparty|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Auteur" %}</dt><dd>{{ tx.created_by.display_label|default:"—" }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Statut" %}</dt><dd>{{ tx.get_status_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Description" %}</dt><dd>{{ tx.description|default:"—"|linebreaksbr }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Commentaire" %}</dt><dd>{{ tx.note|default:"—"|linebreaksbr }}</dd></div>
             {% if tx.receipt %}
-            <div><dt class="text-xs ua-muted">Justificatif</dt><dd><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ tx.receipt.url }}">Ouvrir le fichier</a></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Justificatif" %}</dt><dd><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ tx.receipt.url }}">{% translate "Ouvrir le fichier" %}</a></dd></div>
             {% endif %}
             {% if student_payment %}
-            <div><dt class="text-xs ua-muted">Paiement étudiant lié</dt>
+            <div><dt class="text-xs ua-muted">{% translate "Paiement étudiant lié" %}</dt>
                 <dd>
                     <a class="ua-cell-title" href="{% url 'core:dashboard:payment-receipt' student_payment.id %}">{{ student_payment.reference }}</a>
                     <p class="text-xs ua-muted mt-1">
-                        {{ student_payment.enrollment.student.display_label }} ·
-                        {{ student_payment.enrollment.session.course.title }} ·
-                        {{ student_payment.get_method_display }} ·
-                        {{ student_payment.get_status_display }} ·
-                        payé le {{ student_payment.paid_at|date:"d/m/Y H:i" }}
+                        {% blocktrans with e=student_payment.enrollment.student.display_label c=student_payment.enrollment.session.course.title m=student_payment.get_method_display s=student_payment.get_status_display d=student_payment.paid_at|date:"d/m/Y H:i" %}{{ e }} · {{ c }} · {{ m }} · {{ s }} · payé le {{ d }}{% endblocktrans %}
                     </p>
-                    <p class="text-xs ua-muted">Reste à payer sur le dossier : {{ student_payment.enrollment.balance_due }} FCFA</p>
+                    <p class="text-xs ua-muted">{% blocktrans with b=student_payment.enrollment.balance_due %}Reste à payer sur le dossier : {{ b }} FCFA{% endblocktrans %}</p>
                 </dd>
             </div>
             {% endif %}
             {% if expense %}
-            <div><dt class="text-xs ua-muted">Dépense liée</dt>
+            <div><dt class="text-xs ua-muted">{% translate "Dépense liée" %}</dt>
                 <dd>
                     {{ expense.category }} · {{ expense.status }}
                     <p class="text-xs ua-muted mt-1">{{ expense.description|truncatechars:160 }}</p>
                     {% if expense.receipt %}
-                    <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ expense.receipt.url }}" target="_blank" rel="noopener">Justificatif de la dépense</a>
+                    <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ expense.receipt.url }}" target="_blank" rel="noopener">{% translate "Justificatif de la dépense" %}</a>
                     {% endif %}
                 </dd>
             </div>
             {% endif %}
             {% if student_payment or expense %}
-            <div><dt class="text-xs ua-muted">Origine</dt>
-                <dd>{% if student_payment %}Paiement étudiant (module Comptabilité){% else %}Dépense enregistrée{% endif %} — une seule transaction, aucun doublon</dd>
+            <div><dt class="text-xs ua-muted">{% translate "Origine" %}</dt>
+                <dd>{% if student_payment %}{% translate "Paiement étudiant (module Comptabilité)" %}{% else %}{% translate "Dépense enregistrée" %}{% endif %} — {% translate "une seule transaction, aucun doublon" %}</dd>
             </div>
             {% endif %}
         </dl>
     </section>
 
     <section class="ua-card ua-card-pad">
-        <h2 class="ua-section-title mb-4">Correction / annulation</h2>
+        <h2 class="ua-section-title mb-4">{% translate "Correction / annulation" %}</h2>
         {% if is_elevated %}
-        <p class="ua-empty">Consultation seule : l'annulation d'une opération relève de la comptabilité.</p>
+        <p class="ua-empty">{% translate "Consultation seule : l'annulation d'une opération relève de la comptabilité." %}</p>
         {% elif tx.status == 'CANCELLED' %}
-        <p class="ua-empty">Cette opération est déjà annulée. Son historique est conservé.</p>
+        <p class="ua-empty">{% translate "Cette opération est déjà annulée. Son historique est conservé." %}</p>
         {% else %}
         <form method="post" class="ua-form">
             {% csrf_token %}
             <input type="hidden" name="action" value="cancel">
             <div class="mb-4">
-                <label for="reason">Motif de l'annulation <span style="color:#e11d48;">*</span></label>
+                <label for="reason">{% translate "Motif de l'annulation" %} <span style="color:#e11d48;">*</span></label>
                 <textarea name="reason" id="reason" rows="3" required></textarea>
             </div>
-            <button type="submit" class="ua-btn ua-btn-primary">{% icon "close" %} Annuler l'opération</button>
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "close" %} {% translate "Annuler l'opération" %}</button>
         </form>
-        <p class="text-xs ua-muted mt-3">L'annulation ne supprime rien : l'opération reste visible dans le journal avec son motif.</p>
+        <p class="text-xs ua-muted mt-3">{% translate "L'annulation ne supprime rien : l'opération reste visible dans le journal avec son motif." %}</p>
         {% endif %}
     </section>
 </div>
 
-{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_subtitle="Création, corrections et annulation enregistrées dans le journal d'audit." audit_empty="Aucun événement d'audit pour cette opération." %}
+{% translate "Création, corrections et annulation enregistrées dans le journal d'audit." as audit_sous_titre_operation %}
+{% translate "Aucun événement d'audit pour cette opération." as audit_vide_operation %}
+{% include "dashboard/_audit_trail.html" with audit_entries=audit_entries audit_subtitle=audit_sous_titre_operation audit_empty=audit_vide_operation %}
 {% endblock %}
