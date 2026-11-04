@@ -18,41 +18,16 @@
 <div class="ua-page-head">
     <div>
         <h1 class="ua-page-title">{% translate "Mon profil" %}</h1>
-        <p class="ua-page-sub">{% translate "Vos informations personnelles et votre photo de profil." %}</p>
+        <p class="ua-page-sub">{% translate "Vos informations personnelles, votre photo, votre mot de passe et votre adresse e-mail." %}</p>
     </div>
     <a href="{% url 'core:dashboard:dashboard-router' %}" class="ua-btn ua-btn-ghost">{% translate "Retour au tableau de bord" %}</a>
 </div>
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    {% url 'core:dashboard:profile' as profile_url %}
     <section class="ua-card ua-card-pad">
         <h2 class="ua-section-title mb-4">{% translate "Photo de profil" %}</h2>
-        <div class="flex flex-col items-center text-center gap-4">
-            {% if profile_user.avatar %}
-            <img src="{{ profile_user.avatar.url }}" alt="{% blocktrans with name=profile_user.display_label %}Photo de {{ name }}{% endblocktrans %}"
-                 class="w-28 h-28 rounded-full object-cover border-4 border-white shadow">
-            {% else %}
-            <span class="ua-avatar" style="width:112px;height:112px;font-size:2rem;">{{ profile_user.initials }}</span>
-            {% endif %}
-
-            <form method="post" enctype="multipart/form-data" class="ua-form w-full">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="avatar">
-                {{ avatar_form.as_p }}
-                <button type="submit" class="ua-btn ua-btn-primary w-full justify-center mt-3">
-                    {% icon "user-check" %} {% translate "Enregistrer la photo" %}
-                </button>
-            </form>
-
-            {% if profile_user.avatar %}
-            <form method="post" class="w-full">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="avatar_delete">
-                <button type="submit" class="ua-btn ua-btn-ghost w-full justify-center">
-                    {% icon "close" %} {% translate "Réinitialiser la photo" %}
-                </button>
-            </form>
-            {% endif %}
-        </div>
+        {% include "dashboard/_photo.html" with personne=profile_user formulaire=avatar_form url=profile_url %}
     </section>
 
     <section class="ua-card ua-card-pad xl:col-span-2">
@@ -103,6 +78,21 @@
         {% include "dashboard/_form.html" with form=email_form %}
         <button type="submit" class="ua-btn ua-btn-primary mt-4">
             {% icon "mail" %} {% translate "Envoyer la confirmation" %}
+        </button>
+    </form>
+</section>
+
+<section class="ua-card ua-card-pad mt-5 max-w-2xl">
+    <h2 class="ua-section-title mb-1">{% translate "Changer de mot de passe" %}</h2>
+    <p class="text-xs ua-muted mb-4">
+        {% translate "Vous restez connecté sur cet appareil ; le nouveau mot de passe sert à la prochaine connexion." %}
+    </p>
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="password">
+        {% include "dashboard/_form.html" with form=password_form %}
+        <button type="submit" class="ua-btn ua-btn-primary mt-4">
+            {% icon "shield" %} {% translate "Enregistrer le mot de passe" %}
         </button>
     </form>
 </section>

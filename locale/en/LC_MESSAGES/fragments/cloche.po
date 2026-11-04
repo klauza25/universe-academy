@@ -1,0 +1,42 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# templates/dashboard/_cloche.html
+msgid "Tâches en attente"
+msgstr "Pending tasks"
+
+msgid "Voir les tâches en attente"
+msgstr "View pending tasks"
+
+msgid "À traiter"
+msgstr "To process"
+
+msgid "Notifications non lues"
+msgstr "Unread notifications"
+
+msgid "Tout marquer comme lu"
+msgstr "Mark all as read"
+
+msgid "Rien à traiter : tout est à jour."
+msgstr "Nothing to process: everything is up to date."
+
+# core/taches.py — files rappelées par la cloche
+msgid "Demandes d'accès à approuver"
+msgstr "Access requests to approve"
+
+msgid "Candidatures de bourse à instruire"
+msgstr "Scholarship applications to review"
+
+msgid "Écritures de caisse en brouillon"
+msgstr "Draft cash entries to post"
+
+msgid "Séances planifiées à saisir"
+msgstr "Planned sessions to fill in"
+
+# core/views_profile.py
+msgid "Notification(s) marquée(s) comme lue(s)."
+msgstr "Notification(s) marked as read."

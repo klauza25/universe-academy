@@ -78,6 +78,15 @@
                     {% endfor %}
                 </form>
 
+                {% cloche %}
+
+                <button type="button" class="ua-icon-btn" id="ua-son-btn"
+                        title="{% translate 'Sons de notification' %}"
+                        aria-label="{% translate 'Activer ou couper les sons de notification' %}">
+                    <span class="ua-son-actif">{% icon "volume" %}</span>
+                    <span class="ua-son-coupe">{% icon "volume-off" %}</span>
+                </button>
+
                 <button type="button" class="ua-icon-btn" id="ua-theme-btn" onclick="uaBasculerTheme()"
                         title="{% translate 'Thème clair ou sombre' %}"
                         aria-label="{% translate 'Changer de thème' %}">
@@ -113,22 +122,6 @@
         </header>
 
         <main class="ua-content">
-            {% if messages %}
-            <div class="space-y-2 mb-5">
-                {% for message in messages %}
-                <div class="ua-card ua-card-pad text-sm font-semibold flex items-center gap-3
-                    {% if message.tags == 'error' %}text-rose-600
-                    {% elif message.tags == 'success' %}text-emerald-600
-                    {% else %}text-indigo-600{% endif %}">
-                    {% if message.tags == 'error' %}{% icon "info" %}
-                    {% elif message.tags == 'success' %}{% icon "check-circle" %}
-                    {% else %}{% icon "info" %}{% endif %}
-                    <span>{{ message }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
             {% block hero %}
             <section class="ua-hero">
                 <div class="ua-hero-content">
@@ -151,6 +144,24 @@
         </main>
     </div>
 </div>
+
+{# Les messages s'empilent en bas à droite ; notifications.js ne fait que les animer. #}
+<div class="ua-toasts" id="ua-toasts" role="status" aria-live="polite">
+    {% for message in messages %}
+    <div class="ua-toast ua-toast--{{ message.tags|default:'info' }}">
+        <span class="ua-toast-icone">
+            {% if message.tags == 'success' %}{% icon "check-circle" %}
+            {% elif message.tags == 'warning' %}{% icon "bell" %}
+            {% else %}{% icon "info" %}{% endif %}
+        </span>
+        <span class="ua-toast-texte">{{ message }}</span>
+        <button type="button" class="ua-toast-fermer"
+                aria-label="{% translate 'Fermer cette notification' %}">{% icon "close" %}</button>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="{% static 'js/notifications.js' %}" defer></script>
 
 <script>
 <!--

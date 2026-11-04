@@ -6,25 +6,31 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction as db_transaction
-from django.db.models import Q, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from .decorators import business_write_required, role_required
+from . import programme_import as programme
+from . import caisse
+from .decorators import (
+    cash_write_required, payment_write_required, role_required,
+)
 from .forms import (
-    CashAccountForm, CashClosureForm, CashTransactionForm, CounterEnrollmentForm,
-    StudentPaymentForm,
+    CashAccountAdminForm, CashAccountForm, CashAdjustForm, CashClosureForm,
+    CashCorrectionForm, CashResetForm, CashTransactionForm,
+    CounterEnrollmentForm, PaymentMonthsForm, StudentPaymentForm,
+    TransactionCategoryAdminForm, TransactionCategoryForm, mensualite_attendue,
 )
 from .models import (
     AccountStatus, AuditLog, CashAccount, CashClosure, CashTransaction,
-    Enrollment, Payment, RoleKey, TransactionCategory, User,
+    Enrollment, MOIS, Payment, RoleKey, TransactionCategory, User,
 )
 from .utils import log_audit
 
-FINANCE_ROLES = ('COMPTABLE', 'DIRECTION')
+FINANCE_ROLES = ('ASSISTANT_ADMIN', 'DIRECTION')
 
 
 def account_balance(account, until_date=None):
@@ -35,7 +41,8 @@ def account_balance(account, until_date=None):
 def accounts_with_balance():
     rows = []
     for account in CashAccount.objects.filter(active=True):
-        rows.append({'account': account, 'balance': account_balance(account)})
+        rows.append({'account': account, 'balance': account_balance(account),
+                     'disponible': account.disponible()})
     return rows
 
 
@@ -140,7 +147,7 @@ def journal(request):
     })
 
 
-@business_write_required(*FINANCE_ROLES)
+@cash_write_required(*FINANCE_ROLES)
 def transaction_create(request):
     tx_type = request.GET.get('type') or CashTransaction.Type.IN
     initial = {
@@ -151,31 +158,45 @@ def transaction_create(request):
     if request.method == 'POST':
         form = CashTransactionForm(request.POST, request.FILES)
         if form.is_valid():
-            tx = form.save(commit=False)
-            tx.created_by = request.user
-            tx.save()
-            log_audit(
-                request, 'CASH_TRANSACTION_CREATE', 'CashTransaction',
-                str(tx.id),
-                after={
-                    'reference': tx.reference,
-                    'type': tx.tx_type,
-                    'amount': tx.amount,
-                    'account': tx.account.name,
-                    'status': tx.status,
-                },
-            )
-            messages.success(
-                request, _("Opération %(reference)s enregistrée.") % {'reference': tx.reference}
-            )
-            return redirect('core:dashboard:transaction-detail', tx_id=tx.id)
+            donnees = form.cleaned_data
+            try:
+                tx = caisse.poster(
+                    caisse=donnees['account'], montant=donnees['amount'],
+                    sens=donnees['tx_type'], libelle=donnees['label'],
+                    categorie=donnees['category'],
+                    description=donnees['description'],
+                    methode=donnees['method'],
+                    contrepartie=donnees['counterparty'],
+                    piece=donnees['receipt'], note=donnees['note'],
+                    statut=donnees['status'], survenu=donnees['occurred_at'],
+                    destination=donnees['destination_account'],
+                    requete=request,
+                )
+            except ValidationError as refus:
+                # Le service juge avant d'écrire : le refus dit pourquoi, et
+                # rien n'a touché la base.
+                messages.error(request, refus.messages[0])
+            else:
+                messages.success(
+                    request, _("Opération %(reference)s enregistrée.") % {'reference': tx.reference}
+                )
+                return redirect('core:dashboard:transaction-detail', tx_id=tx.id)
     return render(request, 'dashboard/comptabilite/transaction_form.html', {
         'form': form,
         'tx_type': tx_type,
+        'caisses': [
+            {
+                'nom': compte.name,
+                'disponible': f'{compte.disponible():,}'.replace(',', ' '),
+                'devise': compte.currency,
+                'epuise': compte.disponible() <= 0,
+            }
+            for compte in CashAccount.objects.filter(active=True)
+        ],
     })
 
 
-@role_required(*FINANCE_ROLES)
+@cash_write_required(*FINANCE_ROLES)
 def transaction_detail(request, tx_id):
     tx = get_object_or_404(
         CashTransaction.objects.select_related(
@@ -184,30 +205,23 @@ def transaction_detail(request, tx_id):
         id=tx_id,
     )
     if request.method == 'POST':
-        if request.user.is_elevated:
-            return HttpResponseForbidden(
-                _("Consultation seule : cette action relève du rôle métier.")
-            )
         action = request.POST.get('action')
         if action == 'cancel':
             reason = (request.POST.get('reason') or '').strip()
-            if not reason:
-                messages.error(request, _("Un motif est obligatoire pour annuler."))
-            elif tx.status == CashTransaction.Status.CANCELLED:
-                messages.info(request, _("Cette opération est déjà annulée."))
+            annulee = None
+            try:
+                annulee = caisse.annuler(tx, motif=reason, requete=request)
+            except ValidationError as refus:
+                # Annuler une recette déjà dépendue creuserait le trou : la
+                # régularisation passe par une écriture contraire, pas par
+                # l'effacement de l'entrée d'origine. Le service le dit, et
+                # rien n'est écrit.
+                messages.error(request, refus.messages[0])
             else:
-                before = {'status': tx.status}
-                tx.status = CashTransaction.Status.CANCELLED
-                tx.note = (tx.note + '\n' if tx.note else '') + (
-                    _("Annulation : %(motif)s") % {'motif': reason}
-                )
-                tx.save(update_fields=['status', 'note', 'updated_at'])
-                log_audit(
-                    request, 'CASH_TRANSACTION_CANCEL', 'CashTransaction',
-                    str(tx.id), before=before,
-                    after={'status': tx.status, 'reason': reason},
-                )
-                messages.success(request, _("Opération annulée et historisée."))
+                if annulee is None:
+                    messages.info(request, _("Cette opération est déjà annulée."))
+                else:
+                    messages.success(request, _("Opération annulée et historisée."))
             return redirect('core:dashboard:transaction-detail', tx_id=tx.id)
 
     return render(request, 'dashboard/comptabilite/transaction_detail.html', {
@@ -220,14 +234,48 @@ def transaction_detail(request, tx_id):
     })
 
 
-@role_required(*FINANCE_ROLES)
+@cash_write_required(*FINANCE_ROLES)
+def transaction_edit(request, tx_id):
+    """Corriger une écriture déjà enregistrée, sans la faire disparaître.
+
+    Le montant, la catégorie, le libellé et la date se rectifient ici ; le
+    compte et le sens ne se changent pas, ils s'annulent et se ressaisissent.
+    La garde de solde rejoue avant l'écriture : une sortie corrigée à la hausse
+    ne doit pas passer sous le plancher.
+    """
+    tx = get_object_or_404(CashTransaction, id=tx_id)
+    if tx.status == CashTransaction.Status.CANCELLED:
+        messages.info(
+            request, _("Une écriture annulée ne se corrige pas : son historique est clos."))
+        return redirect('core:dashboard:transaction-detail', tx_id=tx.pk)
+    form = CashCorrectionForm(ecriture=tx)
+    if request.method == 'POST':
+        form = CashCorrectionForm(request.POST, ecriture=tx)
+        if form.is_valid():
+            donnees = form.cleaned_data
+            try:
+                caisse.corriger(
+                    tx, montant=donnees['montant'], categorie=donnees['categorie'],
+                    libelle=donnees['libelle'], survenu=donnees['survenu'],
+                    motif=donnees['motif'], requete=request,
+                )
+            except ValidationError as refus:
+                messages.error(request, refus.messages[0])
+            else:
+                messages.success(
+                    request, _("Écriture %(reference)s corrigée.") % {'reference': tx.reference})
+                return redirect('core:dashboard:transaction-detail', tx_id=tx.pk)
+    return render(request, 'dashboard/comptabilite/transaction_edit.html', {
+        'tx': tx,
+        'form': form,
+        'solde': account_balance(tx.account),
+    })
+
+
+@cash_write_required(*FINANCE_ROLES)
 def account_list(request):
     form = CashAccountForm()
     if request.method == 'POST':
-        if request.user.is_elevated:
-            return HttpResponseForbidden(
-                _("Consultation seule : cette action relève du rôle métier.")
-            )
         form = CashAccountForm(request.POST)
         if form.is_valid():
             account = form.save()
@@ -243,6 +291,218 @@ def account_list(request):
         'closed_accounts': CashAccount.objects.filter(active=False),
     })
 
+
+def _etat_compte(compte):
+    """Ce que l'audit retient d'un compte : ce qui se règle, pas ce qui se calcule."""
+    return {
+        'type': compte.kind,
+        'devise': compte.currency,
+        'description': compte.description,
+        'decouvert_autorise': compte.overdraft_limit,
+        'etat': compte.status,
+        'remplacement': compte.replaced_by.name if compte.replaced_by else None,
+    }
+
+
+@cash_write_required(*FINANCE_ROLES)
+def account_update(request, account_id):
+    """Administration d'un compte : état, découvert, compte de remplacement, historique.
+
+    Le nom et le solde d'ouverture restent hors d'atteinte une fois la caisse
+    engagée : les reprises du journal désignent les comptes par leur nom, et une
+    ouverture réécrite après coup ne laisse plus aucun journal fidèle. Ce qui
+    doit changer se règle ici, et chaque réglage laisse sa ligne d'audit.
+    """
+    compte = get_object_or_404(CashAccount, id=account_id)
+    form = CashAccountAdminForm(instance=compte, utilisateur=request.user)
+    if request.method == 'POST':
+        form = CashAccountAdminForm(
+            request.POST, instance=compte, utilisateur=request.user)
+        if form.is_valid():
+            # Le formulaire écrit sur `compte` dès la validation : l'état d'avant
+            # s'observe en base, pas sur l'objet en cours de modification.
+            avant = _etat_compte(CashAccount.objects.get(pk=compte.pk))
+            compte = form.save()
+            log_audit(request, 'CASH_ACCOUNT_EDIT', 'CashAccount', str(compte.id),
+                      before=avant, after=_etat_compte(compte))
+            messages.success(
+                request, _("Compte « %(nom)s » mis à jour.") % {'nom': compte.name}
+            )
+            return redirect('core:dashboard:accounts')
+    return render(request, 'dashboard/comptabilite/account_form.html', {
+        'compte': compte,
+        'form': form,
+        'solde': account_balance(compte),
+        'disponible': compte.disponible(),
+        'brouillons': CashTransaction.objects.filter(
+            account=compte, status=CashTransaction.Status.DRAFT).count(),
+        'operations': CashTransaction.objects.filter(
+            account=compte).order_by('-occurred_at')[:10],
+        'historique': AuditLog.objects.filter(
+            entity_type='CashAccount', entity_id=str(compte.id),
+        ).select_related('actor').order_by('-created_at')[:20],
+    })
+
+
+@cash_write_required(*FINANCE_ROLES)
+def account_adjust(request, account_id):
+    """Ajustement de solde : une écriture traçée, jamais un chiffre réécrit.
+
+    Le solde d'une caisse se corrige par ce qu'il manque ou ce qu'elle a de
+    trop, avec un motif ; l'écriture obtenue porte la nature « Ajustement » et
+    passe par la même garde que n'importe quelle sortie.
+    """
+    compte = get_object_or_404(CashAccount, id=account_id)
+    form = CashAdjustForm(compte=compte)
+    if request.method == 'POST':
+        form = CashAdjustForm(request.POST, compte=compte)
+        if form.is_valid():
+            avant = account_balance(compte)
+            try:
+                tx = caisse.ajuster(
+                    compte, montant=form.cleaned_data['montant'],
+                    sens=form.cleaned_data['sens'],
+                    motif=form.cleaned_data['motif'],
+                    auteur=request.user, requete=request,
+                )
+            except ValidationError as refus:
+                messages.error(request, refus.messages[0])
+            else:
+                messages.success(
+                    request, _("Ajustement %(reference)s enregistré : solde de %(avant)s à %(apres)s %(devise)s.") % {
+                        'reference': tx.reference,
+                        'avant': f'{avant:,}'.replace(',', ' '),
+                        'apres': f'{tx.account.balance:,}'.replace(',', ' '),
+                        'devise': compte.currency,
+                    },
+                )
+                return redirect('core:dashboard:account-update', account_id=compte.pk)
+    return render(request, 'dashboard/comptabilite/account_adjust.html', {
+        'compte': compte,
+        'form': form,
+        'solde': account_balance(compte),
+        'disponible': compte.disponible(),
+        'brouillons': CashTransaction.objects.filter(
+            account=compte, status=CashTransaction.Status.DRAFT).count(),
+    })
+
+
+@cash_write_required(*FINANCE_ROLES)
+def account_reset(request, account_id):
+    """Réinitialisation contrôlée : le solde repart à zéro, l'histoire reste.
+
+    L'aperçu avant coup montre ce qui disparaît — le solde emporté et les
+    brouillons qui n'ont pas été rapprochés. Rien n'efface une écriture : la
+    remise à zéro est une écriture contraire, datée du jour.
+    """
+    compte = get_object_or_404(CashAccount, id=account_id)
+    form = CashResetForm()
+    if request.method == 'POST':
+        form = CashResetForm(request.POST)
+        if form.is_valid():
+            try:
+                tx, brouillons = caisse.reinitialiser(
+                    compte, motif=form.cleaned_data['motif'],
+                    confirme=True, auteur=request.user, requete=request,
+                )
+            except ValidationError as refus:
+                messages.error(request, refus.messages[0])
+            else:
+                if tx is None:
+                    messages.info(
+                        request, _("Cette caisse est déjà à zéro : rien à réinitialiser."))
+                else:
+                    messages.success(
+                        request, _("Réinitialisation %(reference)s enregistrée : %(solde)s %(devise)s emportés, %(brouillons)s brouillon(s) non rapproché(s).") % {
+                            'reference': tx.reference,
+                            'solde': f'{abs(tx.amount):,}'.replace(',', ' '),
+                            'devise': compte.currency,
+                            'brouillons': brouillons,
+                        },
+                    )
+                return redirect('core:dashboard:account-update', account_id=compte.pk)
+    return render(request, 'dashboard/comptabilite/account_reset.html', {
+        'compte': compte,
+        'form': form,
+        'solde': account_balance(compte),
+        'brouillons': CashTransaction.objects.filter(
+            account=compte, status=CashTransaction.Status.DRAFT).count(),
+        'attente': CashTransaction.objects.filter(
+            account=compte, status=CashTransaction.Status.VALIDATED).count(),
+        'derniere_cloture': CashClosure.objects.filter(
+            account=compte).order_by('-date').first(),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Catégories d'écriture
+# ---------------------------------------------------------------------------
+
+def _etat_categorie(categorie):
+    """Ce que l'audit retient d'une catégorie : nom, sens, état."""
+    return {
+        'nom': categorie.name,
+        'sens': categorie.direction,
+        'active': categorie.active,
+    }
+
+
+@cash_write_required(*FINANCE_ROLES)
+def category_list(request):
+    """Catégories du journal : les créer et les régler, jamais les effacer.
+
+    Une catégorie porte le sens des montants qu'elle range. Supprimer la
+    sienne effacerait le classement des écritures déjà comptabilisées : on la
+    désactive, elle sort des listes de saisie et son passé reste en place.
+    """
+    form = TransactionCategoryForm()
+    if request.method == 'POST':
+        form = TransactionCategoryForm(request.POST)
+        if form.is_valid():
+            categorie = form.save()
+            log_audit(request, 'TRANSACTION_CATEGORY_CREATE',
+                      'TransactionCategory', str(categorie.id),
+                      after=_etat_categorie(categorie))
+            messages.success(
+                request, _("Catégorie « %(nom)s » créée.") % {'nom': categorie.name})
+            return redirect('core:dashboard:categories')
+    return render(request, 'dashboard/comptabilite/categories.html', {
+        'form': form,
+        'lignes': TransactionCategory.objects.annotate(
+            ecritures=Count('transactions')),
+    })
+
+
+@cash_write_required(*FINANCE_ROLES)
+def category_update(request, category_id):
+    """Régler une catégorie : le nom se corrige, le sens et le passé restent."""
+    categorie = get_object_or_404(TransactionCategory, id=category_id)
+    form = TransactionCategoryAdminForm(instance=categorie)
+    if request.method == 'POST':
+        form = TransactionCategoryAdminForm(request.POST, instance=categorie)
+        if form.is_valid():
+            # `instance` est touché dès la validation : l'état d'avant se relit en base.
+            avant = _etat_categorie(TransactionCategory.objects.get(pk=categorie.pk))
+            categorie = form.save()
+            log_audit(request, 'TRANSACTION_CATEGORY_EDIT', 'TransactionCategory',
+                      str(categorie.id), before=avant,
+                      after=_etat_categorie(categorie))
+            messages.success(
+                request, _("Catégorie « %(nom)s » mise à jour.") % {'nom': categorie.name})
+            return redirect('core:dashboard:categories')
+    return render(request, 'dashboard/comptabilite/category_form.html', {
+        'categorie': categorie,
+        'form': form,
+        'ecritures': categorie.transactions.count(),
+        'historique': AuditLog.objects.filter(
+            entity_type='TransactionCategory', entity_id=str(categorie.id),
+        ).select_related('actor').order_by('-created_at')[:20],
+    })
+
+
+# ---------------------------------------------------------------------------
+# Clôtures
+# ---------------------------------------------------------------------------
 
 @role_required(*FINANCE_ROLES)
 def closure_list(request):
@@ -261,7 +521,7 @@ def closure_list(request):
     })
 
 
-@business_write_required(*FINANCE_ROLES)
+@cash_write_required(*FINANCE_ROLES)
 def closure_create(request):
     form = CashClosureForm(initial={'date': timezone.localdate()})
     if request.method == 'POST':
@@ -314,7 +574,7 @@ def closure_create(request):
 # Paiements étudiants
 # ---------------------------------------------------------------------------
 
-COUNTER_ENROLL_ROLES = ('COMPTABLE', 'DIRECTION')
+COUNTER_ENROLL_ROLES = ('ASSISTANT_ADMIN', 'DIRECTION')
 
 
 def _student_from_id(value):
@@ -327,7 +587,52 @@ def _student_from_id(value):
         return None
 
 
-@business_write_required(*FINANCE_ROLES)
+def _encaisser(request, *, enrollment, amount, method, account, paid_at, note,
+               motif, period_year=None, period_month=None):
+    """Encaisse un paiement étudiant et pose l'écriture de caisse en vis-à-vis.
+
+    Les deux écrans — un paiement, la grille des douze mois — passent par ici :
+    une écriture, une caisse, une trace d'audit par règlement, jamais deux chemins
+    qui pourraient diverger sur le même argent.
+    """
+    with db_transaction.atomic():
+        payment = Payment.objects.create(
+            enrollment=enrollment, amount=amount, method=method,
+            paid_at=paid_at, recorded_by=request.user, note=note,
+            status=Payment.Status.COMPLETED, motif=motif,
+            period_year=period_year, period_month=period_month,
+        )
+        category, _unused = TransactionCategory.objects.get_or_create(
+            name='Paiements des étudiants',  # i18n-exempt: nom stocké en base, clé de get_or_create
+            direction=TransactionCategory.Direction.IN,
+        )
+        cash = caisse.poster(
+            caisse=account, montant=amount, sens=CashTransaction.Type.IN,
+            libelle=_("Paiement étudiant %(reference)s") % {'reference': payment.reference},
+            categorie=category,
+            description=(
+                f"{enrollment.student.display_label} — "
+                f"{enrollment.session.course.title}"
+            ),
+            methode=method, survenu=paid_at,
+            contrepartie=enrollment.student.display_label,
+            statut=CashTransaction.Status.VALIDATED, note=note,
+            agent=request.user, requete=request,
+        )
+        payment.transaction = cash
+        payment.save(update_fields=['transaction'])
+
+    log_audit(
+        request, 'PAYMENT_CREATE', 'Payment', str(payment.id),  # i18n-exempt: 'Payment' = nom de classe technique (audit)
+        after={'amount': amount, 'reference': payment.reference,
+               'enrollment': str(enrollment.id), 'transaction': cash.reference,
+               'motif': motif, 'mois': period_month, 'annee': period_year,
+               'balance_due': enrollment.balance_due},
+    )
+    return payment
+
+
+@payment_write_required
 def student_payment_create(request):
     student_param = (
         request.POST.get('student') if request.method == 'POST'
@@ -404,48 +709,16 @@ def student_payment_create(request):
                     _("Un paiement identique vient d'être enregistré. Vérifiez le journal avant de réessayer."),
                 )
             else:
-                with db_transaction.atomic():
-                    payment = Payment.objects.create(
-                        enrollment=enrollment,
-                        amount=amount,
-                        method=form.cleaned_data['method'],
-                        paid_at=paid_at,
-                        recorded_by=request.user,
-                        note=form.cleaned_data['note'],
-                        status=Payment.Status.COMPLETED,
-                    )
-                    category, _unused = TransactionCategory.objects.get_or_create(
-                        name='Paiements des étudiants',  # i18n-exempt: nom stocké en base, clé de get_or_create
-                        direction=TransactionCategory.Direction.IN,
-                    )
-                    cash = CashTransaction.objects.create(
-                        tx_type=CashTransaction.Type.IN,
-                        category=category,
-                        label=_("Paiement étudiant %(reference)s") % {'reference': payment.reference},
-                        description=(
-                            f"{enrollment.student.display_label} — "
-                            f"{enrollment.session.course.title}"
-                        ),
-                        amount=amount,
-                        currency=enrollment.session.course.currency,
-                        occurred_at=paid_at,
-                        account=form.cleaned_data['account'],
-                        method=payment.method,
-                        counterparty=enrollment.student.display_label,
-                        status=CashTransaction.Status.VALIDATED,
-                        created_by=request.user,
-                        note=form.cleaned_data['note'],
-                    )
-                    payment.transaction = cash
-                    payment.save(update_fields=['transaction'])
-
-                log_audit(
-                    request, 'PAYMENT_CREATE', 'Payment', str(payment.id),  # i18n-exempt: 'Payment' = nom de classe technique (audit)
-                    after={'amount': amount, 'reference': payment.reference,
-                           'enrollment': str(enrollment.id),
-                           'transaction': cash.reference,
-                           'balance_due': enrollment.balance_due},
+                payment = _encaisser(
+                    request, enrollment=enrollment, amount=amount,
+                    method=form.cleaned_data['method'],
+                    account=form.cleaned_data['account'], paid_at=paid_at,
+                    note=form.cleaned_data['note'],
+                    motif=form.cleaned_data['motif'],
+                    period_year=form.cleaned_data['period_year'],
+                    period_month=form.cleaned_data['period_month'],
                 )
+
                 messages.success(
                     request, _("Paiement %(reference)s enregistré. Reste à payer : %(reste)s FCFA.") % {'reference': payment.reference, 'reste': enrollment.balance_due},
                 )
@@ -480,6 +753,138 @@ def student_payment_create(request):
     })
 
 
+def _grille_des_mois(enrollment, annee):
+    """Les douze mois de l'année, avec ce que la caisse a déjà encaissé.
+
+    La mensualité proposée vient du dossier : net dû réparti sur la durée de la
+    formation, donc la remise consentie est respectée. Un mois réglé en 2026 ne
+    masque pas celui de 2027 — la grille est par année.
+    """
+    regles = {
+        paiement.period_month: paiement
+        for paiement in enrollment.payments.filter(
+            period_month__isnull=False, period_year=annee,
+        ).exclude(
+            status__in=[Payment.Status.CANCELLED, Payment.Status.REFUNDED],
+        )
+    }
+    suggestion = mensualite_attendue(enrollment)
+    lignes = []
+    for numero, libelle in MOIS:
+        regle = regles.get(numero)
+        lignes.append({
+            'numero': numero,
+            'libelle': libelle,
+            'montant': (regle.amount if regle else suggestion),
+            'paye': regle,
+        })
+    frais = (
+        enrollment.payments.filter(motif=Payment.Motif.ENROLLMENT)
+        .exclude(status__in=[Payment.Status.CANCELLED,
+                             Payment.Status.REFUNDED])
+        .first()
+    )
+    return lignes, frais
+
+
+def _frais_inscription_pratiqués(enrollment):
+    """Le montant d'entrée le plus souvent encaissé sur cette formation."""
+    cours = enrollment.session.course
+    pratique = (
+        Payment.objects.filter(enrollment__session__course=cours,
+                               motif=Payment.Motif.ENROLLMENT)
+        .values('amount').annotate(n=Count('id')).order_by('-n', 'amount')
+        .first()
+    )
+    return pratique['amount'] if pratique else programme.FRAIS_INSCRIPTION
+
+
+@payment_write_required
+def student_payment_months(request):
+    """La grille : l'assistant coche les mois réglés et encaisse d'un coup."""
+    etudiant_param = (
+        request.POST.get('student') if request.method == 'POST'
+        else request.GET.get('student')) or ''
+    dossier_param = request.GET.get('enrollment') or ''
+    brut_annee = request.GET.get('annee') or ''
+    annee = int(brut_annee) if brut_annee.isdigit() else timezone.localdate().year
+
+    initial = {'student': etudiant_param} if etudiant_param else {}
+    dossier = None
+    lignes = None
+    frais = None
+
+    if request.method == 'POST':
+        form = PaymentMonthsForm(request.POST)
+        if form.is_valid():
+            dossier = form.cleaned_data['enrollment']
+            annee = form.cleaned_data['annee']
+            now = timezone.localtime()
+            regles = []
+            for ligne in form.lignes:
+                # La recette se date au jour présent, jamais au premier jour du
+                # mois réglé : cocher « janvier 2027 » en novembre signifie que
+                # l'élève paie d'avance, pas que l'argent est entré en 2027. La
+                # période réglée porte le mois couvert, paid_at porte la recette.
+                regles.append(_encaisser(
+                    request, enrollment=dossier, amount=ligne['montant'],
+                    method=form.cleaned_data['method'],
+                    account=form.cleaned_data['account'], paid_at=now,
+                    note=form.cleaned_data['note'], motif=ligne['motif'],
+                    period_year=ligne['annee'], period_month=ligne['mois'],
+                ))
+            total = sum(regle.amount for regle in regles)
+            messages.success(
+                request,
+                _("%(nb)s paiement(s) enregistré(s) · %(total)s FCFA encaissés · reste %(reste)s FCFA.") % {
+                    'nb': len(regles), 'total': total, 'reste': dossier.balance_due},
+            )
+            return redirect(
+                reverse('core:dashboard:payment-months')
+                + f"?student={dossier.student_id}&enrollment={dossier.id}&annee={annee}"  # i18n-exempt: paramètres d'URL
+            )
+        dossier = form.cleaned_data.get('enrollment')
+        annee = form.cleaned_data.get('annee') or annee
+    else:
+        if dossier_param:
+            dossier = (Enrollment.objects.select_related('student', 'session__course')
+                       .filter(id=dossier_param).first())
+            if dossier:
+                etudiant_param = str(dossier.student_id)
+                initial = {
+                    'student': etudiant_param, 'enrollment': str(dossier.id),
+                    'annee': annee,
+                    'account': CashAccount.objects.filter(active=True).first(),
+                }
+        form = PaymentMonthsForm(initial=initial)
+
+    if dossier:
+        lignes, frais = _grille_des_mois(dossier, annee)
+        frais_montant = (frais.amount if frais
+                         else _frais_inscription_pratiqués(dossier))
+    else:
+        frais_montant = programme.FRAIS_INSCRIPTION
+
+    enrolled_ids = Enrollment.objects.exclude(
+        status=Enrollment.Status.CANCELLED,
+    ).values_list('student_id', flat=True)
+    selected_student = _student_from_id(etudiant_param)
+    return render(request, 'dashboard/comptabilite/payment_months.html', {
+        'form': form,
+        'lignes': lignes,
+        'frais': frais,
+        'frais_montant': frais_montant,
+        'dossier': dossier,
+        'annee': annee,
+        'selected_student': selected_student,
+        'mensualite': mensualite_attendue(dossier) if dossier else 0,
+        'students_without_enrollment': User.objects.filter(
+            roles__key=RoleKey.ETUDIANT,
+            account_status=AccountStatus.ACTIVE,
+        ).exclude(id__in=enrolled_ids).order_by('last_name', 'first_name'),
+    })
+
+
 @role_required(*FINANCE_ROLES, 'ETUDIANT', 'SECRETAIRE')
 def payment_receipt(request, payment_id):
     payment = get_object_or_404(
@@ -491,7 +896,7 @@ def payment_receipt(request, payment_id):
     )
     user = request.user
     if not (
-        user.has_any_role('COMPTABLE', 'DIRECTION', 'SUPER_ADMIN', 'ADMIN',
+        user.has_any_role('ASSISTANT_ADMIN', 'DIRECTION', 'SUPER_ADMIN', 'ADMIN',
                           'SECRETAIRE') or
         payment.enrollment.student_id == user.id
     ):

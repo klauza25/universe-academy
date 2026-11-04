@@ -358,3 +358,9 @@ msgstr "Leave blank to use the class group's catalog fee."
 
 msgid "Cet étudiant est déjà inscrit à cette formation."
 msgstr "This student is already enrolled in this program."
+
+msgid "Le paiement ne peut pas être daté après aujourd'hui (%(jour)s)."
+msgstr "The payment cannot be dated after today (%(jour)s)."
+
+msgid "Solde insuffisant : %(caisse)s est à %(disponibles)s %(devise)s et cette écriture la mènerait à %(projet)s."
+msgstr "Insufficient balance: %(caisse)s holds %(disponibles)s %(devise)s and this entry would take it to %(projet)s."

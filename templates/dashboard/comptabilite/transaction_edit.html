@@ -1,0 +1,41 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{{ tx.reference }} — {% translate "Corriger l'écriture" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ tx.reference }}</h1>
+        <p class="ua-page-sub">{% translate "Correction d'une écriture de caisse" %}</p>
+    </div>
+    <a href="{% url 'core:dashboard:transaction-detail' tx.id %}" class="ua-btn ua-btn-ghost">{% translate "Retour à l'opération" %}</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">{% translate "Rectifier l'écriture" %}</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Enregistrer la correction" %}</button>
+        </form>
+        <p class="text-xs ua-muted mt-3">{% translate "Le motif est obligatoire : il reste attaché à la ligne corrigée et se relit dans le journal d'audit." %}</p>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Ce qui ne se change pas ici" %}</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">{% translate "Caisse / compte" %}</dt><dd>{{ tx.account.name }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Sens de l'écriture" %}</dt><dd>{{ tx.get_tx_type_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Moyen de paiement" %}</dt><dd>{{ tx.get_method_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Statut" %}</dt><dd>{{ tx.get_status_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Solde du compte" %}</dt><dd>{{ solde }} {{ tx.currency }}</dd></div>
+        </dl>
+        <p class="text-xs ua-muted mt-4">{% translate "Une écriture mise sur la mauvaise caisse s'annule puis se ressaisit à côté : les deux lignes restent visibles et le journal garde sa suite." %}</p>
+    </section>
+</div>
+{% endblock %}

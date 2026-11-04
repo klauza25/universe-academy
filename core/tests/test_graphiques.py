@@ -30,7 +30,7 @@ class EncaissementsTests(BusinessTestBase):
             occurred_at=timezone.localtime(
                 timezone.now().replace(hour=16, minute=30)
             ) + timedelta(days=jour),
-            created_by=self.comptable,
+            created_by=self.assistant,
         )
 
     def test_truncmonth_apparie_le_malgre_un_champ_date_temps(self):
@@ -53,10 +53,14 @@ class EncaissementsTests(BusinessTestBase):
         self.assertEqual(graphiques.encaissements_par_mois()['series'][0]['valeurs'][-1], 0)
 
     def test_un_transfert_n_est_ni_une_entree_ni_une_sortie(self):
+        # Le transfert part d'un solde d'ouverture : une entrée de caisse
+        # fausserait la somme des séries que ce test veut voir rester à zéro.
+        self.cash.opening_balance = 80000
+        self.cash.save(update_fields=['opening_balance'])
         CashTransaction.objects.create(
             tx_type=CashTransaction.Type.TRANSFER, category=self.transfer_category,
             label='Alimentation de caisse', amount=80000, account=self.cash,
-            destination_account=self.mobile, created_by=self.comptable,
+            destination_account=self.mobile, created_by=self.assistant,
         )
         total = sum(sum(s['valeurs']) for s in graphiques.encaissements_par_mois()['series'])
         self.assertEqual(total, 0)
@@ -120,7 +124,7 @@ class RestesTests(BusinessTestBase):
 
     def paiement(self, dossier, montant):
         Payment.objects.create(enrollment=dossier, amount=montant,
-                               method=Payment.Method.CASH, recorded_by=self.comptable)
+                               method=Payment.Method.CASH, recorded_by=self.assistant)
 
     def test_un_trop_percu_ne_reduit_pas_la_dette_d_un_voisin(self):
         self.paiement(self.enrollment, 95000)
@@ -141,7 +145,7 @@ class RestesTests(BusinessTestBase):
     def test_un_paiement_en_attente_ne_paye_rien(self):
         Payment.objects.create(enrollment=self.enrollment, amount=90000,
                                method=Payment.Method.CASH, status=Payment.Status.PENDING,
-                               recorded_by=self.comptable)
+                               recorded_by=self.assistant)
         self.assertEqual(graphiques.restes_par_formation()['total'], 90000)
 
     def test_le_total_cumule_meme_les_formations_hors_affichage(self):
@@ -207,7 +211,7 @@ class TableauDeBordGraphiqueTests(BusinessTestBase):
         self.assertContains(page, 'chart.umd.min.js')
 
     def test_la_page_comptable_ne_rend_pas_un_graphique_pedagogique(self):
-        page = self.client_for(self.comptable).get(
+        page = self.client_for(self.assistant).get(
             reverse('core:dashboard:comptabilite-dashboard'))
         self.assertContains(page, 'data-chart-source="restes"')
         self.assertNotContains(page, 'data-chart-source="assiduite"')

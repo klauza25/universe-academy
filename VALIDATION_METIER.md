@@ -1,8 +1,9 @@
 # Validation métier — Univers Academy
 
 Document de suivi des fonctionnalités implémentées et des tests automatisés.
-Dernière exécution : **01/11/2026** — `python manage.py test core.tests` :
-**263 tests, 0 échec** (11 s sur la base de test).
+Dernière exécution : **03/11/2026** — `python manage.py test core.tests` :
+**468 tests, 0 échec** (26 s sur la base de test créée par Django ; `db.sqlite3`
+de production jamais touché).
 
 ## 1. Comment lancer les tests
 
@@ -25,10 +26,53 @@ production.
 ### Profil utilisateur
 - Consultation et modification des informations personnelles.
 - Ajout / suppression d'une photo de profil (JPG, PNG, WebP, 2 Mo max).
+- **La photo se voit partout où la personne est nommée.** Une balise unique
+  (`{% vignette %}`) affiche la photo sur les listes et les en-têtes de fiche —
+  étudiants du secrétariat, file de validation, présences du formateur,
+  utilisateurs et demandes d'accès du super admin, tableaux de bord ADMIN et
+  secrétariat, « Mon profil » — et retombe sur les initiales quand aucune photo
+  n'a été posée. Un visage se reconnaît plus vite qu'une suite de lettres.
+- **Elle se pose par trois chemins.** L'intéressé sur « Mon profil » ; le
+  secrétariat sur la fiche étudiant (écran `.../etudiants/<id>/photo/`, mêmes
+  droits que l'écriture sur la fiche) ; le super administrateur sur la fiche du
+  compte (écran `.../users/<id>/photo/`). Le personnel doit pouvoir la poser
+  parce qu'une fiche sortie des classeurs ne se connecte jamais : sans ces
+  écrans, la photo d'un élève pris au centre ne serait visible de personne.
+- **La photo remplacée est effacée du disque** (accord de la direction du
+  03/11/2026) : sans ce nettoyage, chaque changement laisserait un fichier
+  orphelin, la fiche ne montrant que la photo en cours. Le retrait explicite
+  rend les initiales.
+- Une photo refusée (mauvais format, plus de 2 Mo, aucun fichier) laisse la
+  photo en place et affiche la raison du refus ; le dépôt d'une photo ne change
+  jamais le statut du compte.
+- **Chacun peut changer son mot de passe** sur « Mon profil » : mot de passe
+  actuel, nouveau mot de passe, confirmation. Le nouveau doit passer les quatre
+  règles du projet (8 caractères minimum, ni trop simple, ni numérique seul,
+  pas une variante de vos propres informations). Un dépôt refusé laisse le mot
+  de passe en place et affiche la raison.
+- **La personne reste connectée sur l'appareil en cours** après le changement ;
+  le nouveau mot de passe sert à la prochaine connexion. Une session déjà
+  ouverte sur un autre appareil n'est pas révoquée : la déconnexion générale
+  suppose un suivi des sessions que le projet n'a pas.
+- **Le mot de passe actuel n'est exigé que si le compte en possède un.** Une
+  fiche ouverte depuis les classeurs, ou un compte arrivé par Clerk, arrive sans
+  mot de passe local : pour ces comptes, l'écran sert à en poser un. Le champ
+  reste obligatoire dès qu'un mot de passe existe, et un champ vide est refusé.
+- Le journal d'audit consigne le changement (`PROFILE_PASSWORD`) avec l'auteur
+  et « mot de passe défini avant / après », jamais la valeur du mot de passe.
+- Un compte lié à Clerk peut poser un mot de passe local : cela ajoute la voie
+  e-mail/code interne + mot de passe, cela ne remplace pas la connexion Clerk.
 - Changement d'adresse e-mail avec confirmation par lien signé valable 24 h.
 - L'adresse n'est appliquée qu'après validation du lien ; un échec d'envoi
   affiche une erreur et ne modifie rien.
-- Chaque action est historisée dans `AuditLog`.
+- Comme pour le mot de passe, la preuve par le mot de passe actuel n'est demandée
+  qu'aux comptes qui en ont un ; un compte sans mot de passe local change
+  d'adresse en confirmant simplement par le lien envoyé à la nouvelle adresse.
+- Chaque action est historisée dans `AuditLog` (`PROFILE_AVATAR` pour une pose,
+  `PROFILE_AVATAR_DELETE` pour un retrait, `PROFILE_PASSWORD` pour un mot de
+  passe, `PROFILE_EMAIL_REQUEST` / `PROFILE_EMAIL_CONFIRM` pour une adresse) avec
+  l'auteur de l'action ; la pose par le personnel journalise donc l'agent et la
+  personne concernée.
 
 ### Authentification, approbation et attribution des rôles
 - Clerk sert uniquement à authentifier (Google ou e-mail/mot de passe). Ses
@@ -39,6 +83,26 @@ production.
   `AccessRequest.requested_role` et ne donne aucun droit.
 - Un compte en attente est bloqué par `AccountStatusMiddleware` : accès refusé
   aux tableaux de bord et à tout écran métier jusqu'à décision.
+- **Les étudiants naissent en attente d'approbation.** Un compte créé par
+  l'import des classeurs, ou au secrétariat avec une inscription restée « en
+  attente », est `PENDING_APPROVAL` : il n'est pas compté dans les effectifs et
+  n'est pas proposé à la caisse, mais ses inscriptions, ses paiements et ses
+  pièces restent consultables. Valider son inscription le passe `ACTIVE` (audit
+  `ENROLLMENT_VALIDATE`, clé `compte_approuve`) ; le créer directement avec une
+  inscription « Active » vaut approbation immédiate.
+- **Aucune approbation n'est retirée automatiquement.** Relancer l'import laisse
+  un compte approuvé où il est ; il n'existe aucun classement automatique selon
+  l'ancienneté ou la fin de formation. La reprise des fiches déjà écrites par la
+  vague du 02/11/2026 s'est faite sur décision : `manage.py mettre_en_attente
+  --ecrire --approuver-en-cours` a passé **193 comptes en attente d'approbation,
+  dont 66 réapprouvés** car inscrits dans un groupe en cours ou planifié
+  (effectif actif : 73 sur 200). La commande ne prend que les comptes étudiants
+  auxquels aucun login n'a été distribué (mot de passe vide, donc ouverts depuis
+  une fiche de classeur) ; depuis cette reprise elle annonce « réparation déjà
+  appliquée » et ne remplace plus rien — les comptes encore actifs sont des
+  approbations données après coup. Ni inscriptions, ni paiements, ni pièces n'ont
+  été touchés : 187 inscriptions, 580 paiements, 1003 écritures de caisse avant
+  comme après (copie `backups/db_20261103_202312_avant_mise_en_attente.sqlite3`).
 - Un SUPER_ADMIN ou un ADMIN peut approuver ou refuser une demande d'accès
   (`access_request_review`). L'écran affiche le **rôle suggéré** à la création
   du compte (colonne « Rôle » et liste déroulante présélectionnée) ; le
@@ -99,6 +163,9 @@ production.
   interne `UA-ETU-xxxx`, mot de passe initial ou invitation sans mot de passe.
 - Conversion d'un prospect en étudiant depuis la fiche prospect.
 - Fiche étudiant : inscriptions, paiements, présences, documents, solde.
+- Photo de profil : la liste des étudiants et la fiche affichent la photo de
+  l'élève (à défaut ses initiales) ; le secrétariat la pose et la retire depuis
+  la fiche, aux mêmes conditions que l'écriture sur le dossier.
 - Création/modification d'inscriptions avec tarif, remise et montant net.
 - Dépôt de documents (10 Mo max) et téléchargement contrôlé (propriétaire,
   secrétariat, direction, comptabilité, super admin).
@@ -166,6 +233,82 @@ production.
 - Paiement étudiant : création atomique d'un `Payment` et d'une opération de
   caisse validée liée ; contrôle du reste à payer ; anti double-soumission ;
   un paiement partiel ne solde pas le dossier.
+- **Une recette ne se date jamais plus tard que le jour de la saisie** :
+  l'écran d'encaissement refuse une date postérieure à aujourd'hui et n'écrit
+  rien. Sur « Paiements par mois », cocher un mois à venir reste possible —
+  c'est une avance — mais la recette se date au jour présent : `paid_at` porte
+  le jour où l'argent est entré, `period_year`/`period_month` le mois couvert.
+  À l'import des classeurs, une case chiffrée pour un mois qui n'est pas encore
+  commencé annonce le plan de la promotion, elle ne prouve pas un encaissement :
+  la ligne est signalée (« mensualité d'un mois non encore commencé ») et rien
+  n'est porté en paiement. Les écritures déjà enregistrées avant cette règle ne
+  sont pas retouchées ; l'audit les signale.
+- **Le solde d'une caisse ne passe jamais sous zéro** : la loi est une seule
+  fonction, `CashAccount.decouvert()`, appelée par l'écran (`core.caisse.juger`),
+  par le service d'écriture (`poster`, `annuler`, `ajuster`, `reinitialiser`,
+  `corriger`) et par `CashAccount.save()`. Une sortie, un transfert ou une
+  réduction d'entrée validés qui laisseraient la caisse sous son plancher sont
+  refusés, avec le montant manquant et le découvert autorisé dans le message —
+  même requête envoyée directement à la vue, car le formulaire lit le verdict du
+  service au lieu de le recalculer. Annuler une entrée déjà dépensée est refusé
+  de la même façon : la régularisation passe par une écriture contraire, pas par
+  l'effacement de l'entrée d'origine. Un brouillon reste saisissable (il ne
+  compte pas en caisse) et se verra refuser la validation si la trésorerie n'y
+  suffit pas. La reprise du journal « Contrôles Mensuels » juge le lot entier
+  avant d'écrire : si la caisse choisie finirait sous zéro,
+  `importer_feuille --ecrire` refuse et demande la caisse réellement débitée.
+- **Le découvert exceptionnel est fermé par défaut** : `overdraft_limit` vaut 0
+  sur tous les comptes, et seul un super administrateur le règle sur l'écran
+  « Administrer le compte » (la modification est auditée). Un plafond accordé
+  abaisse le plancher d'autant ; les écritures concurrentes sont protégées par
+  `transaction.atomic()` et une relecture sous verrou de la caisse.
+- **Le disponible se lit avant que l'argent ne sorte** : l'écran « Nouvelle
+  opération » affiche le solde disponible de chaque caisse active (badge, et le
+  choix de la caisse porte ce chiffre dans son libellé) ; une caisse à zéro se
+  signale « Solde épuisé » dans la liste des comptes et « Aucun fonds disponible
+  » à l'écran de saisie. Une sortie qui consomme au moins 80 % du disponible
+  (`core.caisse.avertissement`, seuil `LIMITE_ALERTE`) est annoncée avec le
+  pourcentage et exige une case à cocher avant validation ; au-delà du
+  disponible, ce n'est plus un avertissement mais le refus du service, pour que
+  l'écran ne tienne pas deux discours sur le même argent. La case ne se demande
+  ni pour une recette ni pour un brouillon, et un ajustement en baisse obéit à la
+  même règle.
+- **Un solde ne se corrige jamais en silence** : deux écrans, `Ajuster le solde`
+  et `Réinitialiser la caisse`, n'écrivent pas un chiffre — ils posent une
+  écriture de nature `ADJUSTMENT` / `RESET`, motivée (motif obligatoire), datée
+  du jour, auditée (`CASH_TRANSACTION_CREATE`) et visible dans le journal et
+  l'historique du compte. La remise à zéro exige une confirmation explicite,
+  montre l'aperçu du solde emporté et signale les brouillons non rapprochés ;
+  elle n'efface aucune ligne.
+- **Les comptes financiers s'administrent** : type, devise, description, état
+  (actif / inactif / archivé) et compte de remplacement se règlent sur
+  « Administrer le compte », avec le solde calculé, le disponible, les dix
+  dernières opérations et les vingt dernières lignes d'audit. Nom et solde
+  d'ouverture restent hors d'atteinte une fois la caisse engagée (les reprises du
+  journal désignent les comptes par leur nom). Une caisse archivée refuse toute
+  écriture et disparaît des listes de choix.
+- **Les catégories d'écriture sont administrables** : création et renommage depuis
+  « Catégories », avec le nombre d'écritures attachées et l'historique ; le sens
+  (entrée / sortie / transfert) se fixe à la création et ne se rejoue pas, et une
+  catégorie se désactive plutôt que de se supprimer — une écriture ne peut pas
+  rester sans référence.
+- **Une écriture enregistrée se corrige** : « Corriger l'écriture » ajuste le
+  montant, la catégorie, le libellé, la date effective et le motif, sur la même
+  ligne du journal. Le compte, le sens et le statut ne se touchent pas — une
+  écriture mise sur la mauvaise caisse s'annule et se resaisit à côté, pour que
+  le journal continue de raconter ce qui est réellement sorti. Une écriture
+  annulée n'est plus corrigeable.
+- **Mobile Money régularisé le 04/11/2026** : la caisse affichait un creux, deux
+  sorties « mois d'octobre » du 30/10/2026 (100 000 et 100 FCFA) ayant été
+  enregistrées sur ce portefeuille alors qu'il ne contenait aucune recette.
+  Analyse de cause avant correction : les sorties n'étaient pas fausses,
+  c'est l'imputation qui l'était — et l'affichage n'avait rien d'un bug.
+  Arbitrage de la direction — « ressaisir sur la Caisse principale » : les deux
+  sorties restent au journal, annulées et motivées, et reportées sur la caisse
+  qui a réellement payé (`TRX-2026-1014`, `TRX-2026-1015`). La caisse affiche
+  aujourd'hui +50 000 FCFA, pour une recette étudiante de 50 000 FCFA
+  effectivement encaissée dessus. Le plancher de solde interdit désormais ce
+  creux.
 - L'écran d'encaissement liste aussi les **comptes étudiants actifs sans
   inscription** (« Comptes étudiants sans inscription ») : un paiement exige
   une inscription, donc ces comptes restent visibles plutôt qu'introuvables.
@@ -239,8 +382,11 @@ production.
 ### Contrôles de cohérence (lecture seule)
 - `manage.py audit_finances` signale, sans rien modifier : trop-perçus par
   dossier, paiements validés sans mouvement de caisse, montants divergents entre
-  paiement et caisse, soldes de caisse négatifs. Option `--fail-on-issue` pour
-  un code de sortie 1 en supervision automatisée.
+  paiement et caisse, soldes de caisse négatifs, et écritures datées après
+  aujourd'hui (`DATE FUTURE` pour un paiement, `CAISSE FUTURE` pour une
+  opération de caisse). Chaque famille est listée jusqu'à 20 lignes avec le
+  total restant. Option `--fail-on-issue` pour un code de sortie 1 en
+  supervision automatisée.
 - `manage.py audit_privileges` signale les attributions de rôles à vérifier
   (SUPER_ADMIN lié à Clerk, compte inactif avec rôle administratif, etc.).
 - Le « reste à recouvrer » des tableaux de bord est calculé dossier par dossier
@@ -277,28 +423,33 @@ production.
   des cartes d'accès direct aux modules et la topbar expose une icône
   « Pilotage » pour les deux rôles transversaux (`is_platform_admin`).
 
-### Consultation seule des données métier (SUPER_ADMIN et ADMIN)
+### Consultation seule des données métier (SUPER_ADMIN et ADMIN), la caisse exceptée
 - Les deux rôles transversaux voient tout — visites, prospects, étudiants,
-  inscriptions, séances, présences, transactions, reçus, ressources — mais
-  n'écrivent plus dans le métier. Le décorateur `business_write_required` et
-  des gardes explicites sur les vues mixtes renvoient un 403 côté serveur.
-- Écritures refusées : visite (création, départ, conversion), prospect
-  (création, modification, relance), dossier étudiant et création
-  d'inscription, paiement et opération de caisse, clôture, caisse, motifs de
-  visite, compte rendu de séance, feuille de présences, ressources, modules et
-  leçons.
-- Exception assumée : la **modification d'une inscription existante**
+  inscriptions, séances, présences, transactions, reçus, ressources. La
+  direction a demandé (arbitrage du 03/11/2026) qu'ils **tiennent aussi la
+  caisse** : le reste du métier reste en consultation seule.
+- Le décorateur `business_write_required` et des gardes explicites sur les vues
+  mixtes renvoient un 403 côté serveur pour les écritures refusées : visite
+  (création, départ, conversion), prospect (création, modification, relance),
+  dossier étudiant et **création** d'inscription, motifs de visite, compte rendu
+  de séance, feuille de présences, ressources, modules et leçons.
+- Écritures ouvertes aux rôles élevés, chacune tracée dans l'audit :
+  `cash_write_required` protège journal (opération, détail, annulation,
+  correction), caisses (création, administration, ajustement, réinitialisation),
+  clôtures et catégories ; `payment_write_required` laisse le super
+  administrateur et l'ADMIN encaisser un paiement étudiant, le bouton
+  « Encaisser » de la fiche inscription suivant la même règle. La création
+  d'inscription au guichet (`can_enroll`) demeure une écriture de secrétariat.
+- Exception assumée hors caisse : la **modification d'une inscription existante**
   (formation/session, statut, montant) est ouverte aux deux rôles élevés.
   La vue `enrollment_edit` est protégée par `role_required(*SECRETARIAT_ROLES)`
   — qui autorise `SUPER_ADMIN`/`ADMIN` en plus de `SECRETAIRE`/`DIRECTION` —
-  et chaque modification est auditée (`ENROLLMENT_EDIT`). Le bouton
-  « Modifier » de la fiche inscription n'est affiché qu'à ces rôles ; le
-  `COMPTABLE` et les autres rôles élevés en écriture restent exclus. La
-  création d'inscription et les autres écritures métier demeurent refusées.
+  et chaque modification est auditée (`ENROLLMENT_EDIT`). La création
+  d'inscription et les autres écritures métier demeurent refusées.
 - Écritures conservées : comptes utilisateurs, rôles, demandes d'accès et
   décision de bourse (réservée au SUPER_ADMIN ; l'ADMIN consulte le dossier
   avec une mention de lecture seule).
-- L'interface masque les boutons et formulaires concernés et affiche une
+- L'interface masque les boutons et formulaires du métier fermé et affiche une
   mention de consultation ; la navigation et le rendu existants ne changent
   pas pour les rôles métier.
 - Aucun formulaire affiché ne mène à un refus serveur : les contrôles visibles
@@ -321,17 +472,27 @@ production.
 |---|---:|---|
 | `core/tests/test_public.py` | 16 | Landing, login local prioritaire devant Clerk, code interne, inscription avec rôle demandé, refus d'un rôle élevé, comptes en attente/suspendus, déconnexion |
 | `core/tests/test_auth_roles.py` | 31 | Clerk sans privilège malgré les métadonnées, onboarding du rôle demandé, approbation/refus par SUPER_ADMIN et ADMIN (rôle suggéré présélectionné, modifiable ; rôles élevés refusés), étudiant validé automatiquement inscrit au groupe choisi (groupe obligatoire à la validation, jamais de doublon, apparu dans le formulaire de paiement), étudiant approuvé listé dans les inscrits côté comptable, auto-examen et auto-attribution bloqués, comptes suspendus exclus |
-| `core/tests/test_profile.py` | 13 | Profil, avatar (upload, suppression, service protégé, fichier absent), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte) |
+| `core/tests/test_profile.py` | 22 | Profil, avatar (upload, suppression, service protégé, fichier absent), mot de passe (nouveau valable et session conservée, mot de passe actuel incorrect ou vide, confirmation différente, mot de passe faible, audit sans le secret, compte sans mot de passe local), e-mail signé (succès, échec d'envoi, jeton invalide/expiré/autre compte, changement sans mot de passe local) |
+| `core/tests/test_photo_profil.py` | 12 | Photo de profil : vignette partout (initiales sans photo, `<img>` et texte alternatif avec photo, liste des étudiants), pose par le secrétariat sur la fiche étudiant (dépôt + audit, aucun changement de statut, fichier remplacé effacé du disque, POST sans fichier laissant la photo en place, retrait, 403 pour un rôle non autorisé), pose par le super administrateur sur la fiche d'un autre compte et absence de la carte photo sur sa propre fiche |
 | `core/tests/test_accueil.py` | 16 | Visites, contacts réutilisés, départ, conversion, prospects, relances, motifs, recherche ; « Convertir en étudiant » proposé au secrétariat et masqué à l'accueil |
 | `core/tests/test_secretariat.py` | 15 | Étudiants, conversion prospect, inscriptions, remises, doublons, documents |
-| `core/tests/test_pedagogie.py` | 56 | Modules/leçons (création et modification par formateur, resp. pédagogique et direction ; rôles élevés en lecture), groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances (raccourci « Planifier une séance » réservé aux rôles gestionnaires, masqué au secrétariat et aux rôles élevés), validations, présences, non-écrasement, ressources, accès étudiant, retour étudiant sur ressource (soumission, mise à jour sans doublon, validation, lecture par formateur/admin, refus formateur et rôles élevés en écriture), fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
-| `core/tests/test_comptabilite.py` | 35 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, liste des inscrits en consultation (nav, fiche en lecture, écritures et formulaire de document refusés), comptes étudiants sans inscription signalés sur l'écran d'encaissement, source unique des soldes et indicateurs |
-| `core/tests/test_permissions.py` | 29 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier (exception : édition d'inscription ouverte aux rôles élevés), décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit |
+| `core/tests/test_pedagogie.py` | 58 | Modules/leçons (création et modification par formateur, resp. pédagogique et direction ; rôles élevés en lecture), groupes de formation (création/édition réservées au resp. pédagogique et à la direction, formateur et rôles élevés en lecture, périmètre limité aux groupes du formateur, validation des dates, audit), séances (raccourci « Planifier une séance » réservé aux rôles gestionnaires, masqué au secrétariat et aux rôles élevés), validations, présences, non-écrasement, ressources, accès étudiant, retour étudiant sur ressource (soumission, mise à jour sans doublon, validation, lecture par formateur/admin, refus formateur et rôles élevés en écriture), fiche de cours de l'apprenant (saisie, validation horaire, accès personnel), feuille de suivi imprimable et cahier de texte imprimable du formateur |
+| `core/tests/test_comptabilite.py` | 111 | Journal, CSV, opérations, transferts, soldes, clôtures, paiements, reçu, permissions, liste des inscrits en consultation (nav, fiche en lecture, écritures et formulaire de document refusés), comptes étudiants sans inscription signalés sur l'écran d'encaissement, source unique des soldes et indicateurs, encaissement multi-mois et champ mois structuré, refus d'une recette datée après aujourd'hui, mois d'avance daté du jour présent, solde de caisse jamais négatif (sortie, transfert, annulation d'une entrée déjà dépensée, brouillon permis), administration des comptes (état, devise, découvert réservé au super admin, archivage, historique et audit, nom et ouverture figés après engagement), ajustement et réinitialisation traçables (écriture contraire, motif obligatoire, confirmation, brouillons signalés, rien d'effacé), catégories d'écriture administrables (création, renommage, compteur d'écritures, désactivation plutôt que suppression, Django Admin en consultation), correction d'une écriture enregistrée (montant, catégorie, libellé, date, motif ; écriture annulée fermée), disponible affiché et avertissement avant sortie (80 % du disponible, case à cocher, recette et brouillon dispensés, « Solde épuisé » et « Aucun fonds disponible ») |
+| `core/tests/test_permissions.py` | 46 | Routage des dashboards, accès croisés, super admin, compte sans rôle, accès transversal de l'ADMIN, lecture seule des deux rôles transversaux sur le métier sauf la caisse (journal, encaissement, clôture, comptes, catégories ouverts en écriture et audités ; exception : édition d'inscription ouverte aux rôles élevés), décision de bourse réservée au SUPER_ADMIN, historiques par fiche et liens du journal d'audit, rôle Assistant administratif et retrait d'Accueil/Caisse de ses menus |
 | `core/tests/test_supervision.py` | 10 | Supervision financière (accès, exhaustivité, filtres, totaux, export CSV), indicateurs réels du dashboard super admin, calcul du reste à recouvrer dossier par dossier, historique de transaction, filtres et rendu du journal d'audit |
 | `core/tests/test_admin_access.py` | 9 | Accès transversal de l'ADMIN : ouverture de tous les modules, reçu de paiement, document étudiant, catalogue de ressources, revue des demandes d'accès ; refus (403) sur création/édition de comptes et attribution de rôles |
-| `core/tests/test_audit_finances.py` | 3 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse |
+| `core/tests/test_audit_finances.py` | 4 | Rapport de cohérence financière : base saine, trop-perçu signalé, paiement sans mouvement de caisse, écriture de caisse ou paiement datés après aujourd'hui |
 | `core/tests/test_user_access.py` | 30 | Fiche utilisateur : présence/absence des contrôles selon le rôle et la cible, ajout/retrait de rôle, génération automatique du code interne à l'attribution, avertissement quand un compte étudiant reste sans inscription (attribution de rôle, édition du compte, réactivation par changement de statut — un étudiant déjà inscrit ne reçoit pas l'avertissement), rôle et action inconnus, auto-modification bloquée, changement de statut (suspension, réactivation, `disabled_at`, perte d'accès), statut invalide, absence d'audit sans changement, garde-fou du dernier super administrateur actif, compte étudiant créé directement inscrit au groupe choisi (groupe exigé, créé sinon) |
-| **Total** | **263** | |
+| `core/tests/test_statut_etudiant.py` | 12 | Statut par défaut d'un étudiant, approbation à la validation de l'inscription, comptes sortis des classeurs, `mettre_en_attente` en aperçu puis à l'écriture, aucune révocabilité automatique |
+| `core/tests/test_import_eleves.py` | 37 | Vague 2 : ce que le classeur d'élèves devient en base et ce qui ne le devient pas (comptes, groupes, inscriptions, paiements, doublons ignorés et signalés, aucune retouche d'un tarif payé, case de mois d'un mois non encore commencé signalée sans encaissement) |
+| `core/tests/test_feuille_import.py` | 16 | Rapprochement du journal de caisse « Contrôles Mensuels » avec les écritures de la base (différentiel en lecture seule, écritures manquantes, écarts de montant, solde projeté de la caisse avant écriture du lot) |
+| `core/tests/test_importer_formations.py` | 15 | Tarif lu dans les classeurs et portique de la vague 1 (catalogue des formations, mensualités, aucune écriture en base) |
+| `core/tests/test_data_tools.py` | 9 | Lecteurs de classeurs : ce sont eux qui décident de ce qui sera importé (en-têtes, dates, montants, lignes vides) |
+| `core/tests/test_editeur_permissions.py` | 10 | Éditeur de permissions du super admin : la matrice postes × droits et son effet réel à l'écran (un droit coché ouvre l'écran, décoché le ferme) |
+| `core/tests/test_graphiques.py` | 19 | Séries numériques des graphiques de tableau de bord (bornes de période, buckets mensuels, totaux cachés derrière une courbe) |
+| `core/tests/test_i18n_theme.py` | 17 | Coquille bilingue : la langue choisie est suivie, le thème reste neutre, les notifications s'empilent hors du fil de la page |
+| `core/tests/test_sans_melange.py` | 4 | Aucun mélange de langue au rendu, page par page (complément du portique `verifier_i18n`) |
+| **Total** | **519** | Exécuté le 04/11/2026, `python manage.py test core.tests`, 0 échec |
 
 Points explicitement vérifiés :
 
@@ -347,9 +508,27 @@ Points explicitement vérifiés :
 - ADMIN : lecture de tous les modules, refus (403) sur création/modification de
   compte, attribution de rôle et validation d'une demande d'accès, actions
   correspondantes absentes des écrans ;
-- SUPER_ADMIN et ADMIN : refus (403) sur toutes les écritures métier (GET des
+- SUPER_ADMIN et ADMIN : refus (403) sur les écritures métier hors caisse (GET des
   formulaires et POST des vues mixtes) et données inchangées après tentative ;
-  actions correspondantes absentes des écrans ;
+  actions correspondantes absentes des écrans. La caisse leur est ouverte en
+  écriture (opération, annulation, correction, paiement, clôture, compte,
+  catégorie) et chaque geste laisse sa ligne d'audit ;
+- solde de caisse : un ajustement, une réinitialisation, une correction
+  d'écriture ou une sortie qui consomme plus que le disponible sont refusés avec
+  le montant manquant, et la garde s'applique aussi au `save()` du modèle — un
+  script qui écrirait directement ne creuse pas la caisse ;
+- avertissement avant sortie : le disponible se lit sur l'écran de saisie et
+  dans le choix de la caisse, une sortie à 80 % et plus du disponible est
+  annoncée avec son pourcentage et bloquée tant que la case n'est pas cochée,
+  une recette et un brouillon n'ont rien à confirmer ;
+- comptes financiers : l'archivage ferme le compte aux écritures et le retire
+  des listes, le découvert reste à 0 tant qu'un super administrateur ne le fixe
+  pas, nom et solde d'ouverture ne se rejouent pas une fois la caisse engagée ;
+- catégories : une catégorie utilisée se désactive, ne se supprime pas, et le
+  compteur d'écritures empêche le renommage aveugle ;
+- Django Admin financier : les quatre modèles sont lisibles (listes, filtres,
+  recherche, solde calculé, hiérarchie par date) et l'écriture y est refusée —
+  la caisse ne se tient que depuis le tableau de bord ;
 - bourse : l'ADMIN consulte le dossier mais ne peut pas statuer (403, statut
   inchangé) ; le SUPER_ADMIN décide et l'action est auditée ;
 - historiques : chaque fiche (étudiant, inscription, séance, visite, prospect,
@@ -461,6 +640,12 @@ Points explicitement vérifiés :
 - Avatars : les images étaient stockées sous `media/avatars/` mais aucun
   itinéraire ne les servait (404). Une vue dédiée `core:avatar` les sert aux
   utilisateurs actifs uniquement, sans exposer le reste de `media/`.
+- Photo de profil : elle n'apparaissait que sur « Mon profil ». Une balise
+  `{% vignette %}` unique l'affiche désormais sur les listes et les en-têtes des
+  écrans fréquentés, avec repli sur les initiales ; le secrétariat et le super
+  administrateur peuvent la poser pour un compte qui ne se connecte pas ; le
+  fichier remplacé est supprimé du disque et la pose est auditée avec son
+  auteur.
 - Nouvelle commande `manage.py audit_finances` (lecture seule) : trop-perçus,
   paiements sans mouvement de caisse, montants divergents, soldes négatifs.
 
@@ -468,6 +653,11 @@ Points explicitement vérifiés :
 
 Ces points ne sont pas déclarés terminés :
 
+- **Photos de profil non redimensionnées** : le fichier déposé est enregistré
+  tel quel. Les photos déjà en base pèsent de 2 à 8 Mo (jusqu'à 3840 × 2160) et
+  sont servies entières dans une vignette de 36 px ; une liste de vingt
+  étudiants peut donc transférer plusieurs dizaines de mégaoctets. Un
+  redimensionnement à la pose (ou une vignette pré-calculée) reste à décider.
 - **Maintenance, missions et salaires** : les catégories comptables existent
   (`Maintenance informatique`, `Déplacements et missions`, `Salaires`), mais
   il n'existe pas encore de modèles ni de workflows dédiés (demande,
@@ -512,10 +702,19 @@ Ces points ne sont pas déclarés terminés :
   encaissements proviennent d'une saisie antérieure au garde-fou. Aucune
   correction automatique n'a été faite : à régulariser manuellement
   (remboursement ou annulation tracée). `manage.py audit_finances` le signale.
-- **Solde de caisse négatif constaté le 01/11/2026** : la caisse « Mobile
-  Money » affiche −5 100 FCFA ; `manage.py audit_finances` le signale. Aucune
-  écriture de correction n'a été passée automatiquement : une entrée justifiée
-  ou une régularisation tracée reste à faire.
+- **Solde de caisse négatif constaté le 01/11/2026, régularisé le 04/11/2026** :
+  la caisse « Mobile Money » affichait un creux car deux sorties « mois
+  d'octobre » du 30/10/2026 (100 000 et 100 FCFA) y avaient été enregistrées
+  alors que le portefeuille ne contenait aucune recette. Cause analysée avant
+  correction : ce ne sont pas les dépenses qui étaient fausses, c'est leur
+  imputation — et l'affichage ne cachait aucun bug. Arbitrage de la direction
+  (« ressaisir sur la Caisse principale ») : les deux sorties restent dans le
+  journal, annulées et motivées, et sont reportées sur la caisse qui a payé
+  (`TRX-2026-1014`, `TRX-2026-1015`). La caisse solde aujourd'hui à +50 000
+  FCFA, montant d'une recette étudiante réellement encaissée en Mobile Money.
+  `manage.py
+  audit_finances` ne signale plus aucun solde négatif, et le plancher de solde
+  rendu infranchissable rend ce creux impossible à reproduire.
 - **Sécurité de déploiement** : le `.env` de développement laisse `DEBUG=True`,
   `SECRET_KEY` ne fait que 23 caractères et `SECURE_HSTS_SECONDS` n'est pas
   défini. Les comptes de démonstration (`admin@univers.academy`, superuser,

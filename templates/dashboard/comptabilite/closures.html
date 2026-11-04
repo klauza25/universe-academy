@@ -12,9 +12,7 @@
         <h1 class="ua-page-title">{% translate "Clôtures de caisse" %}</h1>
         <p class="ua-page-sub">{% translate "Comparaison entre le solde théorique et le montant physiquement constaté." %}</p>
     </div>
-    {% if not is_elevated %}
     <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Nouvelle clôture" %}</a>
-    {% endif %}
 </div>
 
 <section class="ua-card ua-card-pad mb-5">

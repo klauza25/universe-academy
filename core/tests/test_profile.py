@@ -1,4 +1,4 @@
-"""Tests du profil : informations, avatar et changement d'email vérifié."""
+"""Tests du profil : informations, avatar, mot de passe et changement d'email vérifié."""
 import re
 from io import BytesIO
 from unittest import mock
@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.urls import reverse
 from PIL import Image
 
-from core.models import AuditLog, User
+from core.models import AuditLog, RoleKey, User
 from core.views_profile import EMAIL_TOKEN_SALT
 
 from .base import BusinessTestBase, TEST_PASSWORD
@@ -233,3 +233,112 @@ class ProfileTests(BusinessTestBase):
         )
         self.secretaire.refresh_from_db()
         self.assertNotEqual(self.secretaire.email, 'expire@test.local')
+
+
+@override_settings(
+    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend'
+)
+class PasswordChangeTests(BusinessTestBase):
+    """Changement de mot de passe par l'intéressé, et compte sans mot de passe."""
+
+    NOUVEAU = 'MotDePasse2026!'
+
+    def setUp(self):
+        self.client = self.client_for(self.secretaire)
+        self.url = reverse('core:dashboard:profile')
+
+    def post_mot_de_passe(self, **surcharge):
+        donnees = {
+            'action': 'password',
+            'current_password': TEST_PASSWORD,
+            'new_password': self.NOUVEAU,
+            'new_password_confirm': self.NOUVEAU,
+        }
+        donnees.update(surcharge)
+        return self.client.post(self.url, donnees)
+
+    def test_carte_mot_de_passe_sur_lecran(self):
+        contenu = self.client.get(self.url).content.decode()
+        for identifiant in ('id_current_password', 'id_new_password',
+                            'id_new_password_confirm'):
+            self.assertIn(identifiant, contenu)
+        self.assertIn('name="action" value="password"', contenu)
+
+    def test_le_nouveau_mot_de_passe_fonctionne_et_reste_connecte(self):
+        response = self.post_mot_de_passe()
+        self.assertRedirects(response, self.url,
+                             fetch_redirect_response=False)
+        self.secretaire.refresh_from_db()
+        self.assertTrue(self.secretaire.check_password(self.NOUVEAU))
+        self.assertFalse(self.secretaire.check_password(TEST_PASSWORD))
+        # Sans update_session_auth_hash, la personne serait éjectée ici.
+        self.assertEqual(self.client.get(self.url).status_code, 200)
+
+    def test_changement_est_audite_sans_le_secret(self):
+        self.post_mot_de_passe()
+        entree = self.assert_audited('PROFILE_PASSWORD', self.secretaire.pk)
+        self.assertNotIn(self.NOUVEAU, str(entree.before_summary))
+        self.assertNotIn(self.NOUVEAU, str(entree.after_summary))
+        self.assertTrue(entree.after_summary['mot_de_passe_defini'])
+
+    def test_mot_de_passe_actuel_incorrect_refuse_le_changement(self):
+        response = self.post_mot_de_passe(current_password='Mauvais!12345')
+        self.assertEqual(response.status_code, 200)
+        self.secretaire.refresh_from_db()
+        self.assertTrue(self.secretaire.check_password(TEST_PASSWORD))
+        self.assertFalse(AuditLog.objects.filter(
+            action='PROFILE_PASSWORD').exists())
+
+    def test_mot_de_passe_actuel_vide_refuse_pour_un_compte_protege(self):
+        # Le champ n'est pas exigé pour les comptes sans mot de passe local ;
+        # il le reste pour un compte qui en possède un.
+        response = self.post_mot_de_passe(current_password='')
+        self.assertEqual(response.status_code, 200)
+        self.secretaire.refresh_from_db()
+        self.assertTrue(self.secretaire.check_password(TEST_PASSWORD))
+
+    def test_confirmation_differente_refuse_le_changement(self):
+        response = self.post_mot_de_passe(new_password_confirm='Autre!2026')
+        self.assertEqual(response.status_code, 200)
+        self.secretaire.refresh_from_db()
+        self.assertTrue(self.secretaire.check_password(TEST_PASSWORD))
+
+    def test_mot_de_passe_trop_faible_refuse_le_changement(self):
+        for faible in ('12345678', 'court'):
+            response = self.post_mot_de_passe(new_password=faible,
+                                              new_password_confirm=faible)
+            self.assertEqual(response.status_code, 200)
+        self.secretaire.refresh_from_db()
+        self.assertTrue(self.secretaire.check_password(TEST_PASSWORD))
+
+    def test_compte_sans_mot_de_passe_local_peut_en_poser_un(self):
+        compte = self.make_user(RoleKey.ETUDIANT, 'sans-ecran@test.local')
+        compte.set_unusable_password()
+        compte.save(update_fields=['password'])
+        client = self.client_for(compte)
+
+        response = client.post(self.url, {
+            'action': 'password',
+            'new_password': self.NOUVEAU,
+            'new_password_confirm': self.NOUVEAU,
+        })
+        self.assertRedirects(response, self.url,
+                             fetch_redirect_response=False)
+        compte.refresh_from_db()
+        self.assertTrue(compte.check_password(self.NOUVEAU))
+        self.assert_audited('PROFILE_PASSWORD', compte.pk)
+
+    def test_compte_sans_mot_de_passe_local_peut_changer_dadresse(self):
+        compte = self.make_user(RoleKey.ETUDIANT, 'classeur@test.local')
+        compte.set_unusable_password()
+        compte.save(update_fields=['password'])
+        client = self.client_for(compte)
+
+        response = client.post(self.url, {
+            'action': 'email',
+            'new_email': 'nouvelleadresse@test.local',
+        })
+        self.assertRedirects(response, self.url,
+                             fetch_redirect_response=False)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assert_audited('PROFILE_EMAIL_REQUEST', compte.pk)

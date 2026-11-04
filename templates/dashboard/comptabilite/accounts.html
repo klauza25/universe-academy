@@ -24,23 +24,18 @@
 
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad">
-        {% if is_elevated %}
-        <h2 class="ua-section-title mb-4">{% translate "Consultation" %}</h2>
-        <p class="ua-empty">{% translate "Consultation seule : la création d'une caisse relève de la comptabilité." %}</p>
-        {% else %}
         <h2 class="ua-section-title mb-4">{% translate "Nouvelle caisse / compte" %}</h2>
         <form method="post" class="ua-form">
             {% csrf_token %}
             {% include "dashboard/_form.html" with form=form %}
             <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "wallet" %} {% translate "Créer" %}</button>
         </form>
-        {% endif %}
     </section>
 
     <section class="ua-card overflow-hidden xl:col-span-2">
         <div class="ua-table-wrap">
             <table class="ua-table">
-                <thead><tr><th>{% translate "Caisse / compte" %}</th><th>{% translate "Type" %}</th><th>{% translate "Devise" %}</th><th>{% translate "Solde d'ouverture" %}</th><th>{% translate "Solde calculé" %}</th></tr></thead>
+                <thead><tr><th>{% translate "Caisse / compte" %}</th><th>{% translate "Type" %}</th><th>{% translate "Devise" %}</th><th>{% translate "Solde d'ouverture" %}</th><th>{% translate "Solde calculé" %}</th><th>{% translate "Solde disponible" %}</th><th>{% translate "Compte" %}</th></tr></thead>
                 <tbody>
                     {% for row in rows %}
                     <tr>
@@ -49,9 +44,17 @@
                         <td>{{ row.account.currency }}</td>
                         <td>{{ row.account.opening_balance }} FCFA</td>
                         <td><strong>{{ row.balance }} FCFA</strong></td>
+                        <td>
+                            {% if row.disponible <= 0 %}
+                            <span class="ua-badge ua-badge-rose">{% translate "Solde épuisé" %}</span>
+                            {% else %}
+                            {{ row.disponible }} {{ row.account.currency }}
+                            {% endif %}
+                        </td>
+                        <td><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:account-update' row.account.id %}">{% translate "Administrer" %}</a></td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="ua-empty">{% translate "Aucune caisse active." %}</td></tr>
+                    <tr><td colspan="7" class="ua-empty">{% translate "Aucune caisse active." %}</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -60,7 +63,7 @@
         <div class="ua-card-pad">
             <h3 class="text-xs ua-muted mb-2">{% translate "Comptes désactivés" %}</h3>
             {% for account in closed_accounts %}
-            <p class="text-sm">{{ account.name }} — {{ account.get_kind_display }}</p>
+            <p class="text-sm"><a href="{% url 'core:dashboard:account-update' account.id %}">{{ account.name }}</a> — {{ account.get_kind_display }} — {{ account.status_label }}</p>
             {% endfor %}
         </div>
         {% endif %}

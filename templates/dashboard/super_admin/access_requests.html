@@ -16,9 +16,11 @@
             {% blocktrans with pc=pending_count tc=total_count %}{{ pc }} en attente · {{ tc }} demande(s) au total{% endblocktrans %}
         </p>
     </div>
+    {% if 'SUPER_ADMIN' in user_roles or 'ADMIN' in user_roles %}
     <a href="{% url 'core:dashboard:user-list' %}" class="ua-btn ua-btn-ghost">
         {% icon "users" %} {% translate "Voir les utilisateurs" %}
     </a>
+    {% endif %}
 </div>
 
 <div class="flex flex-wrap gap-2 mb-5">
@@ -46,9 +48,7 @@
                 <tr>
                     <td>
                         <div class="flex items-center gap-3">
-                            <span class="ua-avatar-sm">
-                                {{ ar.user.first_name|slice:":1" }}{{ ar.user.last_name|slice:":1" }}
-                            </span>
+                            {% vignette ar.user %}
                             <div class="min-w-0">
                                 <p class="ua-cell-title truncate">
                                     {{ ar.user.get_full_name|default:ar.user.email }}
@@ -83,7 +83,7 @@
                     </td>
                     <td>
                         {% if ar.status == 'PENDING' %}
-                            {% if 'SUPER_ADMIN' in user_roles or 'ADMIN' in user_roles %}
+                            {% if ar.requested_role in roles_attribuables %}
                             <form method="post" action="{% url 'core:dashboard:access-request-review' ar.id %}"
                                   class="flex flex-wrap gap-2 items-center">
                                 {% csrf_token %}

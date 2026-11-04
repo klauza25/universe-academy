@@ -8,8 +8,13 @@ Utilisation :
     python manage.py audit_finances --fail-on-issue   # code 1 si anomalie
 """
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
-from core.models import CashAccount, Enrollment, Payment
+from core.models import CashAccount, CashTransaction, Enrollment, Payment
+
+# Nombre maximum de lignes listées par famille d'anomalie : le rapport doit
+# rester lisible, le total signé reste donc donné quand il dépasse.
+LIMIT = 20
 
 
 class Command(BaseCommand):
@@ -64,6 +69,32 @@ class Command(BaseCommand):
                     f"SOLDE NEGATIF {account.name} : {account.balance} "
                     f"{account.currency}"
                 )
+
+        # 5. Écritures datées après aujourd'hui : un encaissement ne peut pas
+        # avoir lieu dans le futur. Les grilles de mois le permettaient.
+        maintenant = timezone.now()
+        for payment in Payment.objects.filter(
+                status=Payment.Status.COMPLETED,
+                paid_at__gt=maintenant).select_related('enrollment__student')[:LIMIT]:
+            findings.append(
+                f"DATE FUTURE {payment.reference} "
+                f"({payment.enrollment.student.email}) : {payment.amount} FCFA "
+                f"portés au {payment.paid_at:%d/%m/%Y}"
+            )
+        for cash in CashTransaction.objects.filter(
+                occurred_at__gt=maintenant)[:LIMIT]:
+            findings.append(
+                f"CAISSE FUTURE {cash.reference} : {cash.amount} {cash.currency} "
+                f"portés au {cash.occurred_at:%d/%m/%Y}"
+            )
+        restants = (Payment.objects.filter(
+            status=Payment.Status.COMPLETED, paid_at__gt=maintenant).count()
+            + CashTransaction.objects.filter(occurred_at__gt=maintenant).count())
+        if restants > 2 * LIMIT:
+            findings.append(
+                f"DATE FUTURE : {restants - 2 * LIMIT} écriture(s) de plus non "
+                "listée(s)"
+            )
 
         payment_total = Payment.objects.filter(
             status=Payment.Status.COMPLETED

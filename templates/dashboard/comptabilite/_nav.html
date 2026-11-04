@@ -2,19 +2,23 @@
 <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'comptabilite-dashboard' %}is-active{% endif %}">
     {% icon "grid" %}<span>{% translate "Tableau de bord" %}</span>
 </a>
-<a href="{% url 'core:dashboard:journal' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'journal' or request.resolver_match.url_name == 'transaction-detail' %}is-active{% endif %}">
+<a href="{% url 'core:dashboard:journal' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'journal' or request.resolver_match.url_name == 'transaction-detail' or request.resolver_match.url_name == 'transaction-edit' %}is-active{% endif %}">
     {% icon "file-text" %}<span>{% translate "Journal comptable" %}</span>
 </a>
-{% if not is_elevated %}
 <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'transaction-create' %}is-active{% endif %}">
     {% icon "wallet" %}<span>{% translate "Nouvelle opération" %}</span>
 </a>
 <a href="{% url 'core:dashboard:payment-create' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'payment-create' %}is-active{% endif %}">
     {% icon "credit-card" %}<span>{% translate "Paiement étudiant" %}</span>
 </a>
-{% endif %}
-<a href="{% url 'core:dashboard:accounts' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'accounts' %}is-active{% endif %}">
+<a href="{% url 'core:dashboard:payment-months' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'payment-months' %}is-active{% endif %}">
+    {% icon "calendar" %}<span>{% translate "Paiements par mois" %}</span>
+</a>
+<a href="{% url 'core:dashboard:accounts' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'accounts' or request.resolver_match.url_name == 'account-update' or request.resolver_match.url_name == 'account-adjust' or request.resolver_match.url_name == 'account-reset' %}is-active{% endif %}">
     {% icon "wallet" %}<span>{% translate "Caisses & comptes" %}</span>
+</a>
+<a href="{% url 'core:dashboard:categories' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'categories' or request.resolver_match.url_name == 'category-update' %}is-active{% endif %}">
+    {% icon "file-text" %}<span>{% translate "Catégories" %}</span>
 </a>
 <a href="{% url 'core:dashboard:closures' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'closures' or request.resolver_match.url_name == 'closure-create' %}is-active{% endif %}">
     {% icon "check-circle" %}<span>{% translate "Clôtures" %}</span>
@@ -22,3 +26,6 @@
 <a href="{% url 'core:dashboard:student-list' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'student-list' or request.resolver_match.url_name == 'student-detail' %}is-active{% endif %}">
     {% icon "graduation" %}<span>{% translate "Étudiants" %}</span>
 </a>
+{% if 'ASSISTANT_ADMIN' in user_roles %}
+{% include "dashboard/accueil/_nav_guichet.html" %}
+{% endif %}

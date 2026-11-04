@@ -1,6 +1,6 @@
 {% load i18n static %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
-<html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="light" data-theme-choice="auto">
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}" data-theme="light" data-theme-choice="auto" data-son="on">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +27,14 @@
             var racine = document.documentElement;
             racine.dataset.theme = sombre(choix) ? 'dark' : 'light';
             racine.dataset.themeChoice = choix;
+
+            /* Le choix « son » se relève ici, avant la peinture : le bouton de la
+               barre afficherait sinon la mauvaise icône un instant. */
+            var son = 'on';
+            try {
+                if (localStorage.getItem('ua-son') === 'off') son = 'off';
+            } catch (erreur) { /* stockage privé : les sons restent proposés */ }
+            racine.dataset.son = son;
 
             window.uaThemeAppliquer = function (preference) {
                 racine.dataset.theme = sombre(preference) ? 'dark' : 'light';

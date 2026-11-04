@@ -9,6 +9,7 @@ les catalogues et pour refuser une livraison incomplète.
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 from pathlib import Path
@@ -33,7 +34,7 @@ GETTEXT_RE = re.compile(
     r"""(?:\b_\b|gettext|gettext_lazy|ngettext|ngettext_lazy)\s*\(\s*"""
     r"""(?P<quote>['"])(?P<text>(?:(?!\1).)*)(?P=quote)"""
 )
-DJANGO_COMMENT_RE = re.compile(r"{#.*?#}", re.DOTALL)
+DJANGO_COMMENT_RE = re.compile(r"{#.*?#}")
 HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 ATTRIBUTE_RE = re.compile(
     r"""(?P<name>placeholder|title|aria-label|alt|content|label)\s*=\s*"""
@@ -94,6 +95,10 @@ FORME_CONSTANTE = re.compile(r'\A[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z')
 
 
 def est_programmatique(texte: str) -> bool:
+    # Une accolade est un emplacement de f-string ou de `.format()` : le
+    # contenu se compose à l'exécution, ce n'est jamais un msgid.
+    if '{' in texte or '}' in texte:
+        return True
     if ' ' in texte:
         return False
     return bool(FORME_PROGRAMMATIQUE.match(texte) or FORME_CONSTANTE.match(texte))
@@ -121,7 +126,7 @@ def sources_python() -> list[Path]:
     exclus = {'tests', 'migrations', '__pycache__'}
     fichiers = [core / 'models.py', core / 'forms.py', core / 'decorators.py',
                 core / 'utils.py', core / 'context_processors.py', core / 'admin.py',
-                core / 'graphiques.py']
+                core / 'graphiques.py', core / 'taches.py']
     fichiers += sorted(core.glob('views*.py'))
     return sorted({f for f in fichiers if f.exists() and not f.is_dir()})
 
@@ -163,15 +168,42 @@ def est_francophone(texte: str) -> bool:
     return bool(mots & MOTS_FR)
 
 
+def lignes_docstring(source: str) -> set[int]:
+    """Lignes d'une docstring : du texte pour un développeur, jamais pour un usager.
+
+    Le portique ignore déjà les lignes de commentaire. Une docstring occupe
+    plusieurs lignes, et seule sa première ligne commence par le délimiteur :
+    les lignes du milieu se signalaient donc comme du français non balisé.
+    """
+    lignes: set[int] = set()
+    try:
+        arbre = ast.parse(source)
+    except SyntaxError:
+        return lignes
+    for noeud in ast.walk(arbre):
+        corps = getattr(noeud, 'body', None)
+        if not isinstance(corps, list) or not corps:
+            continue
+        premier = corps[0]
+        if (isinstance(premier, ast.Expr)
+                and isinstance(premier.value, ast.Constant)
+                and isinstance(premier.value.value, str)):
+            lignes.update(range(premier.lineno, premier.end_lineno + 1))
+    return lignes
+
+
 def litteraux_francophone(source: str, *, python: bool = False) -> list[tuple[int, str]]:
     """Littéraux visiblement français qui ne sont pas balisés."""
     _, nettoye = extraire(source, python=python)
     trouves: list[tuple[int, str]] = []
 
     if python:
+        docstrings = lignes_docstring(source)
         for ligne_no, ligne in enumerate(nettoye.splitlines(), start=1):
             strip = ligne.strip()
-            if strip.startswith('#') or strip.startswith('"""') or strip.startswith("'''"):
+            if strip.startswith('#'):
+                continue
+            if ligne_no in docstrings:
                 continue
             if 'verbose_name' in strip and not GETTEXT_RE.search(strip):
                 continue

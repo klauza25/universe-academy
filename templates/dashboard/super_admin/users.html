@@ -74,9 +74,7 @@
                     <td class="font-mono text-xs whitespace-nowrap">{{ u.internal_code|default:"—" }}</td>
                     <td>
                         <div class="flex items-center gap-3">
-                            <span class="ua-avatar-sm">
-                                {{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}
-                            </span>
+                            {% vignette u %}
                             <div class="min-w-0">
                                 <p class="ua-cell-title truncate">{{ u.get_full_name|default:u.email }}</p>
                                 <p class="ua-cell-sub truncate">{{ u.email }}</p>

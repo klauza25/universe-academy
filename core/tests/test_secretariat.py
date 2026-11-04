@@ -116,7 +116,7 @@ class StudentManagementTests(SecretariatTestBase):
             contact=contact,
             source=Prospect.Source.VISIT,
             first_contact_at=self.today,
-            agent=self.accueil,
+            agent=self.assistant,
             status=Prospect.Status.INTERESTED,
         )
         url = reverse('core:dashboard:student-create') + f'?prospect={prospect.pk}'
@@ -164,7 +164,7 @@ class StudentManagementTests(SecretariatTestBase):
             enrollment=self.enrollment,
             amount=30000,
             method=Payment.Method.CASH,
-            recorded_by=self.comptable,
+            recorded_by=self.assistant,
         )
         response = self.client.get(
             reverse('core:dashboard:student-detail', args=[self.etudiant.pk]))
@@ -270,7 +270,7 @@ class EnrollmentManagementTests(SecretariatTestBase):
     def test_enrollment_detail_lists_payments(self):
         payment = Payment.objects.create(
             enrollment=self.enrollment, amount=25000,
-            method=Payment.Method.CASH, recorded_by=self.comptable,
+            method=Payment.Method.CASH, recorded_by=self.assistant,
         )
         response = self.client.get(
             reverse('core:dashboard:enrollment-detail',

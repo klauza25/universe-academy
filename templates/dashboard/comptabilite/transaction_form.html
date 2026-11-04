@@ -16,6 +16,19 @@
 </div>
 
 <section class="ua-card ua-card-pad max-w-3xl">
+    <h2 class="ua-section-title mb-3">{% translate "Solde disponible par caisse" %}</h2>
+    <ul class="flex flex-wrap gap-2 mb-5">
+        {% for c in caisses %}
+        <li class="ua-badge {% if c.epuise %}ua-badge-rose{% else %}ua-badge-slate{% endif %}">
+            {{ c.nom }} · {{ c.disponible }} {{ c.devise }}{% if c.epuise %} — {% translate "Aucun fonds disponible" %}{% endif %}
+        </li>
+        {% empty %}
+        <li class="ua-badge ua-badge-slate">{% translate "Aucune caisse active." %}</li>
+        {% endfor %}
+    </ul>
+    {% if form.avertissement_sortie %}
+    <div class="ua-card ua-card-pad text-sm font-semibold text-amber-700 mb-4">{{ form.avertissement_sortie }}</div>
+    {% endif %}
     <form method="post" enctype="multipart/form-data" class="ua-form">
         {% csrf_token %}
         {% include "dashboard/_form.html" with form=form %}

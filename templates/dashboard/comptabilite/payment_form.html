@@ -12,6 +12,7 @@
         <h1 class="ua-page-title">{% translate "Encaisser un paiement étudiant" %}</h1>
         <p class="ua-page-sub">{% translate "Choisissez l'étudiant, puis son inscription : le paiement crée une opération de caisse et un reçu." %}</p>
     </div>
+    <a href="{% url 'core:dashboard:payment-months' %}" class="ua-btn ua-btn-ghost">{% translate "Les 12 mois" %}</a>
     <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">{% translate "Journal comptable" %}</a>
 </div>
 

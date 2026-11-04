@@ -48,6 +48,9 @@ msgstr "Status"
 msgid "Opération %(reference)s enregistrée."
 msgstr "Transaction %(reference)s recorded."
 
+msgid "Annulation refusée : le solde de %(caisse)s passerait à %(projet)s %(devise)s. Régularisez plutôt par une écriture contraire."
+msgstr "Cancellation refused: the %(caisse)s balance would fall to %(projet)s %(devise)s. Settle it instead with an opposite entry."
+
 msgid "Consultation seule : cette action relève du rôle métier."
 msgstr "Read-only: this action belongs to the operational role."
 
@@ -155,6 +158,9 @@ msgstr "Profile photo saved."
 msgid "Photo supprimée, avatar par défaut rétabli."
 msgstr "Photo deleted, default avatar restored."
 
+msgid "Photo non enregistrée : %(erreur)s"
+msgstr "Profile photo not saved: %(erreur)s"
+
 msgid "Confirmation de votre nouvelle adresse — Univers Academy"
 msgstr "Confirmation of your new address — Univers Academy"
 
@@ -190,3 +196,33 @@ msgstr "This address is already used by another account."
 
 msgid "Votre adresse e-mail a été mise à jour."
 msgstr "Your email address has been updated."
+
+msgid "Changer de mot de passe"
+msgstr "Change your password"
+
+msgid "Vous restez connecté sur cet appareil ; le nouveau mot de passe sert à la prochaine connexion."
+msgstr "You stay signed in on this device; the new password is used at the next sign-in."
+
+msgid "Enregistrer le mot de passe"
+msgstr "Save the password"
+
+msgid "Nouveau mot de passe"
+msgstr "New password"
+
+msgid "Confirmer le nouveau mot de passe"
+msgstr "Confirm new password"
+
+msgid "Minimum 8 caractères, ni trop simple, ni numérique seul."
+msgstr "At least 8 characters, not too simple, not digits only."
+
+msgid "Mot de passe actuel incorrect."
+msgstr "Current password is incorrect."
+
+msgid "Les deux mots de passe ne correspondent pas."
+msgstr "The two passwords do not match."
+
+msgid "Mot de passe modifié."
+msgstr "Password changed."
+
+msgid "Vos informations personnelles, votre photo, votre mot de passe et votre adresse e-mail."
+msgstr "Your personal information, photo, password and email address."

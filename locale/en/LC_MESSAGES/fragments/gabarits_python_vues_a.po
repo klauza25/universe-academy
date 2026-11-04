@@ -96,6 +96,9 @@ msgstr "This request has already been processed."
 msgid "Vous ne pouvez pas traiter votre propre demande d'accès."
 msgstr "You cannot process your own access request."
 
+msgid "Rôle hors de votre périmètre : un super administrateur doit statuer."
+msgstr "Role outside your scope: a super administrator must decide."
+
 msgid "Rôle invalide : choisissez le rôle à attribuer dans la liste."
 msgstr "Invalid role: choose the role to assign from the list."
 

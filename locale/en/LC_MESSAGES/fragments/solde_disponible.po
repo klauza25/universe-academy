@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/forms.py — avertissement avant une sortie
+msgid "Je confirme cette sortie malgré l’avertissement sur le solde disponible."
+msgstr "I confirm this payout despite the warning about the available balance."
+
+msgid "Je confirme cette baisse de solde malgré l’avertissement."
+msgstr "I confirm this decrease in the balance despite the warning."
+
+msgid "Cochez la case pour valider cette sortie malgré l’avertissement."
+msgstr "Tick the box to approve this payout despite the warning."
+
+msgid "%(nom)s — disponible %(disponible)s %(devise)s"
+msgstr "%(nom)s — available %(disponible)s %(devise)s"
+
+# templates/dashboard/comptabilite — le disponible à l'écran
+msgid "Solde disponible par caisse"
+msgstr "Available balance by account"
+
+msgid "Solde disponible"
+msgstr "Available balance"
+
+msgid "Solde épuisé"
+msgstr "Balance exhausted"
+
+msgid "Aucun fonds disponible"
+msgstr "No funds available"

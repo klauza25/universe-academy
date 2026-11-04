@@ -1,0 +1,79 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/forms.py + core/admin.py — catégories d'écriture
+msgid "Nom de la catégorie"
+msgstr "Category name"
+
+msgid "Sens des montants"
+msgstr "Direction of amounts"
+
+msgid "Catégorie active"
+msgstr "Active category"
+
+msgid "Écritures classées"
+msgstr "Filed entries"
+
+# core/views_comptabilite.py
+msgid "Catégorie « %(nom)s » créée."
+msgstr "Category “%(nom)s” created."
+
+msgid "Catégorie « %(nom)s » mise à jour."
+msgstr "Category “%(nom)s” updated."
+
+# templates/dashboard/comptabilite/_nav.html + categories.html
+msgid "Catégories"
+msgstr "Categories"
+
+msgid "Catégories du journal"
+msgstr "Journal categories"
+
+msgid "Catégories du journal — Univers Academy"
+msgstr "Journal categories — Univers Academy"
+
+msgid "Chaque écriture est rangée par sens : entrée, sortie ou transfert. Une catégorie qui ne sert plus se désactive, elle ne se supprime pas."
+msgstr "Every entry is filed by direction: income, expense or transfer. A category that is no longer used is deactivated, never deleted."
+
+msgid "Nouvelle catégorie"
+msgstr "New category"
+
+msgid "Le sens d'une catégorie ne change plus une fois créée : il classe les écritures déjà comptabilisées."
+msgstr "A category keeps its direction once it is created: it files the entries already accounted for."
+
+msgid "Sens"
+msgstr "Direction"
+
+msgid "Écritures"
+msgstr "Entries"
+
+msgid "Désactivée"
+msgstr "Deactivated"
+
+msgid "Régler"
+msgstr "Manage"
+
+msgid "Aucune catégorie."
+msgstr "No category."
+
+# templates/dashboard/comptabilite/category_form.html
+msgid "Catégorie du journal"
+msgstr "Journal category"
+
+msgid "Retour aux catégories"
+msgstr "Back to categories"
+
+msgid "Régler la catégorie"
+msgstr "Category settings"
+
+msgid "Le sens reste fixé : le changer ferait basculer des écritures déjà comptabilisées d’un côté du journal à l’autre. Désactiver une catégorie la retire des listes de saisie sans toucher à son passé."
+msgstr "The direction stays fixed: changing it would move entries already accounted for from one side of the journal to the other. Deactivating a category only takes it out of the entry lists, leaving its past untouched."
+
+msgid "Créations et réglages de la catégorie enregistrés dans le journal d’audit."
+msgstr "Category creations and settings are recorded in the audit log."
+
+msgid "Aucun événement d’audit pour cette catégorie."
+msgstr "No audit event for this category."

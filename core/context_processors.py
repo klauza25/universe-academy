@@ -52,6 +52,14 @@ def user_profile_context(request):
         ctx['can_validate_enrollment'] = request.user.has_any_role(
             *ENROLLMENT_VALIDATION_ROLES
         )
+        # Le bouton « Encaisser » suit la matrice des permissions, pas une liste
+        # de rôles : c'est elle qui décide qui tient la caisse. Les rôles élevés
+        # l'ont aussi — la direction a demandé que le super administrateur
+        # puisse encaisser lui-même.
+        ctx['can_record_payment'] = (
+            request.user.is_elevated
+            or request.user.has_perm_key('finance.write')
+        )
         try:
             ctx['unread_notifications'] = (
                 request.user.notifications.filter(is_read=False).count()

@@ -1,0 +1,48 @@
+{% load i18n ui %}
+<details class="ua-cloche" id="ua-cloche">
+    <summary class="ua-icon-btn ua-cloche-btn"
+             title="{% translate 'Tâches en attente' %}"
+             aria-label="{% translate 'Voir les tâches en attente' %}">
+        {% icon "bell" %}
+        {% if total %}<span class="ua-cloche-pastille">{{ total }}</span>{% endif %}
+    </summary>
+
+    <div class="ua-cloche-panneau">
+        {% if taches %}
+        <p class="ua-cloche-label">{% translate "À traiter" %}</p>
+        <ul class="ua-cloche-liste">
+            {% for tache in taches %}
+            <li>
+                <a href="{{ tache.url }}">
+                    <span class="ua-cloche-nom">{{ tache.nom }}</span>
+                    <span class="ua-badge ua-badge-amber">{{ tache.nombre }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if notifications %}
+        <p class="ua-cloche-label">{% translate "Notifications non lues" %}</p>
+        <ul class="ua-cloche-fils">
+            {% for note in notifications %}
+            <li>
+                <p class="ua-cloche-note-titre">{{ note.title }}</p>
+                <p class="ua-cloche-note-texte">{{ note.message }}</p>
+                <p class="ua-cloche-note-date">{{ note.created_at|date:"d/m/Y H:i" }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        <form method="post" action="{% url 'core:dashboard:notifications-lire' %}">
+            {% csrf_token %}
+            <button type="submit" class="ua-btn ua-btn-ghost ua-cloche-lire">
+                {% translate "Tout marquer comme lu" %}
+            </button>
+        </form>
+        {% endif %}
+
+        {% if not total %}
+        <p class="ua-cloche-vide">{% translate "Rien à traiter : tout est à jour." %}</p>
+        {% endif %}
+    </div>
+</details>

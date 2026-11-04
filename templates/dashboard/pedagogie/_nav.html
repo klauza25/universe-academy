@@ -23,3 +23,8 @@
 <a href="{% url 'core:dashboard:programs' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'programs' or request.resolver_match.url_name == 'module-create' or request.resolver_match.url_name == 'lesson-create' %}is-active{% endif %}">
     {% icon "book-open" %}<span>{% translate "Programmes" %}</span>
 </a>
+{% if 'RESP_PEDA' in user_roles %}
+<a href="{% url 'core:dashboard:access-requests' %}" class="ua-nav-link {% if request.resolver_match.url_name == 'access-requests' or request.resolver_match.url_name == 'access-request-review' %}is-active{% endif %}">
+    {% icon "user-check" %}<span>{% translate "Demandes d'accès" %}</span>
+</a>
+{% endif %}

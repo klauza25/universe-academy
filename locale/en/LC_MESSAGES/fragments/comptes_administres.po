@@ -1,0 +1,202 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/forms.py — fiche d'administration d'un compte financier
+msgid "Nom du compte"
+msgstr "Account name"
+
+msgid "Type de compte"
+msgstr "Account type"
+
+msgid "Solde d’ouverture"
+msgstr "Opening balance"
+
+msgid "Compte actif"
+msgstr "Active account"
+
+msgid "Découvert autorisé"
+msgstr "Allowed overdraft"
+
+msgid "État du compte"
+msgstr "Account status"
+
+msgid "Compte de remplacement"
+msgstr "Replacement account"
+
+msgid "Cette caisse a encore un solde ou des brouillons : désignez le compte qui les reprend."
+msgstr "This cash account still holds a balance or drafts: name the account that will take them over."
+
+msgid "La devise d'un compte qui a déjà des écritures ne change pas : ouvrez un second compte et archivez le premier."
+msgstr "The currency of an account that already has entries does not change: open a second account and archive the first one."
+
+msgid "Lever un découvert exceptionnel est réservé au super administrateur : le découvert reste interdit par défaut."
+msgstr "Granting an exceptional overdraft is reserved for the super administrator: overdraft remains forbidden by default."
+
+msgid "Compte introuvable ou fermé : choisissez une caisse encore ouverte."
+msgstr "Account not found or closed: choose a cash account that is still open."
+
+# core/forms.py — ajustement et réinitialisation de solde
+msgid "Ajustement de solde"
+msgstr "Balance adjustment"
+
+msgid "Relever le solde"
+msgstr "Raise the balance"
+
+msgid "Baisser le solde"
+msgstr "Lower the balance"
+
+msgid "Sens de l’ajustement"
+msgstr "Direction of the adjustment"
+
+msgid "Motif de l’ajustement"
+msgstr "Reason for the adjustment"
+
+msgid "Motif de la réinitialisation"
+msgstr "Reason for the reset"
+
+msgid "Indiquez le montant de l’ajustement."
+msgstr "Enter the amount of the adjustment."
+
+msgid "Un ajustement porte un montant non nul."
+msgstr "An adjustment carries a non-zero amount."
+
+msgid "Un motif est obligatoire pour ajuster un solde."
+msgstr "A reason is required to adjust a balance."
+
+msgid "Un motif est obligatoire pour réinitialiser une caisse."
+msgstr "A reason is required to reset a cash account."
+
+msgid "La réinitialisation d’une caisse demande une confirmation explicite."
+msgstr "Resetting a cash account requires explicit confirmation."
+
+msgid "Je confirme : le solde sera ramené à zéro par une écriture de régularisation, et l’historique restera consultable."
+msgstr "I confirm: the balance will be brought back to zero by a regularizing entry, and the history will stay available."
+
+# core/models.py — nature d'écriture et état de compte
+msgid "Écriture ordinaire"
+msgstr "Ordinary entry"
+
+msgid "Réinitialisation"
+msgstr "Reset"
+
+msgid "Compte financier"
+msgstr "Financial account"
+
+msgid "Inactif"
+msgstr "Inactive"
+
+msgid "Archivé le"
+msgstr "Archived on"
+
+msgid "— aucun —"
+msgstr "— none —"
+
+msgid "Un transfert doit changer de compte."
+msgstr "A transfer must change account."
+
+msgid "Solde insuffisant sur « %(caisse)s » : cette écriture laisserait un découvert de %(creux)s %(devise)s (découvert autorisé : %(plafond)s). Enregistrez d’abord la recette qui alimente ce compte."
+msgstr "Insufficient balance on “%(caisse)s”: this entry would leave an overdraft of %(creux)s %(devise)s (allowed overdraft: %(plafond)s). First record the income that funds this account."
+
+# core/views_comptabilite.py — messages des trois écrans
+msgid "Compte « %(nom)s » mis à jour."
+msgstr "Account “%(nom)s” updated."
+
+msgid "Créations et réglages du compte enregistrés dans le journal d’audit."
+msgstr "Account creations and settings are recorded in the audit log."
+
+msgid "Aucun événement d’audit pour ce compte."
+msgstr "No audit event for this account."
+
+msgid "Ajustement %(reference)s enregistré : solde de %(avant)s à %(apres)s %(devise)s."
+msgstr "Adjustment %(reference)s recorded: balance from %(avant)s to %(apres)s %(devise)s."
+
+msgid "Réinitialisation %(reference)s enregistrée : %(solde)s %(devise)s emportés, %(brouillons)s brouillon(s) non rapproché(s)."
+msgstr "Reset %(reference)s recorded: %(solde)s %(devise)s carried away, %(brouillons)s unreconciled draft(s)."
+
+msgid "Cette caisse est déjà à zéro : rien à réinitialiser."
+msgstr "This cash account is already at zero: nothing to reset."
+
+# templates/dashboard/comptabilite/account_form.html
+msgid "Administrer"
+msgstr "Manage"
+
+msgid "Régler le compte"
+msgstr "Account settings"
+
+msgid "Le nom sert de clé aux reprises du journal et le solde d’ouverture ne se réécrit pas : pour corriger un solde, utilisez l’ajustement tracé."
+msgstr "The name is the key used when the journal is replayed, and the opening balance is never rewritten: to correct a balance, use the traced adjustment."
+
+msgid "Situation"
+msgstr "Account situation"
+
+msgid "Solde actuel : %(s)s %(d)s"
+msgstr "Current balance: %(s)s %(d)s"
+
+msgid "Disponible pour une sortie"
+msgstr "Available for an outgoing payment"
+
+msgid "Une sortie peut descendre jusqu’à %(a)s %(d)s : le découvert autorisé du compte est compris dans ce chiffre."
+msgstr "An outgoing payment may go as low as %(a)s %(d)s: the allowed overdraft of the account is included in that figure."
+
+msgid "Brouillons en attente"
+msgstr "Drafts pending"
+
+msgid "Aucune écriture sur ce compte."
+msgstr "No entry on this account."
+
+msgid "Retour aux comptes"
+msgstr "Back to accounts"
+
+# templates/dashboard/comptabilite/account_adjust.html
+msgid "Ajuster le solde"
+msgstr "Adjust the balance"
+
+msgid "Un ajustement n’est ni une recette ni une dépense : c’est la correction assumée d’un solde. Il est écrit dans le journal, motivé, et reste consultable dans l’historique du compte."
+msgstr "An adjustment is neither income nor expense: it is an acknowledged correction of a balance. It is written to the journal, with its reason, and stays available in the account history."
+
+msgid "Enregistrer l’ajustement"
+msgstr "Record the adjustment"
+
+msgid "Brouillons non validés sur ce compte : %(n)s. Un ajustement ne les rapproche pas."
+msgstr "Unvalidated drafts on this account: %(n)s. An adjustment does not reconcile them."
+
+# templates/dashboard/comptabilite/account_reset.html
+msgid "Réinitialisation de la caisse"
+msgstr "Cash account reset"
+
+msgid "Réinitialiser la caisse"
+msgstr "Reset the cash account"
+
+msgid "Ce que la remise à zéro emporte"
+msgstr "What the reset takes away"
+
+msgid "Solde avant"
+msgstr "Balance before"
+
+msgid "Solde après"
+msgstr "Balance after"
+
+msgid "Écritures comptabilisées"
+msgstr "Entries accounted for"
+
+msgid "Brouillons non rapprochés"
+msgstr "Unreconciled drafts"
+
+msgid "Dernière clôture"
+msgstr "Last closing"
+
+msgid "Confirmer la réinitialisation"
+msgstr "Confirm the reset"
+
+msgid "Aucune écriture n’est supprimée : la caisse est ramenée à zéro par une écriture contraire, datée du jour, et tout l’historique reste consultable."
+msgstr "No entry is deleted: the cash account is brought back to zero by a reversing entry dated today, and the whole history stays available."
+
+msgid "Brouillons encore en attente sur ce compte : %(n)s. Validez-les ou jetez-les avant la remise à zéro."
+msgstr "Drafts still pending on this account: %(n)s. Validate or discard them before the reset."
+
+msgid "Retour au compte"
+msgstr "Back to account"

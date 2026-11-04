@@ -27,7 +27,7 @@ class FinanceSupervisionTests(BusinessTestBase):
             category=self.income_category,
         )
         self.expense = self.make_tx(
-            20000, tx_type=CashTransaction.Type.OUT, account=self.mobile,
+            20000, tx_type=CashTransaction.Type.OUT,
             method=Payment.Method.MOBILE_MONEY, counterparty='Atelier Info',
             category=self.expense_category,
         )
@@ -58,7 +58,7 @@ class FinanceSupervisionTests(BusinessTestBase):
             counterparty=counterparty,
             label=f'Opération {amount}',
             occurred_at=timezone.now(),
-            created_by=self.comptable,
+            created_by=self.assistant,
         )
 
     def test_supervision_is_reserved_to_elevated_roles(self):
@@ -66,8 +66,8 @@ class FinanceSupervisionTests(BusinessTestBase):
             response = self.client_for(user).get(reverse(SUPERVISION_URL))
             self.assertEqual(response.status_code, 200, user.primary_role)
         for user in (
-            self.comptable, self.direction, self.secretaire,
-            self.formateur, self.etudiant, self.accueil,
+            self.assistant, self.direction, self.secretaire,
+            self.formateur, self.etudiant, self.assistant,
         ):
             response = self.client_for(user).get(reverse(SUPERVISION_URL))
             self.assertEqual(response.status_code, 403, user.primary_role)
@@ -143,7 +143,7 @@ class FinanceSupervisionTests(BusinessTestBase):
 
     def test_transaction_detail_shows_audit_history(self):
         AuditLog.objects.create(
-            actor=self.comptable,
+            actor=self.assistant,
             action='CASH_TRANSACTION_CANCEL',
             entity_type='CashTransaction',
             entity_id=str(self.expense.id),
@@ -176,7 +176,7 @@ class ReceivablesCalculationTests(BusinessTestBase):
             enrollment=extra,
             amount=70000,
             method=Payment.Method.CASH,
-            recorded_by=self.comptable,
+            recorded_by=self.assistant,
         )
 
         # Le dossier de base reste dû à hauteur de 90 000 FCFA ; le trop-perçu
@@ -194,7 +194,7 @@ class ReceivablesCalculationTests(BusinessTestBase):
 class AuditLogTests(BusinessTestBase):
     def setUp(self):
         self.entry_payment = AuditLog.objects.create(
-            actor=self.comptable,
+            actor=self.assistant,
             action='PAYMENT_CREATE',
             entity_type='Payment',
             entity_id=str(uuid.uuid4()),
@@ -221,7 +221,7 @@ class AuditLogTests(BusinessTestBase):
                 self.client_for(user).get(reverse(AUDIT_URL)).status_code,
                 200,
             )
-        for user in (self.comptable, self.secretaire, self.formateur):
+        for user in (self.assistant, self.secretaire, self.formateur):
             self.assertEqual(
                 self.client_for(user).get(reverse(AUDIT_URL)).status_code,
                 403,

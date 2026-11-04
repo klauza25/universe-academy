@@ -1,0 +1,43 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{{ compte.name }} — {% translate "Réinitialisation de la caisse" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% translate "Réinitialisation de la caisse" %}</h1>
+        <p class="ua-page-sub">{{ compte.name }}</p>
+    </div>
+    <a href="{% url 'core:dashboard:account-update' compte.id %}" class="ua-btn ua-btn-ghost">{% translate "Retour au compte" %}</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Ce que la remise à zéro emporte" %}</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">{% translate "Solde avant" %}</dt><dd><strong>{{ solde }} {{ compte.currency }}</strong></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Solde après" %}</dt><dd><strong>0 {{ compte.currency }}</strong></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Écritures comptabilisées" %}</dt><dd>{{ attente }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Brouillons non rapprochés" %}</dt><dd>{{ brouillons }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Dernière clôture" %}</dt><dd>{{ derniere_cloture.date|date:"d/m/Y"|default:"—" }}</dd></div>
+        </dl>
+        <p class="text-xs ua-muted mt-4">{% translate "Aucune écriture n’est supprimée : la caisse est ramenée à zéro par une écriture contraire, datée du jour, et tout l’historique reste consultable." %}</p>
+        {% if brouillons %}
+        <p class="text-sm text-amber-700 mt-3">{% blocktrans %}Brouillons encore en attente sur ce compte : {{ n }}. Validez-les ou jetez-les avant la remise à zéro.{% endblocktrans %}</p>
+        {% endif %}
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Confirmer la réinitialisation" %}</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Réinitialiser la caisse" %}</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

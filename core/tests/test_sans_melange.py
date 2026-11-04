@@ -12,10 +12,11 @@ import re
 from django.contrib.auth import get_user_model
 from django.test import Client
 from django.urls import reverse
+from django.utils import timezone
 
 from core.models import (
-    CashAccount, Course, CourseSession, Lesson, Module, Role, RoleKey,
-    TransactionCategory, VisitReason,
+    CashAccount, CashTransaction, Course, CourseSession, Lesson, Module,
+    Payment, Role, RoleKey, ROLES_DISSOUS, TransactionCategory, VisitReason,
 )
 from core.tests.base import BusinessTestBase
 
@@ -51,12 +52,11 @@ class RenduAnglaisSansMelangeTest(BusinessTestBase):
             'SUPER_ADMIN': self.super_admin,
             'ADMIN': self.admin,
             'DIRECTION': self.direction,
+            'ASSISTANT_ADMIN': self.assistant,
             'SECRETAIRE': self.secretaire,
-            'COMPTABLE': self.comptable,
             'RESP_PEDA': self.peda,
             'FORMATEUR': self.formateur,
             'ETUDIANT': self.etudiant,
-            'ACCUEIL': self.accueil,
         }
 
     def client_en_anglais(self, user=None):
@@ -106,13 +106,17 @@ class RenduAnglaisSansMelangeTest(BusinessTestBase):
         self.assertEqual(vues, [], f'chrome française visible sur {etiquette}')
 
     def test_chaque_tableau_de_bord_se_peint_en_anglais(self):
-        for member in RoleKey:
-            user = self.users_by_role[member.value]
+        self.assertEqual(
+            set(self.users_by_role),
+            {membre.value for membre in RoleKey} - set(ROLES_DISSOUS),
+            'un poste actif sans compte de test, ou un poste dissous encore proposé',
+        )
+        for cle, user in self.users_by_role.items():
             page = self.client_en_anglais(user).get(
                 reverse('core:dashboard:dashboard-router'), follow=True)
-            self.assertEqual(page.status_code, 200, member.value)
+            self.assertEqual(page.status_code, 200, cle)
             self.assertContains(page, '<html lang="en"')
-            self._fuites(page, f'tableau de bord {member.value}')
+            self._fuites(page, f'tableau de bord {cle}')
 
     def test_pages_publiques_en_anglais(self):
         client = self.client_en_anglais()
@@ -122,20 +126,37 @@ class RenduAnglaisSansMelangeTest(BusinessTestBase):
             self._fuites(page, route)
 
     def test_listes_et_formulaires_se_peignent_en_anglais(self):
+        ecriture = CashTransaction.objects.create(
+            tx_type=CashTransaction.Type.IN, category=self.income_category,
+            label='Recette de test', amount=5000, occurred_at=timezone.now(),
+            account=self.cash, method=Payment.Method.CASH,
+            status=CashTransaction.Status.VALIDATED, created_by=self.assistant,
+        )
         pages = (
             (self.secretaire, 'core:dashboard:student-list'),
-            (self.comptable, 'core:dashboard:journal'),
-            (self.comptable, 'core:dashboard:accounts'),
-            (self.comptable, 'core:dashboard:closures'),
-            (self.comptable, 'core:dashboard:payment-create'),
+            (self.assistant, 'core:dashboard:journal'),
+            (self.assistant, 'core:dashboard:transaction-detail', ecriture.pk),
+            (self.assistant, 'core:dashboard:transaction-edit', ecriture.pk),
+            (self.assistant, 'core:dashboard:accounts'),
+            (self.assistant, 'core:dashboard:account-update', self.cash.pk),
+            (self.assistant, 'core:dashboard:account-adjust', self.cash.pk),
+            (self.assistant, 'core:dashboard:account-reset', self.cash.pk),
+            (self.assistant, 'core:dashboard:categories'),
+            (self.assistant, 'core:dashboard:category-update',
+             self.income_category.pk),
+            (self.assistant, 'core:dashboard:closures'),
+            (self.assistant, 'core:dashboard:payment-create'),
+            (self.assistant, 'core:dashboard:payment-months'),
             (self.peda, 'core:dashboard:programs'),
             (self.peda, 'core:dashboard:course-sessions'),
             (self.peda, 'core:dashboard:resources'),
             (self.peda, 'core:dashboard:attendance-history'),
-            (self.accueil, 'core:dashboard:visit-list'),
-            (self.accueil, 'core:dashboard:prospect-list'),
-            (self.accueil, 'core:dashboard:visit-reasons'),
+            (self.peda, 'core:dashboard:access-requests'),
+            (self.assistant, 'core:dashboard:visit-list'),
+            (self.assistant, 'core:dashboard:prospect-list'),
+            (self.assistant, 'core:dashboard:visit-reasons'),
             (self.super_admin, 'core:dashboard:user-list'),
+            (self.super_admin, 'core:dashboard:role-permissions'),
             (self.super_admin, 'core:dashboard:access-requests'),
             (self.super_admin, 'core:dashboard:audit-log'),
             (self.super_admin, 'core:dashboard:scholarship-review-list'),
@@ -150,3 +171,23 @@ class RenduAnglaisSansMelangeTest(BusinessTestBase):
             page = self.client_en_anglais(user).get(url, follow=True)
             self.assertEqual(page.status_code, 200, route)
             self._fuites(page, route)
+
+    def test_la_grille_des_mois_et_le_recu_se_peignent_en_anglais(self):
+        client = self.client_en_anglais(self.assistant)
+        grille = client.get(reverse('core:dashboard:payment-months'),
+                            {'enrollment': self.enrollment.pk}, follow=True)
+        self.assertEqual(grille.status_code, 200)
+        self._fuites(grille, 'grille des douze mois')
+        self.assertContains(grille, 'Monthly payment of January')
+
+        annee = timezone.localdate().year
+        paiement = Payment.objects.create(
+            enrollment=self.enrollment, amount=25000,
+            method=Payment.Method.CASH, motif=Payment.Motif.MONTHLY,
+            period_year=annee, period_month=1, recorded_by=self.assistant,
+        )
+        recu = client.get(reverse('core:dashboard:payment-receipt', args=[paiement.pk]))
+        self.assertEqual(recu.status_code, 200)
+        self._fuites(recu, 'reçu de paiement')
+        self.assertContains(recu, 'Settled month')
+        self.assertContains(recu, f'January {annee}')

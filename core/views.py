@@ -21,8 +21,9 @@ from .models import (
     ScholarshipApplication, ScholarshipDocument, Destination,
     Course, CourseSession, Enrollment, Attendance, Payment,
     AccessEvent, Notification, AuditLog,
-    ROLE_DASHBOARD_ROUTES, PRIVILEGED_ROLES, RoleKey,
-    REQUESTABLE_ROLES, REQUESTABLE_ROLE_CHOICES,
+    ROLE_DASHBOARD_ROUTES, PRIVILEGED_ROLES, RoleKey, ELEVATED_ROLES,
+    REQUESTABLE_ROLES, REQUESTABLE_ROLE_CHOICES, ROLES_DISSOUS,
+    Permission, RolePermission, PERMISSION_LABELS,
     Visit, Prospect, ProspectFollowUp, Contact,
     Module, Lesson, SessionRecord, Resource, StudentDocument,
     CashAccount, CashTransaction, CashClosure, TransactionCategory,
@@ -30,16 +31,17 @@ from .models import (
 from .forms import (
     LoginForm, RegisterForm, UserCreateForm, UserEditForm,
     AccessApprovalForm, AccessRequestCompletionForm, enrollable_sessions,
-    ScholarshipApplicationForm, ScholarshipDocumentForm,
+    AvatarForm, ScholarshipApplicationForm, ScholarshipDocumentForm,
     AccessEventForm
 )
 from .decorators import (
     active_account_required, business_write_required, permission_required,
-    role_required, super_admin_required,
+    role_required, roles_attribuables, super_admin_required,
 )
 from .utils import (
     enrollments_waiting_validation, log_audit, outstanding_receivables,
 )
+from .views_profile import changer_avatar
 from .graphiques import pour_comptabilite, pour_direction, pour_pedagogie
 from .clerk import ClerkError, sync_clerk_user, verify_clerk_token
 
@@ -436,7 +438,8 @@ def user_list(request):
         'status_filter': status_filter,
         'role_filter': role_filter,
         'status_choices': AccountStatus.choices,
-        'role_choices': RoleKey.choices,
+        'role_choices': [(valeur, label) for valeur, label in RoleKey.choices
+                         if valeur not in ROLES_DISSOUS],
     })
 
 
@@ -550,11 +553,13 @@ def user_detail(request, user_id):
         'audit_entries': audit,
         'held_role_keys': held_keys,
         'available_roles': (
-            Role.objects.exclude(key__in=held_keys).order_by('label')
+            Role.objects.exclude(key__in=held_keys)
+            .exclude(key__in=ROLES_DISSOUS).order_by('label')
             if can_manage else Role.objects.none()
         ),
         'status_choices': AccountStatus.choices,
         'can_manage_access': can_manage,
+        'avatar_form': AvatarForm(),
         'is_self': is_self,
     })
 
@@ -601,6 +606,15 @@ def user_edit(request, user_id):
 
 
 @super_admin_required
+def user_avatar(request, user_id):
+    """Un super administrateur pose la photo d'un compte depuis sa fiche."""
+    compte = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        changer_avatar(request, compte)
+    return redirect('core:dashboard:user-detail', user_id=compte.id)
+
+
+@super_admin_required
 def user_role_assign(request, user_id):
     redirect_to_detail = redirect(
         'core:dashboard:user-detail', user_id=user_id)
@@ -624,6 +638,13 @@ def user_role_assign(request, user_id):
 
     if role.is_privileged and not request.user.has_role('SUPER_ADMIN'):
         return HttpResponseForbidden(_("Impossible d'attribuer un rôle privilégié."))
+
+    if action == 'add' and role_key in ROLES_DISSOUS:
+        messages.error(
+            request,
+            _("Ce poste est dissous : attribuez « Assistant administratif », qui reprend l'accueil et la caisse."),
+        )
+        return redirect_to_detail
 
     if action == 'add':
         link, created = UserRole.objects.get_or_create(
@@ -715,7 +736,98 @@ def user_status_change(request, user_id):
     return redirect_to_detail
 
 
-@role_required('SUPER_ADMIN')
+@super_admin_required
+def permission_matrix(request):
+    """Matrice postes × permissions, éditée depuis le tableau de bord super admin.
+
+    Les cases décochées ferment une porte, les cases cochées en ouvrent une : la
+    matrice est relue à chaque écran d'encaissement. SUPER_ADMIN et ADMIN ne sont
+    pas éditables ici — leur accès transversal est écrit dans les garde-fous,
+    cocher leurs cases ne produirait aucun effet et tromperait l'éditeur.
+    """
+    roles = [role for role in Role.objects.order_by('label')
+             if role.key not in ROLES_DISSOUS]
+    permissions = list(Permission.objects.order_by('key'))
+    editables = {str(role.id) for role in roles if role.key not in ELEVATED_ROLES}
+    roles_par_id = {str(role.id): role for role in roles}
+    permissions_par_id = {str(p.id): p for p in permissions}
+    connues = {(str(role_id), str(permission_id))
+               for role_id, permission_id in
+               RolePermission.objects.values_list('role', 'permission')}
+
+    if request.method == 'POST':
+        cochees = set()
+        for valeur in request.POST.getlist('grant'):
+            role_id, __, permission_id = valeur.partition(':')
+            if role_id in editables and permission_id in permissions_par_id:
+                cochees.add((role_id, permission_id))
+
+        dans_la_cible = {pair for pair in connues if pair[0] in editables}
+        ajoutees = sorted(cochees - dans_la_cible)
+        retirees = sorted(dans_la_cible - cochees)
+
+        with transaction.atomic():
+            for role_id, permission_id in ajoutees:
+                RolePermission.objects.create(
+                    role=roles_par_id[role_id],
+                    permission=permissions_par_id[permission_id],
+                )
+            for role_id, permission_id in retirees:
+                RolePermission.objects.filter(
+                    role_id=role_id, permission_id=permission_id,
+                ).delete()
+
+        if ajoutees or retirees:
+            log_audit(
+                request, 'ROLE_PERMISSIONS_UPDATE', 'Role', 'matrice',
+                before={'retirees': [(roles_par_id[r].key, permissions_par_id[p].key)
+                                     for r, p in retirees]},
+                after={'ajoutees': [(roles_par_id[r].key, permissions_par_id[p].key)
+                                    for r, p in ajoutees]},
+            )
+            messages.success(
+                request,
+                _("Matrice enregistrée : %(ajoute)s droit(s) accordé(s), %(retire)s retiré(s).") % {
+                    'ajoute': len(ajoutees), 'retire': len(retirees)},
+            )
+        else:
+            messages.info(request, _("Rien n'a changé : la matrice est déjà à jour."))
+        return redirect('core:dashboard:role-permissions')
+
+    colonnes = []
+    for role in roles:
+        editable = str(role.id) in editables
+        colonnes.append({
+            'role': role,
+            'id': str(role.id),
+            'editable': editable,
+            'nombre': sum(1 for pair in connues if pair[0] == str(role.id)),
+        })
+
+    lignes = []
+    for permission in permissions:
+        lignes.append({
+            'cle': permission.key,
+            'libelle': PERMISSION_LABELS.get(permission.key, permission.description),
+            'cases': [
+                {
+                    'accordee': (colonne['id'], str(permission.id)) in connues,
+                    'valeur': f"{colonne['id']}:{permission.id}",
+                    'editable': colonne['editable'],
+                }
+                for colonne in colonnes
+            ],
+        })
+
+    return render(request, 'dashboard/super_admin/permissions.html', {
+        'colonnes': colonnes,
+        'lignes': lignes,
+        'total_postes': sum(1 for colonne in colonnes if colonne['editable']),
+        'total_droits': sum(1 for pair in connues if pair[0] in editables),
+    })
+
+
+@role_required('SUPER_ADMIN', 'RESP_PEDA')
 def access_requests_list(request):
     status_filter = request.GET.get('statut', 'all')
     if status_filter not in {'all', 'PENDING', 'APPROVED', 'REJECTED'}:
@@ -732,9 +844,17 @@ def access_requests_list(request):
         )
     ).order_by('pending_first', '-created_at')
 
+    # Le responsable pédagogique voit toutes les demandes mais ne peut statuer
+    # que sur les rôles de son périmètre : la liste des rôles proposés suit la
+    # même règle, pour qu'aucun choix hors périmètre n'apparaisse dans le menu.
+    attribuables = roles_attribuables(request.user)
+
     return render(request, 'dashboard/super_admin/access_requests.html', {
         'requests': requests_qs,
-        'role_choices': REQUESTABLE_ROLE_CHOICES,
+        'role_choices': [
+            choix for choix in REQUESTABLE_ROLE_CHOICES if choix[0] in attribuables
+        ],
+        'roles_attribuables': sorted(attribuables),
         'enrollment_sessions': enrollable_sessions(),
         'status_filter': status_filter,
         'pending_count': AccessRequest.objects.filter(
@@ -744,7 +864,7 @@ def access_requests_list(request):
     })
 
 
-@role_required('SUPER_ADMIN', 'ADMIN')
+@role_required('SUPER_ADMIN', 'RESP_PEDA')
 def access_request_review(request, request_id):
     ar = get_object_or_404(
         AccessRequest.objects.select_related('user'), id=request_id
@@ -763,6 +883,17 @@ def access_request_review(request, request_id):
 
     if ar.user_id == request.user.id:
         return HttpResponseForbidden(_("Vous ne pouvez pas traiter votre propre demande d'accès."))
+
+    # Périmètre de l'appelant : un responsable pédagogique statue sur les rôles
+    # de son équipe, pas sur la caisse ou le secrétariat. Le contrôle se fait
+    # côté serveur — le grisetage de l'écran n'est qu'une indication.
+    cible = role_key if decision == 'approve' else ar.requested_role
+    if decision in {'approve', 'reject'} and cible not in roles_attribuables(request.user):
+        messages.error(
+            request,
+            _("Rôle hors de votre périmètre : un super administrateur doit statuer."),
+        )
+        return redirect('core:dashboard:access-requests')
 
     before = {
         'request_status': ar.status,
@@ -1177,7 +1308,7 @@ def secretaire_dashboard(request):
     return render(request, 'dashboard/secretaire/index.html', context)
 
 
-@role_required('COMPTABLE')
+@role_required('ASSISTANT_ADMIN')
 def comptabilite_dashboard(request):
     today = timezone.localdate()
     from .views_comptabilite import accounts_with_balance
@@ -1425,7 +1556,7 @@ def etudiant_dashboard(request):
     })
 
 
-@role_required('ACCUEIL')
+@role_required('ASSISTANT_ADMIN')
 def accueil_dashboard(request):
     form = AccessEventForm()
     if request.method == 'POST':

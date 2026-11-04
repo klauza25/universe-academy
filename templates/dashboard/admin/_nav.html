@@ -75,6 +75,12 @@
    class="ua-nav-link {% if request.resolver_match.url_name == 'scholarship-review-list' or request.resolver_match.url_name == 'scholarship-review-detail' %}is-active{% endif %}">
     {% icon "mail" %}<span>{% translate "Bourses" %}</span>
 </a>
+{% if 'SUPER_ADMIN' in user_roles %}
+<a href="{% url 'core:dashboard:role-permissions' %}"
+   class="ua-nav-link {% if request.resolver_match.url_name == 'role-permissions' %}is-active{% endif %}">
+    {% icon "shield" %}<span>{% translate "Permissions" %}</span>
+</a>
+{% endif %}
 <a href="{% url 'core:dashboard:audit-log' %}"
    class="ua-nav-link {% if request.resolver_match.url_name == 'audit-log' %}is-active{% endif %}">
     {% icon "shield" %}<span>{% translate "Journal d'audit" %}</span>

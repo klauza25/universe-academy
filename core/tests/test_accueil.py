@@ -28,7 +28,7 @@ class AccueilTestBase(BusinessTestBase):
             request_description='Demande de renseignements',
             arrival_at=arrival_at or timezone.now(),
             status=status,
-            agent=cls.accueil,
+            agent=cls.assistant,
         )
 
     @classmethod
@@ -38,14 +38,14 @@ class AccueilTestBase(BusinessTestBase):
             'contact': contact,
             'source': Prospect.Source.VISIT,
             'first_contact_at': timezone.localdate(),
-            'agent': cls.accueil,
+            'agent': cls.assistant,
             'status': Prospect.Status.NEW,
         }
         defaults.update(kwargs)
         return Prospect.objects.create(**defaults)
 
     def setUp(self):
-        self.client = self.client_for(self.accueil)
+        self.client = self.client_for(self.assistant)
 
     def visit_payload(self, **overrides):
         payload = {
@@ -131,7 +131,7 @@ class VisitTests(AccueilTestBase):
         )
         self.assertEqual(visit.contact.first_name, 'Alice')
         self.assertEqual(visit.contact.phone, '+242060000001')
-        self.assertEqual(visit.agent, self.accueil)
+        self.assertEqual(visit.agent, self.assistant)
         self.assert_audited('VISIT_CREATE', visit.pk)
 
     def test_visit_create_reuses_existing_contact_by_phone(self):
@@ -264,7 +264,7 @@ class ProspectTests(AccueilTestBase):
         )
         self.assertEqual(prospect.contact.last_name, 'Okemba')
         self.assertEqual(prospect.course, self.course)
-        self.assertEqual(prospect.agent, self.accueil)
+        self.assertEqual(prospect.agent, self.assistant)
         self.assertTrue(prospect.reference.startswith('PRO-'))
         self.assert_audited('PROSPECT_CREATE', prospect.pk)
 
@@ -334,7 +334,7 @@ class ProspectTests(AccueilTestBase):
         self.assertEqual(prospect.status, Prospect.Status.CONTACTED)
         self.assertEqual(prospect.next_follow_up, next_date)
         follow_up = ProspectFollowUp.objects.get(prospect=prospect)
-        self.assertEqual(follow_up.agent, self.accueil)
+        self.assertEqual(follow_up.agent, self.assistant)
         self.assertEqual(follow_up.summary, 'Appel effectué, document envoyé')
         self.assert_audited('PROSPECT_FOLLOW_UP', prospect.pk)
 

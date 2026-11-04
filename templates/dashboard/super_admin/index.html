@@ -220,9 +220,7 @@
             </div>
             {% for item in recent_access_requests %}
             <div class="ua-list-row">
-                <span class="ua-avatar-sm">
-                    {{ item.user.first_name|slice:":1" }}{{ item.user.last_name|slice:":1" }}
-                </span>
+                {% vignette item.user %}
                 <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold truncate" style="color:#1e2044;">
                         {{ item.user.get_full_name|default:item.user.email }}

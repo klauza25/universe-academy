@@ -1,0 +1,61 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/forms.py — correction d'une écriture
+msgid "Indiquez le montant corrigé."
+msgstr "Enter the corrected amount."
+
+msgid "Une écriture porte un montant non nul."
+msgstr "An entry carries a non-zero amount."
+
+msgid "La date doit être au format jj/mm/aaaa hh:mm."
+msgstr "The date must use the format dd/mm/yyyy hh:mm."
+
+msgid "Motif de la correction"
+msgstr "Reason for the correction"
+
+msgid "Un motif est obligatoire pour corriger une écriture."
+msgstr "A reason is required to correct an entry."
+
+# core/views_comptabilite.py
+msgid "Écriture %(reference)s corrigée."
+msgstr "Entry %(reference)s corrected."
+
+msgid "Une écriture annulée ne se corrige pas : son historique est clos."
+msgstr "A cancelled entry is not corrected: its history is closed."
+
+# templates/dashboard/comptabilite/transaction_detail.html + _nav.html
+msgid "Corriger l'écriture"
+msgstr "Correct the entry"
+
+# templates/dashboard/comptabilite/transaction_edit.html
+msgid "Correction d'une écriture de caisse"
+msgstr "Correction of a cash entry"
+
+msgid "Retour à l'opération"
+msgstr "Back to the operation"
+
+msgid "Rectifier l'écriture"
+msgstr "Rectify the entry"
+
+msgid "Enregistrer la correction"
+msgstr "Save the correction"
+
+msgid "Le motif est obligatoire : il reste attaché à la ligne corrigée et se relit dans le journal d'audit."
+msgstr "The reason is required: it stays attached to the corrected line and is read again in the audit log."
+
+msgid "Ce qui ne se change pas ici"
+msgstr "What does not change here"
+
+msgid "Sens de l'écriture"
+msgstr "Direction of the entry"
+
+msgid "Solde du compte"
+msgstr "Account balance"
+
+msgid "Une écriture mise sur la mauvaise caisse s'annule puis se ressaisit à côté : les deux lignes restent visibles et le journal garde sa suite."
+msgstr "An entry posted to the wrong cash account is cancelled and re-entered on the right one: both lines stay visible and the journal keeps its sequence."

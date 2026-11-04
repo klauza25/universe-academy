@@ -1,0 +1,10 @@
+{% load i18n %}{# Une personne se reconnaît à son visage ; à défaut, à ses initiales. #}
+{% if personne %}
+    {% if personne.avatar %}
+    <img src="{{ personne.avatar.url }}"
+         alt="{% blocktrans with name=personne.display_label %}Photo de {{ name }}{% endblocktrans %}"
+         class="{{ css }} object-cover" loading="lazy">
+    {% else %}
+    <span class="{{ css }}">{{ personne.initials|default:"?" }}</span>
+    {% endif %}
+{% endif %}

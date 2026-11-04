@@ -69,9 +69,7 @@
                 <tr>
                     <td>
                         <div class="flex items-center gap-3">
-                            <span class="ua-avatar-sm">
-                                {{ enrollment.student.first_name|slice:":1" }}{{ enrollment.student.last_name|slice:":1" }}
-                            </span>
+                            {% vignette enrollment.student %}
                             <div class="min-w-0">
                                 <p class="ua-cell-title truncate">
                                     {{ enrollment.student.get_full_name|default:enrollment.student.email }}

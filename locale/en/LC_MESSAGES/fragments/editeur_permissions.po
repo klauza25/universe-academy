@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/models.py — PERMISSIONS, libellés des 19 droits de la matrice
+msgid "Lire les utilisateurs"
+msgstr "Read users"
+
+msgid "Créer des utilisateurs"
+msgstr "Create users"
+
+msgid "Modifier des utilisateurs"
+msgstr "Edit users"
+
+msgid "Gérer les rôles"
+msgstr "Manage roles"
+
+msgid "Examiner les demandes d'accès"
+msgstr "Review access requests"
+
+msgid "Lire les dossiers étudiants"
+msgstr "Read student records"
+
+msgid "Modifier les dossiers étudiants"
+msgstr "Edit student records"
+
+msgid "Lire les formations"
+msgstr "Read programmes"
+
+msgid "Modifier les formations"
+msgstr "Edit programmes"
+
+msgid "Lire les présences"
+msgstr "Read attendance"
+
+msgid "Saisir les présences"
+msgstr "Record attendance"
+
+msgid "Lire les données financières"
+msgstr "Read financial data"
+
+msgid "Saisir des paiements"
+msgstr "Record payments"
+
+msgid "Lire les candidatures bourse"
+msgstr "Read scholarship applications"
+
+msgid "Examiner les candidatures bourse"
+msgstr "Review scholarship applications"
+
+msgid "Lire le journal des entrées/sorties"
+msgstr "Read the entry/exit log"
+
+msgid "Enregistrer les entrées/sorties"
+msgstr "Log entries and exits"
+
+msgid "Lire le journal d'audit"
+msgstr "Read the audit log"
+
+msgid "Délivrer des certificats"
+msgstr "Issue certificates"
+
+# core/views.py — retour de sauvegarde de la matrice
+msgid "Matrice enregistrée : %(ajoute)s droit(s) accordé(s), %(retire)s retiré(s)."
+msgstr "Matrix saved: %(ajoute)s right(s) granted, %(retire)s withdrawn."
+
+msgid "Rien n'a changé : la matrice est déjà à jour."
+msgstr "Nothing changed: the matrix is already up to date."
+
+# core/decorators.py — refus d'encaisser sans le droit correspondant
+msgid "Encaisser un paiement étudiant demande le droit « Saisir des paiements » : un super administrateur peut l'accorder à votre poste."
+msgstr "Recording a student payment requires the “Record payments” right: a super administrator can grant it to your post."
+
+# templates/dashboard/super_admin/permissions.html — l'éditeur
+msgid "Permissions — Univers Academy"
+msgstr "Permissions — Univers Academy"
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Chaque case accorde ou retire un droit pour tout un poste. Ce que la caisse peut faire se décide ici, plus dans le code."
+msgstr "Each cell grants or withdraws a right for a whole post. What the cash office may do is decided here, not in the code."
+
+msgid "Super administrateur et administrateur consultent tous les modules par construction : leurs cases restent fermées à l'édition."
+msgstr "The super administrator and the administrator read every module by design: their cells stay out of reach here."
+
+msgid "Enregistrer la matrice"
+msgstr "Save the matrix"
+
+msgid "Droit"
+msgstr "Right"
+
+msgid "accès complet"
+msgstr "full access"
+
+msgid "%(d)s droit(s) accordé(s) sur %(p)s poste(s) éditable(s)."
+msgstr "%(d)s right(s) granted across %(p)s editable post(s)."

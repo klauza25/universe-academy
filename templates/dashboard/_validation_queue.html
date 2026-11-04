@@ -1,4 +1,4 @@
-{% load i18n %}{# File d'attente des inscriptions ouvertes au guichet, reprise par chaque tableau de bord habilité à valider. #}
+{% load i18n ui %}{# File d'attente des inscriptions ouvertes au guichet, reprise par chaque tableau de bord habilité à valider. #}
 {% if enrollments_to_validate %}
 <section class="ua-card ua-card-pad mb-5">
     <div class="mb-3">
@@ -22,7 +22,12 @@
             <tbody>
                 {% for enrollment in enrollments_to_validate %}
                 <tr>
-                    <td class="ua-cell-title">{{ enrollment.student.get_full_name|default:enrollment.student.email }}</td>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            {% vignette enrollment.student %}
+                            <span class="ua-cell-title truncate">{{ enrollment.student.get_full_name|default:enrollment.student.email }}</span>
+                        </div>
+                    </td>
                     <td>{{ enrollment.session.course.title }}</td>
                     <td>{{ enrollment.net_amount }} FCFA</td>
                     <td>{{ enrollment.enrolled_at|date:"d/m/Y H:i" }}</td>

@@ -124,7 +124,7 @@ class ClerkSignupTests(BusinessTestBase):
             'first_name': 'Clerk',
             'last_name': 'Signup',
             'phone': '+242060000099',
-            'requested_role': RoleKey.COMPTABLE,
+            'requested_role': RoleKey.ASSISTANT_ADMIN,
         })
         self.assertRedirects(
             response, reverse('core:pending-approval'),
@@ -133,7 +133,7 @@ class ClerkSignupTests(BusinessTestBase):
 
         user.refresh_from_db()
         access_request = user.pending_access_request
-        self.assertEqual(access_request.requested_role, RoleKey.COMPTABLE)
+        self.assertEqual(access_request.requested_role, RoleKey.ASSISTANT_ADMIN)
         self.assertEqual(access_request.assigned_role, '')
         self.assertFalse(user.roles.exists())
         self.assertEqual(user.account_status, AccountStatus.PENDING_APPROVAL)
@@ -335,7 +335,7 @@ class AccessApprovalTests(BusinessTestBase):
         response = self.client_for(self.admin).post(
             reverse('core:dashboard:access-request-review',
                     args=[self.access_request.id]),
-            {'decision': 'approve', 'role_key': RoleKey.COMPTABLE},
+            {'decision': 'approve', 'role_key': RoleKey.ASSISTANT_ADMIN},
         )
         self.assertRedirects(
             response, reverse('core:dashboard:access-requests'),
@@ -343,9 +343,9 @@ class AccessApprovalTests(BusinessTestBase):
         )
         self.access_request.refresh_from_db()
         self.pending.refresh_from_db()
-        self.assertEqual(self.access_request.assigned_role, RoleKey.COMPTABLE)
-        self.assertTrue(self.pending.has_role(RoleKey.COMPTABLE))
-        self.assertTrue(self.pending.internal_code.startswith('UA-CPT'))
+        self.assertEqual(self.access_request.assigned_role, RoleKey.ASSISTANT_ADMIN)
+        self.assertTrue(self.pending.has_role(RoleKey.ASSISTANT_ADMIN))
+        self.assertTrue(self.pending.internal_code.startswith('UA-ASY'))
 
     def test_admin_review_refuses_privileged_roles(self):
         response = self.client_for(self.admin).post(
@@ -375,7 +375,7 @@ class AccessApprovalTests(BusinessTestBase):
         self.access_request.save(update_fields=['requested_role'])
         self.approve(RoleKey.ETUDIANT)
         self.pending.refresh_from_db()
-        response = self.client_for(self.comptable).get(
+        response = self.client_for(self.assistant).get(
             reverse('core:dashboard:student-list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Postulant Test')
@@ -411,7 +411,7 @@ class AccessApprovalTests(BusinessTestBase):
         self.assertEqual(enrollment.registered_by, self.super_admin)
         self.assert_audited('ENROLLMENT_CREATE', enrollment.id)
 
-        page = self.client_for(self.comptable).get(
+        page = self.client_for(self.assistant).get(
             reverse('core:dashboard:payment-create'))
         self.assertContains(page, 'Postulant Test')
         self.assertContains(page, str(enrollment.id))
@@ -472,7 +472,7 @@ class AccessApprovalTests(BusinessTestBase):
 
     def test_processed_request_cannot_be_approved_again(self):
         self.approve(RoleKey.FORMATEUR)
-        response = self.approve(RoleKey.COMPTABLE)
+        response = self.approve(RoleKey.ASSISTANT_ADMIN)
         self.assertRedirects(
             response, reverse('core:dashboard:access-requests'),
             fetch_redirect_response=False,

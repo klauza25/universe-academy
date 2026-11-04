@@ -82,18 +82,18 @@ class RoleAssignmentTests(BusinessTestBase):
         )
 
     def test_super_admin_adds_role(self):
-        response = self.post_role(self.secretaire, RoleKey.COMPTABLE)
+        response = self.post_role(self.secretaire, RoleKey.ASSISTANT_ADMIN)
         self.assertRedirects(
             response,
             reverse(DETAIL_URL, args=[self.secretaire.id]),
             fetch_redirect_response=False,
         )
         self.assertTrue(
-            self.secretaire.roles.filter(key=RoleKey.COMPTABLE).exists())
+            self.secretaire.roles.filter(key=RoleKey.ASSISTANT_ADMIN).exists())
         self.assert_audited('ROLE_ASSIGN', self.secretaire.id)
 
     def test_role_assignment_generates_internal_code(self):
-        user = self.make_user(RoleKey.ACCUEIL, 'sanscode@test.local')
+        user = self.make_user(RoleKey.ASSISTANT_ADMIN, 'sanscode@test.local')
         self.assertIsNone(user.internal_code)
 
         response = self.post_role(user, RoleKey.ETUDIANT)
@@ -136,19 +136,19 @@ class RoleAssignmentTests(BusinessTestBase):
 
     def test_unknown_action_is_rejected_without_change(self):
         response = self.post_role(
-            self.secretaire, RoleKey.COMPTABLE, action='promote')
+            self.secretaire, RoleKey.ASSISTANT_ADMIN, action='promote')
         self.assertEqual(response.status_code, 302)
         self.assertFalse(
-            self.secretaire.roles.filter(key=RoleKey.COMPTABLE).exists())
+            self.secretaire.roles.filter(key=RoleKey.ASSISTANT_ADMIN).exists())
 
     def test_admin_cannot_assign_roles(self):
         response = self.client_for(self.admin).post(
             reverse(ROLES_URL, args=[self.secretaire.id]),
-            {'role_key': RoleKey.COMPTABLE, 'action': 'add'},
+            {'role_key': RoleKey.ASSISTANT_ADMIN, 'action': 'add'},
         )
         self.assertEqual(response.status_code, 403)
         self.assertFalse(
-            self.secretaire.roles.filter(key=RoleKey.COMPTABLE).exists())
+            self.secretaire.roles.filter(key=RoleKey.ASSISTANT_ADMIN).exists())
 
     def test_cannot_change_own_roles(self):
         response = self.client_for(self.super_admin).post(
@@ -330,14 +330,14 @@ class StudentAccountEnrollmentTests(BusinessTestBase):
         self.assertEqual(enrollment.net_amount, self.course.fee_amount)
         self.assert_audited('ENROLLMENT_CREATE', enrollment.id)
 
-        payment_form = self.client_for(self.comptable).get(
+        payment_form = self.client_for(self.assistant).get(
             reverse('core:dashboard:payment-create'))
         self.assertContains(payment_form, 'Nouvelle Promo')
 
     def test_non_student_account_needs_no_group(self):
         response = self.create_client().post(
             reverse('core:dashboard:user-create'),
-            self.payload(role=RoleKey.ACCUEIL,
+            self.payload(role=RoleKey.ASSISTANT_ADMIN,
                          email='accueil2@test.local', session=''))
         self.assertRedirects(
             response, reverse('core:dashboard:user-list'),
@@ -346,7 +346,7 @@ class StudentAccountEnrollmentTests(BusinessTestBase):
         self.assertEqual(Enrollment.objects.count(), 1)
 
     def test_role_assignment_without_enrollment_is_flagged(self):
-        user = self.make_user(RoleKey.ACCUEIL, 'sansinscription@test.local')
+        user = self.make_user(RoleKey.ASSISTANT_ADMIN, 'sansinscription@test.local')
         response = self.create_client().post(
             reverse(ROLES_URL, args=[user.id]),
             {'role_key': RoleKey.ETUDIANT, 'action': 'add'},

@@ -115,9 +115,6 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1', 'http://localhos
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
 
-host = "192.168.1.114"
-
-ALLOWED_HOSTS = [host]
 # ---------------------------------------------------------------------------
 # Clerk authentication (Google + email/password)
 # ---------------------------------------------------------------------------

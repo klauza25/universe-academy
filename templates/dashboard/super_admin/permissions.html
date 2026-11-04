@@ -1,0 +1,83 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{% translate "Permissions — Univers Academy" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
+
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+{% translate "Enregistrer la matrice" as lbl_enregistrer %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% translate "Permissions" %}</h1>
+        <p class="ua-page-sub">
+            {% blocktrans with d=total_droits p=total_postes %}{{ d }} droit(s) accordé(s) sur {{ p }} poste(s) éditable(s).{% endblocktrans %}
+        </p>
+    </div>
+    <button type="submit" form="matrice-permissions" class="ua-btn ua-btn-primary">
+        {% icon "check-circle" %} {{ lbl_enregistrer }}
+    </button>
+</div>
+
+<section class="ua-card ua-card-pad mb-5">
+    <p class="text-sm ua-muted">
+        {% translate "Chaque case accorde ou retire un droit pour tout un poste. Ce que la caisse peut faire se décide ici, plus dans le code." %}
+    </p>
+    <p class="text-sm ua-muted mt-2">
+        {% translate "Super administrateur et administrateur consultent tous les modules par construction : leurs cases restent fermées à l'édition." %}
+    </p>
+</section>
+
+<form method="post" id="matrice-permissions" action="{% url 'core:dashboard:role-permissions' %}">
+    {% csrf_token %}
+    <section class="ua-card overflow-hidden">
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th>{% translate "Droit" %}</th>
+                        {% for colonne in colonnes %}
+                        <th class="text-center">
+                            <span class="block whitespace-nowrap">{{ colonne.role.label }}</span>
+                            {% if colonne.editable %}
+                            <span class="ua-cell-sub block">{{ colonne.nombre }}</span>
+                            {% else %}
+                            <span class="ua-badge ua-badge-slate">{% translate "accès complet" %}</span>
+                            {% endif %}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ligne in lignes %}
+                    <tr>
+                        <td>
+                            <p class="ua-cell-title">{{ ligne.libelle }}</p>
+                            <p class="ua-cell-sub font-mono text-xs">{{ ligne.cle }}</p>
+                        </td>
+                        {% for case in ligne.cases %}
+                        <td class="text-center">
+                            {% if case.editable %}
+                            <input type="checkbox" name="grant" value="{{ case.valeur }}"
+                                   {% if case.accordee %}checked{% endif %}>
+                            {% else %}
+                            —
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="flex justify-end mt-5">
+        <button type="submit" class="ua-btn ua-btn-primary">
+            {% icon "check-circle" %} {{ lbl_enregistrer }}
+        </button>
+    </div>
+</form>
+{% endblock %}

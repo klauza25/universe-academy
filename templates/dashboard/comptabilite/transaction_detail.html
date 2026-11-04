@@ -18,6 +18,11 @@
             {% icon "shield" %} {% translate "Supervision financière" %}
         </a>
         {% endif %}
+        {% if tx.status != 'CANCELLED' %}
+        <a href="{% url 'core:dashboard:transaction-edit' tx.id %}" class="ua-btn ua-btn-light">
+            {% icon "check-circle" %} {% translate "Corriger l'écriture" %}
+        </a>
+        {% endif %}
         <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">{% translate "Retour au journal" %}</a>
     </div>
 </div>
@@ -73,9 +78,7 @@
 
     <section class="ua-card ua-card-pad">
         <h2 class="ua-section-title mb-4">{% translate "Correction / annulation" %}</h2>
-        {% if is_elevated %}
-        <p class="ua-empty">{% translate "Consultation seule : l'annulation d'une opération relève de la comptabilité." %}</p>
-        {% elif tx.status == 'CANCELLED' %}
+        {% if tx.status == 'CANCELLED' %}
         <p class="ua-empty">{% translate "Cette opération est déjà annulée. Son historique est conservé." %}</p>
         {% else %}
         <form method="post" class="ua-form">

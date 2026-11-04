@@ -1,0 +1,170 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/models.py — motif du paiement et mois réglé
+msgid "Mensualité"
+msgstr "Monthly payment"
+
+msgid "Frais d'inscription"
+msgstr "Registration fee"
+
+msgid "Autre paiement"
+msgstr "Other payment"
+
+msgid "Motif du paiement"
+msgstr "Payment reason"
+
+msgid "Année du mois réglé"
+msgstr "Year of the settled month"
+
+msgid "Mois réglé"
+msgstr "Settled month"
+
+msgid "janvier"
+msgstr "January"
+
+msgid "février"
+msgstr "February"
+
+msgid "mars"
+msgstr "March"
+
+msgid "avril"
+msgstr "April"
+
+msgid "mai"
+msgstr "May"
+
+msgid "juin"
+msgstr "June"
+
+msgid "juillet"
+msgstr "July"
+
+msgid "août"
+msgstr "August"
+
+msgid "septembre"
+msgstr "September"
+
+msgid "octobre"
+msgstr "October"
+
+msgid "novembre"
+msgstr "November"
+
+msgid "décembre"
+msgstr "December"
+
+# core/forms.py — paiement unique et grille des douze mois
+msgid "Mensualité : le paiement règle un mois précis. Frais d'inscription : versement unique à l'entrée en formation."
+msgstr "Monthly payment: the payment settles one specific month. Registration fee: a single payment on entry."
+
+msgid "— Aucun —"
+msgstr "— None —"
+
+msgid "Précisez le mois que cette mensualité règle."
+msgstr "Specify the month this monthly payment settles."
+
+msgid "Dossier de l'étudiant"
+msgstr "Student's file"
+
+msgid "Choisissez le dossier à encaisser."
+msgstr "Choose the file to collect."
+
+msgid "Le mois de %(mois)s %(annee)s est déjà réglé (%(ref)s)."
+msgstr "The month of %(mois)s %(annee)s is already settled (%(ref)s)."
+
+msgid "%(mois)s %(annee)s est déjà réglé (%(ref)s)."
+msgstr "%(mois)s %(annee)s is already settled (%(ref)s)."
+
+msgid "%(mois)s : indiquez le montant encaissé."
+msgstr "%(mois)s: enter the amount collected."
+
+msgid "Frais d'inscription : indiquez le montant encaissé."
+msgstr "Registration fee: enter the amount collected."
+
+msgid "Les frais d'inscription de ce dossier sont déjà encaissés."
+msgstr "This file's registration fee has already been collected."
+
+msgid "Cochez au moins un mois à encaisser."
+msgstr "Tick at least one month to collect."
+
+msgid "Le total dépasse le reste à payer (%(montant)s FCFA)."
+msgstr "The total exceeds the remaining balance (%(montant)s FCFA)."
+
+msgid "Année réglée"
+msgstr "Settled year"
+
+# templates/dashboard/comptabilite/payment_months.html
+msgid "Encaisser les mensualités — Univers Academy"
+msgstr "Collect the monthly payments — Univers Academy"
+
+msgid "Encaisser les mois d'un dossier"
+msgstr "Collect a file's months"
+
+msgid "Cochez les mois réglés, ajustez si besoin, un paiement est créé par mois."
+msgstr "Tick the months paid, adjust if needed: one payment is created per month."
+
+msgid "Un seul paiement"
+msgstr "Single payment"
+
+msgid "Année précédente"
+msgstr "Previous year"
+
+msgid "Année suivante"
+msgstr "Next year"
+
+msgid "À encaisser"
+msgstr "To collect"
+
+msgid "Montant (FCFA)"
+msgstr "Amount (FCFA)"
+
+msgid "Ce que la caisse sait déjà"
+msgstr "What the cash book already knows"
+
+msgid "Réglé"
+msgstr "Settled"
+
+msgid "Une seule fois par dossier"
+msgstr "Once per file only"
+
+msgid "Encaissé le %(d)s (%(r)s)"
+msgstr "Collected on %(d)s (%(r)s)"
+
+msgid "Mensualité de %(m)s %(a)s"
+msgstr "Monthly payment of %(m)s %(a)s"
+
+msgid "Suggestion du dossier : %(m)s FCFA."
+msgstr "File suggestion: %(m)s FCFA."
+
+msgid "Mois libre"
+msgstr "Open month"
+
+msgid "Les montants proposés viennent du dossier : net dû réparti sur la durée de la formation. Un mois déjà encaissé ne se recoche pas."
+msgstr "The suggested amounts come from the file: the net due spread over the length of the course. A month already collected cannot be ticked again."
+
+msgid "Choisissez un étudiant puis son dossier : la grille des douze mois s'affiche ici."
+msgstr "Choose a student, then their file: the twelve-month grid appears here."
+
+msgid "Encaisser les mois cochés"
+msgstr "Collect the ticked months"
+
+msgid "Total coché :"
+msgstr "Ticked total:"
+
+# templates/dashboard/comptabilite/_nav.html et payment_form.html
+msgid "Paiements par mois"
+msgstr "Payments by month"
+
+msgid "Les 12 mois"
+msgstr "All 12 months"
+
+# core/views_comptabilite.py — message de confirmation
+msgid "%(nb)s paiement(s) enregistré(s) · %(total)s FCFA encaissés · reste %(reste)s FCFA."
+msgstr "%(nb)s payment(s) recorded · %(total)s FCFA collected · %(reste)s FCFA remaining."

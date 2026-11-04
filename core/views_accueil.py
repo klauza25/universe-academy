@@ -14,7 +14,7 @@ from .models import (
 )
 from .utils import log_audit
 
-ACCUEIL_ROLES = ('ACCUEIL', 'SECRETAIRE', 'DIRECTION')
+ACCUEIL_ROLES = ('ASSISTANT_ADMIN', 'SECRETAIRE', 'DIRECTION')
 
 
 def _filter_visits(request):
@@ -294,7 +294,7 @@ def prospect_detail(request, prospect_id):
     })
 
 
-@role_required('ACCUEIL', 'SECRETAIRE', 'DIRECTION', 'SUPER_ADMIN')
+@role_required('ASSISTANT_ADMIN', 'SECRETAIRE', 'DIRECTION', 'SUPER_ADMIN')
 def visit_reason_list(request):
     form = VisitReasonForm()
     if request.method == 'POST':
@@ -313,7 +313,7 @@ def visit_reason_list(request):
     })
 
 
-@business_write_required('ACCUEIL', 'SECRETAIRE', 'DIRECTION')
+@business_write_required('ASSISTANT_ADMIN', 'SECRETAIRE', 'DIRECTION')
 def visit_reason_toggle(request, reason_id):
     if request.method != 'POST':
         return redirect('core:dashboard:visit-reasons')
@@ -329,7 +329,7 @@ def visit_reason_toggle(request, reason_id):
     return redirect('core:dashboard:visit-reasons')
 
 
-@role_required('ACCUEIL', 'SECRETAIRE', 'DIRECTION')
+@role_required('ASSISTANT_ADMIN', 'SECRETAIRE', 'DIRECTION')
 def contact_search(request):
     """Recherche AJAX simple pour réutiliser une fiche contact existante."""
     query = (request.GET.get('q') or '').strip()

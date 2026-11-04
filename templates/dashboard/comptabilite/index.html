@@ -10,14 +10,12 @@
 {% blocktrans with r=total_revenue_month|floatformat:0 d=total_expenses_month|floatformat:0 %}{{ r }} FCFA de recettes pour {{ d }} FCFA de dépenses enregistrées.{% endblocktrans %}
 {% endblock %}
 {% block hero_actions %}
-{% if not is_elevated %}
 <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-light">
     {% icon "credit-card" %} {% translate "Encaisser un paiement" %}
 </a>
 <a href="{% url 'core:dashboard:transaction-create' %}" class="ua-btn ua-btn-ghost">
     {% icon "wallet" %} {% translate "Nouvelle opération" %}
 </a>
-{% endif %}
 {% endblock %}
 {% block hero_aside %}
 <div class="ua-hero-card">
@@ -63,9 +61,7 @@
         <p class="ua-empty">{% translate "Aucune caisse active." %}</p>
         {% endfor %}
         <div class="mt-4 text-xs ua-muted">{% blocktrans with c=closure_today %}Clôtures aujourd'hui : {{ c }}{% endblocktrans %}</div>
-        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:closure-create' %}" class="ua-btn ua-btn-light w-full justify-center mt-3">{% icon "check-circle" %} {% translate "Clôturer une caisse" %}</a>
-        {% endif %}
     </section>
 
     <section class="ua-card overflow-hidden xl:col-span-2">
@@ -105,11 +101,9 @@
             <h2 class="ua-section-title">{% translate "Paiements étudiants récents" %}</h2>
             <p class="text-xs ua-muted mt-1">{% translate "Les 10 derniers encaissements" %}</p>
         </div>
-        {% if not is_elevated %}
         <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-ghost ua-btn-sm">
             {% icon "credit-card" %} {% translate "Nouveau" %}
         </a>
-        {% endif %}
     </div>
     <div class="ua-table-wrap">
         <table class="ua-table">
@@ -142,7 +136,12 @@
                             {{ payment.get_status_display }}
                         </span>
                     </td>
-                    <td class="ua-muted whitespace-nowrap">{{ payment.paid_at|date:"d/m/Y" }}</td>
+                    <td class="ua-muted whitespace-nowrap">
+                        {{ payment.paid_at|date:"d/m/Y" }}
+                        {% if payment.period_month %}
+                        <span class="block">{{ payment.period_label }} {{ payment.period_year }}</span>
+                        {% endif %}
+                    </td>
                     <td class="text-right font-bold" style="color:#15803d;">
                         {{ payment.amount|floatformat:0 }} FCFA
                     </td>

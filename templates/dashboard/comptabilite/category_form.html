@@ -1,0 +1,41 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{{ categorie.name }} — {% translate "Catégorie du journal" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ categorie.name }}</h1>
+        <p class="ua-page-sub">{{ categorie.get_direction_display }} · {% if categorie.active %}{% translate "Active" %}{% else %}{% translate "Désactivée" %}{% endif %}</p>
+    </div>
+    <a href="{% url 'core:dashboard:categories' %}" class="ua-btn ua-btn-ghost">{% translate "Retour aux catégories" %}</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">{% translate "Régler la catégorie" %}</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Enregistrer" %}</button>
+        </form>
+        <p class="text-xs ua-muted mt-3">{% translate "Le sens reste fixé : le changer ferait basculer des écritures déjà comptabilisées d’un côté du journal à l’autre. Désactiver une catégorie la retire des listes de saisie sans toucher à son passé." %}</p>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Situation" %}</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">{% translate "Sens des montants" %}</dt><dd>{{ categorie.get_direction_display }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Écritures classées" %}</dt><dd>{{ ecritures }}</dd></div>
+        </dl>
+    </section>
+</div>
+
+{% translate "Créations et réglages de la catégorie enregistrés dans le journal d’audit." as audit_sous_titre_categorie %}
+{% translate "Aucun événement d’audit pour cette catégorie." as audit_vide_categorie %}
+{% include "dashboard/_audit_trail.html" with audit_entries=historique audit_subtitle=audit_sous_titre_categorie audit_empty=audit_vide_categorie %}
+{% endblock %}

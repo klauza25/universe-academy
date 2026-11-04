@@ -14,9 +14,10 @@ from django.utils import timezone
 
 from core.models import (
     AccountStatus, AuditLog, CashAccount, Course, CourseSession, Enrollment,
-    Lesson, Module, Role, RoleKey, TransactionCategory, User, UserRole,
-    VisitReason,
+    Lesson, Module, Permission, Role, RoleKey, RolePermission, TransactionCategory,
+    User, UserRole, VisitReason,
 )
+from core.management.commands.seed_roles import PERMISSIONS, ROLE_PERMISSIONS
 
 TEST_PASSWORD = 'TestPass123!'
 
@@ -61,12 +62,23 @@ class BusinessTestBase(TestCase):
         cls.super_admin = cls.make_user(RoleKey.SUPER_ADMIN, 'superadmin@test.local')
         cls.admin = cls.make_user(RoleKey.ADMIN, 'admin@test.local')
         cls.direction = cls.make_user(RoleKey.DIRECTION, 'direction@test.local')
+        cls.assistant = cls.make_user(RoleKey.ASSISTANT_ADMIN, 'assistant@test.local')
         cls.secretaire = cls.make_user(RoleKey.SECRETAIRE, 'secretaire@test.local')
-        cls.comptable = cls.make_user(RoleKey.COMPTABLE, 'comptable@test.local')
         cls.peda = cls.make_user(RoleKey.RESPONSABLE_PEDAGOGIQUE, 'peda@test.local')
         cls.formateur = cls.make_user(RoleKey.FORMATEUR, 'formateur@test.local')
         cls.etudiant = cls.make_user(RoleKey.ETUDIANT, 'etudiant@test.local')
-        cls.accueil = cls.make_user(RoleKey.ACCUEIL, 'accueil@test.local')
+
+        # Matrice des permissions par défaut : seed_roles en reste la source
+        # unique, pour que les écrans gardés par permission_required soient
+        # testés tels que la direction les installera.
+        permissions = {}
+        for clee, description in PERMISSIONS:
+            permissions[clee], _ = Permission.objects.get_or_create(
+                key=clee, defaults={'description': description})
+        for clee_role, cles in ROLE_PERMISSIONS.items():
+            for clee in cles:
+                RolePermission.objects.get_or_create(
+                    role=cls.roles[clee_role], permission=permissions[clee])
 
         cls.etudiant.generate_internal_code(RoleKey.ETUDIANT)
         cls.etudiant.save(update_fields=['internal_code'])

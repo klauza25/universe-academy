@@ -90,7 +90,7 @@ class LocalLoginTests(BusinessTestBase):
 
     def test_suspended_account_cannot_stay_logged_in(self):
         suspended = self.make_user(
-            RoleKey.ACCUEIL, 'suspendu@test.local',
+            RoleKey.ASSISTANT_ADMIN, 'suspendu@test.local',
             status=AccountStatus.SUSPENDED,
         )
         response = self.client.post(reverse('core:login'), {

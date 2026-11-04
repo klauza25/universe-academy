@@ -15,8 +15,7 @@ from core.models import (
 DEMO_USERS = [
     ('formateur@univers.academy', 'Jean', 'Mbemba', RoleKey.FORMATEUR),
     ('etudiant@univers.academy', 'Alice', 'Mabiala', RoleKey.ETUDIANT),
-    ('comptable@univers.academy', 'Paul', 'Ondongo', RoleKey.COMPTABLE),
-    ('accueil@univers.academy', 'Sarah', 'Bikindou', RoleKey.ACCUEIL),
+    ('assistant@univers.academy', 'Paul', 'Ondongo', RoleKey.ASSISTANT_ADMIN),
     ('peda@univers.academy', 'Luc', 'Mavoungou', RoleKey.RESPONSABLE_PEDAGOGIQUE),
 ]
 
@@ -37,8 +36,8 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        for key in [RoleKey.FORMATEUR, RoleKey.ETUDIANT, RoleKey.COMPTABLE,
-                    RoleKey.ACCUEIL, RoleKey.RESPONSABLE_PEDAGOGIQUE]:
+        for key in [RoleKey.FORMATEUR, RoleKey.ETUDIANT, RoleKey.ASSISTANT_ADMIN,
+                    RoleKey.RESPONSABLE_PEDAGOGIQUE]:
             Role.objects.get_or_create(
                 key=key.value,
                 defaults={'label': key.label, 'is_privileged': False},
@@ -129,7 +128,7 @@ class Command(BaseCommand):
             defaults={
                 'method': Payment.Method.MOBILE_MONEY,
                 'status': Payment.Status.COMPLETED,
-                'recorded_by': users[RoleKey.COMPTABLE.value],
+                'recorded_by': users[RoleKey.ASSISTANT_ADMIN.value],
             },
         )
         for i, status in enumerate(
@@ -159,7 +158,7 @@ class Command(BaseCommand):
         AccessEvent.objects.get_or_create(
             person=student,
             event_type=AccessEvent.EventType.ENTRY,
-            defaults={'recorded_by': users[RoleKey.ACCUEIL.value],
+            defaults={'recorded_by': users[RoleKey.ASSISTANT_ADMIN.value],
                       'reason': 'Cours du jour'},
         )
         self.stdout.write('[OK] 1 evenement d\'acces')

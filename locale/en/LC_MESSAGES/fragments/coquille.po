@@ -54,3 +54,12 @@ msgstr "Welcome to your workspace"
 
 msgid "Voici l’essentiel de votre activité aujourd’hui."
 msgstr "Here is your activity at a glance."
+
+msgid "Sons de notification"
+msgstr "Notification sounds"
+
+msgid "Activer ou couper les sons de notification"
+msgstr "Turn notification sounds on or off"
+
+msgid "Fermer cette notification"
+msgstr "Dismiss this notification"

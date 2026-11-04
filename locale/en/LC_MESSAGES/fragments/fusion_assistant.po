@@ -1,0 +1,18 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/models.py — RoleKey.ASSISTANT_ADMIN
+msgid "Assistant administratif"
+msgstr "Administrative assistant"
+
+# core/views.py — refus d'attribuer un poste dissous
+msgid "Ce poste est dissous : attribuez « Assistant administratif », qui reprend l'accueil et la caisse."
+msgstr "This post has been dissolved: assign “Administrative assistant”, which now covers the front desk and the cash office."
+
+# core/decorators.py — périmètre de validation d'une inscription
+msgid "La validation d'une inscription est réservée à la direction, à l'assistant administratif, à la supervision pédagogique et au super administrateur."
+msgstr "Approving an enrollment is reserved for management, the administrative assistant, academic supervision and the super administrator."

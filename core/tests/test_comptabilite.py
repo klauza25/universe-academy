@@ -1,12 +1,20 @@
 """Tests de la comptabilité : journal, caisses, clôtures et paiements."""
+import datetime as dt
+import importlib
 from datetime import timedelta
 
+from django.apps import apps
+from django.contrib import admin
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.urls import reverse
 from django.utils import timezone
 
+from core import caisse
+from core.forms import CashTransactionForm
 from core.models import (
     CashAccount, CashClosure, CashTransaction, Enrollment, Expense, Payment,
-    RoleKey,
+    RoleKey, TransactionCategory,
 )
 from core.views_comptabilite import account_balance
 
@@ -15,7 +23,7 @@ from .base import BusinessTestBase
 
 class AccountingTestBase(BusinessTestBase):
     def setUp(self):
-        self.client = self.client_for(self.comptable)
+        self.client = self.client_for(self.assistant)
 
     def make_tx(self, tx_type=CashTransaction.Type.IN, amount=10000,
                 account=None, destination=None, status=CashTransaction.Status.VALIDATED,
@@ -36,7 +44,7 @@ class AccountingTestBase(BusinessTestBase):
             destination_account=destination,
             method=Payment.Method.CASH,
             status=status,
-            created_by=self.comptable,
+            created_by=self.assistant,
             **kwargs,
         )
 
@@ -54,6 +62,9 @@ class AccountingTestBase(BusinessTestBase):
             'counterparty': 'Client test',
             'status': CashTransaction.Status.VALIDATED,
             'note': '',
+            # Une sortie qui consomme le solde se confirme avant d'être posée :
+            # la plupart des scénarios laissent l'agent cocher la case.
+            'confirme': 'on',
         }
         payload.update(overrides)
         return payload
@@ -65,6 +76,19 @@ class AccountingTestBase(BusinessTestBase):
             'method': Payment.Method.CASH,
             'account': self.cash.pk,
             'paid_at': self.local_datetime(),
+            'motif': Payment.Motif.OTHER,
+            'note': '',
+        }
+        payload.update(overrides)
+        return payload
+
+    def mois_payload(self, **overrides):
+        """La grille des mois : un mois coché = une ligne = un paiement."""
+        payload = {
+            'annee': str(self.today.year),
+            'enrollment': self.enrollment.pk,
+            'method': Payment.Method.CASH,
+            'account': self.cash.pk,
             'note': '',
         }
         payload.update(overrides)
@@ -137,7 +161,7 @@ class CashTransactionTests(AccountingTestBase):
         )
         self.assertEqual(tx.tx_type, CashTransaction.Type.IN)
         self.assertEqual(tx.amount, 25000)
-        self.assertEqual(tx.created_by, self.comptable)
+        self.assertEqual(tx.created_by, self.assistant)
         self.assertTrue(tx.reference.startswith('TRX-'))
         self.assertEqual(account_balance(self.cash), 25000)
         self.assert_audited('CASH_TRANSACTION_CREATE', tx.pk)
@@ -193,6 +217,88 @@ class CashTransactionTests(AccountingTestBase):
         self.assertEqual(account_balance(self.cash), 0)
 
 
+class SoldeDeCaisseJamaisNegatifTests(AccountingTestBase):
+    """Une caisse ne peut pas sortir plus d'argent qu'elle n'en a.
+
+    Un solde négatif n'est pas un découvert : c'est une dépense inventée ou une
+    recette oubliée. Dès qu'il existe, aucun état de caisse ne représente
+    l'argent réellement disponible.
+    """
+
+    def test_une_sortie_superieure_au_solde_est_refusee(self):
+        self.make_tx(amount=30000, label='Recette')
+        page = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='50000', label='Sortie trop lourde'),
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Solde insuffisant')
+        self.assertEqual(
+            CashTransaction.objects.filter(
+                tx_type=CashTransaction.Type.OUT).count(), 0)
+        self.assertEqual(account_balance(self.cash), 30000)
+
+    def test_la_sortie_juste_a_equilibre_passe(self):
+        self.make_tx(amount=30000, label='Recette')
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='30000', label='Sortie à égalité'),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 0)
+
+    def test_un_transfert_ne_vide_pas_la_caisse_source(self):
+        self.make_tx(amount=30000, label='Recette')
+        page = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.TRANSFER,
+                            category=self.transfer_category.pk,
+                            amount='40000', label='Transfert trop lourd',
+                            destination_account=self.mobile.pk),
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Solde insuffisant')
+        self.assertEqual(CashTransaction.objects.count(), 1)
+        self.assertEqual(account_balance(self.cash), 30000)
+        self.assertEqual(account_balance(self.mobile), 0)
+
+    def test_annuler_une_entree_deja_dependue_est_refuse(self):
+        entree = self.make_tx(amount=100000, label='Recette')
+        self.make_tx(tx_type=CashTransaction.Type.OUT, amount=80000,
+                     label='Sortie')
+        url = reverse('core:dashboard:transaction-detail', args=[entree.pk])
+        page = self.client.post(
+            url, {'action': 'cancel', 'reason': 'Erreur de saisie'}, follow=True)
+        self.assertContains(page, 'Annulation refusée')
+        entree.refresh_from_db()
+        self.assertEqual(entree.status, CashTransaction.Status.VALIDATED)
+        self.assertEqual(account_balance(self.cash), 20000)
+
+    def test_annuler_une_entree_non_dependue_reste_possible(self):
+        entree = self.make_tx(amount=100000, label='Recette')
+        url = reverse('core:dashboard:transaction-detail', args=[entree.pk])
+        self.client.post(url, {'action': 'cancel', 'reason': 'Doublon'})
+        entree.refresh_from_db()
+        self.assertEqual(entree.status, CashTransaction.Status.CANCELLED)
+        self.assertEqual(account_balance(self.cash), 0)
+
+    def test_un_brouillon_ne_compte_pas_en_caisse(self):
+        """Le brouillon reste saisissable ; il n'est validé nulle part sans argent."""
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='50000', label='Brouillon attentif',
+                            status=CashTransaction.Status.DRAFT),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 0)
+
+
 class AccountAndBalanceTests(AccountingTestBase):
     def test_account_balances(self):
         self.make_tx(amount=50000)
@@ -245,6 +351,461 @@ class AccountAndBalanceTests(AccountingTestBase):
         self.assertEqual(rows[self.cash.pk], 12000)
 
 
+class AdministrationCompteTests(AccountingTestBase):
+    """Régler un compte sans toucher à son assiette ni à son histoire."""
+
+    def admin_payload(self, **overrides):
+        payload = {
+            'kind': CashAccount.Kind.CASH,
+            'currency': 'XAF',
+            'description': 'Caisse du secrétariat',
+            'overdraft_limit': '0',
+            'etat': CashAccount.Status.ACTIVE,
+            'replaced_by': '',
+        }
+        payload.update(overrides)
+        return payload
+
+    def fiche(self, compte=None):
+        return reverse('core:dashboard:account-update',
+                       args=[(compte or self.cash).pk])
+
+    def test_la_fiche_du_compte_affiche_solde_et_ecritures(self):
+        self.make_tx(amount=12000)
+        page = self.client.get(self.fiche())
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, self.cash.name)
+        self.assertContains(page, '12000')
+
+    def test_le_reglage_du_compte_est_historise(self):
+        page = self.client.post(
+            self.fiche(), self.admin_payload(description='Caisse du guichet'))
+        self.assertRedirects(
+            page, reverse('core:dashboard:accounts'),
+            fetch_redirect_response=False,
+        )
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.description, 'Caisse du guichet')
+        entree = self.assert_audited('CASH_ACCOUNT_EDIT', self.cash.pk)
+        self.assertEqual(entree.before_summary['description'], '')
+        self.assertEqual(entree.after_summary['description'], 'Caisse du guichet')
+
+    def test_le_solde_ouverture_n_est_pas_modifiable_depuis_la_fiche(self):
+        avant = self.cash.opening_balance
+        self.client.post(
+            self.fiche(), self.admin_payload(opening_balance='999999'))
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.opening_balance, avant)
+
+    def test_un_decouvert_exceptionnel_est_reserve_au_super_administrateur(self):
+        refuse = self.client.post(
+            self.fiche(), self.admin_payload(overdraft_limit='50000'))
+        self.assertContains(refuse, 'réservé au super administrateur')
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.overdraft_limit, 0)
+
+        autorise = self.client_for(self.super_admin).post(
+            self.fiche(), self.admin_payload(overdraft_limit='50000'))
+        self.assertEqual(autorise.status_code, 302)
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.disponible(), 50000)
+
+    def test_archiver_une_caisse_encore_pleine_demande_un_remplacement(self):
+        self.make_tx(amount=40000)
+        page = self.client.post(
+            self.fiche(), self.admin_payload(etat=CashAccount.Status.ARCHIVED))
+        self.assertContains(page, 'qui les reprend')
+        self.cash.refresh_from_db()
+        self.assertTrue(self.cash.active)
+
+    def test_un_compte_archive_refuse_desormais_toute_ecriture(self):
+        self.make_tx(amount=40000)
+        self.client.post(
+            self.fiche(),
+            self.admin_payload(etat=CashAccount.Status.ARCHIVED,
+                               replaced_by=self.mobile.pk),
+        )
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.status, CashAccount.Status.ARCHIVED)
+        self.assertEqual(self.cash.replaced_by, self.mobile)
+
+        page = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='1000', label='Trop tard'),
+        )
+        self.assertContains(page, 'Compte introuvable ou fermé')
+        self.assertEqual(CashTransaction.objects.filter(label='Trop tard').count(), 0)
+
+        # Le service, lui, ne passe pas par la liste déroulante : le compte
+        # archivé lui aussi refuse d'écrire.
+        with self.assertRaises(ValidationError) as refus:
+            caisse.poster(caisse=self.cash, montant=1000,
+                          sens=CashTransaction.Type.OUT, libelle='Forcer le clos',
+                          categorie=self.expense_category)
+        self.assertIn('est archivé', str(refus.exception))
+
+    def test_la_devise_d_une_caisse_engagee_ne_change_pas(self):
+        self.make_tx(amount=5000)
+        page = self.client.post(self.fiche(), self.admin_payload(currency='EUR'))
+        self.assertContains(page, 'ne change pas')
+        self.cash.refresh_from_db()
+        self.assertEqual(self.cash.currency, 'XAF')
+
+    def test_un_compte_inactif_sort_des_listes_de_saisie(self):
+        self.client.post(
+            self.fiche(), self.admin_payload(etat=CashAccount.Status.INACTIVE))
+        self.cash.refresh_from_db()
+        self.assertFalse(self.cash.active)
+        self.assertEqual(self.cash.status, CashAccount.Status.INACTIVE)
+        page = self.client.get(reverse('core:dashboard:transaction-create'))
+        self.assertNotIn(
+            self.cash.pk, [compte.pk for compte
+                           in page.context['form'].fields['account'].queryset])
+
+
+class AjustementSoldeTests(AccountingTestBase):
+    """Un solde se corrige par une écriture traçée, jamais par un chiffre réécrit."""
+
+    def url(self, compte=None):
+        return reverse('core:dashboard:account-adjust',
+                       args=[(compte or self.cash).pk])
+
+    def test_un_ajustement_laisse_sa_ligne_en_caisse_et_dans_l_audit(self):
+        self.make_tx(amount=30000)
+        page = self.client.post(self.url(), {
+            'montant': '5000', 'sens': CashTransaction.Type.IN,
+            'motif': 'Écart de comptage',
+        })
+        self.assertRedirects(
+            page, reverse('core:dashboard:account-update', args=[self.cash.pk]),
+            fetch_redirect_response=False,
+        )
+        ajust = CashTransaction.objects.get(
+            nature=CashTransaction.Nature.ADJUSTMENT)
+        self.assertEqual(ajust.amount, 5000)
+        self.assertEqual(ajust.category.name, 'Ajustements de solde')
+        self.assertIn('Écart de comptage', ajust.note)
+        self.assertEqual(account_balance(self.cash), 35000)
+        self.assert_audited('CASH_TRANSACTION_CREATE', ajust.pk)
+
+    def test_un_ajustement_en_baisse_superieur_au_solde_est_refuse(self):
+        self.make_tx(amount=10000)
+        page = self.client.post(self.url(), {
+            'montant': '25000', 'sens': CashTransaction.Type.OUT,
+            'motif': 'Perte présumée',
+        })
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Solde insuffisant')
+        self.assertEqual(account_balance(self.cash), 10000)
+
+    def test_un_ajustement_sans_motif_ne_sort_pas(self):
+        self.make_tx(amount=10000)
+        page = self.client.post(self.url(), {
+            'montant': '1000', 'sens': CashTransaction.Type.IN, 'motif': '',
+        })
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'obligatoire pour ajuster')
+        self.assertEqual(
+            CashTransaction.objects.filter(
+                nature=CashTransaction.Nature.ADJUSTMENT).count(), 0)
+
+    def test_le_decouvert_autorise_par_le_super_admin_liberate_une_sortie(self):
+        self.make_tx(amount=10000)
+        self.client_for(self.super_admin).post(
+            reverse('core:dashboard:account-update', args=[self.cash.pk]),
+            {'kind': self.cash.kind, 'currency': 'XAF', 'description': '',
+             'overdraft_limit': '5000', 'etat': CashAccount.Status.ACTIVE,
+             'replaced_by': ''},
+        )
+        page = self.client.post(self.url(), {
+            'montant': '14000', 'sens': CashTransaction.Type.OUT,
+            'motif': 'Remboursement', 'confirme': 'on',
+        })
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(account_balance(self.cash), -4000)
+
+
+class AvertissementSortieTests(AccountingTestBase):
+    """Le disponible se lit avant la sortie, et une sortie qui assèche la caisse se confirme."""
+
+    def test_une_sortie_vide_la_caisse_sannonce_avant_validation(self):
+        self.make_tx(amount=30000, label='Recette')
+        page = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='30000', label='Sortie totale',
+                            confirme=''),
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'consomme 100 % du solde disponible')
+        self.assertContains(page, 'Cochez la case')
+        self.assertEqual(
+            CashTransaction.objects.filter(
+                tx_type=CashTransaction.Type.OUT).count(), 0)
+        self.assertEqual(account_balance(self.cash), 30000)
+
+    def test_la_case_cochee_laisse_passer_la_meme_sortie(self):
+        self.make_tx(amount=30000, label='Recette')
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='30000', label='Sortie assumée'),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 0)
+
+    def test_une_sortie_discrete_ne_demande_aucune_confirmation(self):
+        self.make_tx(amount=30000, label='Recette')
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='3000', label='Achat de fournitures',
+                            confirme=''),
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_une_recette_ne_demande_jamais_confirmation(self):
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(amount='5000', label='Recette diverse',
+                            confirme=''),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 5000)
+
+    def test_un_brouillon_de_sortie_ne_declenche_pas_avertissement(self):
+        """Tant que rien ne sort, la caisse n'est pas encore engagée."""
+        self.make_tx(amount=10000, label='Recette')
+        response = self.client.post(
+            reverse('core:dashboard:transaction-create'),
+            self.tx_payload(tx_type=CashTransaction.Type.OUT,
+                            category=self.expense_category.pk,
+                            amount='9000', label='Sortie en brouillon',
+                            status=CashTransaction.Status.DRAFT,
+                            confirme=''),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 10000)
+
+    def test_le_disponible_se_lit_au_moment_de_choisir_la_caisse(self):
+        self.make_tx(amount=25000, label='Recette')
+        page = self.client.get(reverse('core:dashboard:transaction-create'))
+        self.assertContains(page, 'Solde disponible par caisse')
+        self.assertContains(page, 'Caisse principale — disponible 25 000 XAF')
+
+    def test_une_caisse_vide_se_signale_aucun_fonds_disponible(self):
+        page = self.client.get(reverse('core:dashboard:transaction-create'))
+        self.assertContains(page, 'Aucun fonds disponible')
+
+    def test_la_liste_des_comptes_signale_un_solde_epuise(self):
+        page = self.client.get(reverse('core:dashboard:accounts'))
+        self.assertContains(page, 'Solde épuisé')
+
+    def test_un_ajustement_en_baisse_qui_assèche_le_solde_se_confirme(self):
+        self.make_tx(amount=10000, label='Recette')
+        url = reverse('core:dashboard:account-adjust', args=[self.cash.pk])
+        page = self.client.post(url, {
+            'montant': '9000', 'sens': CashTransaction.Type.OUT,
+            'motif': 'Rappel d’encaissement',
+        })
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'consomme 90 % du solde disponible')
+        response = self.client.post(url, {
+            'montant': '9000', 'sens': CashTransaction.Type.OUT,
+            'motif': 'Rappel d’encaissement', 'confirme': 'on',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(account_balance(self.cash), 1000)
+
+
+class ReinitialisationCaisseTests(AccountingTestBase):
+    """La remise à zéro emporte le solde, pas l'histoire de la caisse."""
+
+    def url(self, compte=None):
+        return reverse('core:dashboard:account-reset',
+                       args=[(compte or self.cash).pk])
+
+    def test_la_remise_a_zero_ecrit_une_ecriture_contraire_et_ne_rien_efface(self):
+        self.make_tx(amount=40000, label='Recette')
+        self.make_tx(tx_type=CashTransaction.Type.OUT, amount=15000,
+                     label='Sortie')
+        avant = CashTransaction.objects.count()
+        page = self.client.post(
+            self.url(), {'motif': 'Fin de semaine', 'confirme': 'on'})
+        self.assertRedirects(
+            page, reverse('core:dashboard:account-update', args=[self.cash.pk]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(account_balance(self.cash), 0)
+        self.assertEqual(CashTransaction.objects.count(), avant + 1)
+        tx = CashTransaction.objects.get(nature=CashTransaction.Nature.RESET)
+        self.assertEqual(tx.tx_type, CashTransaction.Type.OUT)
+        self.assertEqual(tx.amount, 25000)
+        self.assertIn('Fin de semaine', tx.note)
+
+    def test_sans_confirmation_la_remise_a_zero_n_aboutit_pas(self):
+        self.make_tx(amount=40000)
+        page = self.client.post(self.url(), {'motif': 'Fin de semaine'})
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'confirmation')
+        self.assertEqual(account_balance(self.cash), 40000)
+
+    def test_une_caisse_deja_a_zero_ne_recoit_aucune_ecriture(self):
+        page = self.client.post(
+            self.url(), {'motif': 'Rien à rapprocher', 'confirme': 'on'},
+            follow=True)
+        self.assertContains(page, 'déjà à zéro')
+        self.assertEqual(
+            CashTransaction.objects.filter(
+                nature=CashTransaction.Nature.RESET).count(), 0)
+
+    def test_la_fiche_signale_les_brouillons_avant_la_remise_a_zero(self):
+        self.make_tx(amount=8000)
+        self.make_tx(amount=3000, status=CashTransaction.Status.DRAFT,
+                     label='Brouillon en attente')
+        page = self.client.get(self.url())
+        self.assertContains(page, 'Brouillons non rapprochés')
+        self.assertContains(page, 'Brouillons encore en attente')
+
+
+class CategorieEcritureTests(AccountingTestBase):
+    """Les catégories du journal se règlent, elles ne se suppriment pas."""
+
+    def ecran(self):
+        return reverse('core:dashboard:categories')
+
+    def fiche(self, categorie):
+        return reverse('core:dashboard:category-update', args=[categorie.pk])
+
+    def test_une_categorie_se_cree_depuis_lecran_et_laisse_sa_trace(self):
+        page = self.client.post(self.ecran(), {
+            'name': 'Fournitures de bureau',
+            'direction': TransactionCategory.Direction.OUT,
+        })
+        self.assertRedirects(page, self.ecran(), fetch_redirect_response=False)
+        categorie = TransactionCategory.objects.get(name='Fournitures de bureau')
+        self.assertEqual(categorie.direction, TransactionCategory.Direction.OUT)
+        self.assert_audited('TRANSACTION_CATEGORY_CREATE', categorie.pk)
+
+    def test_un_nom_deja_pris_dans_le_meme_sens_est_refuse(self):
+        total = TransactionCategory.objects.count()
+        page = self.client.post(self.ecran(), {
+            'name': self.income_category.name,
+            'direction': self.income_category.direction,
+        })
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(TransactionCategory.objects.count(), total)
+
+    def test_le_reglage_d_une_categorie_garde_l_ancienne_valeur_d_audit(self):
+        page = self.client.post(self.fiche(self.income_category), {
+            'name': 'Recettes de scolarité', 'active': 'on',
+        })
+        self.assertRedirects(page, self.ecran(), fetch_redirect_response=False)
+        entree = self.assert_audited(
+            'TRANSACTION_CATEGORY_EDIT', self.income_category.pk)
+        self.assertEqual(entree.before_summary['nom'], self.income_category.name)
+        self.assertEqual(entree.after_summary['nom'], 'Recettes de scolarité')
+
+    def test_le_sens_d_une_categorie_ne_se_regle_plus(self):
+        self.client.post(self.fiche(self.income_category), {
+            'name': self.income_category.name, 'active': 'on',
+            'direction': TransactionCategory.Direction.OUT,
+        })
+        self.income_category.refresh_from_db()
+        self.assertEqual(
+            self.income_category.direction, TransactionCategory.Direction.IN)
+
+    def test_une_categorie_desactivee_quitte_les_listes_de_saisie(self):
+        self.client.post(self.fiche(self.income_category),
+                         {'name': self.income_category.name})
+        self.income_category.refresh_from_db()
+        self.assertFalse(self.income_category.active)
+        form = CashTransactionForm()
+        self.assertNotIn(
+            self.income_category.pk,
+            [c.pk for c in form.fields['category'].queryset])
+
+    def test_l_admin_ne_prte_la_caisse_qu_en_consultation(self):
+        for modele in (CashAccount, CashTransaction, TransactionCategory,
+                       CashClosure):
+            enregistre = admin.site._registry[modele]
+            self.assertFalse(enregistre.has_add_permission(None), modele.__name__)
+            self.assertFalse(enregistre.has_change_permission(None), modele.__name__)
+            self.assertFalse(enregistre.has_delete_permission(None), modele.__name__)
+
+
+class CorrectionEcritureTests(AccountingTestBase):
+    """Une écriture se rectifie, elle ne s'efface pas."""
+
+    def fiche(self, tx):
+        return reverse('core:dashboard:transaction-edit', args=[tx.pk])
+
+    def payload(self, tx, **over):
+        donnees = {
+            'montant': str(tx.amount),
+            'categorie': str(tx.category_id),
+            'libelle': tx.label,
+            'survenu': self.local_datetime(),
+            'motif': 'Montant mal saisi',
+        }
+        donnees.update(over)
+        return donnees
+
+    def test_une_ecriture_se_corrige_et_garde_sa_trace(self):
+        tx = self.make_tx(amount=10000)
+        page = self.client.post(self.fiche(tx), self.payload(tx, montant='15000'))
+        self.assertRedirects(
+            page, reverse('core:dashboard:transaction-detail', args=[tx.pk]),
+            fetch_redirect_response=False)
+        tx.refresh_from_db()
+        self.assertEqual(tx.amount, 15000)
+        self.assertIn('Montant mal saisi', tx.note)
+        entree = self.assert_audited('CASH_TRANSACTION_EDIT', tx.pk)
+        self.assertEqual(entree.before_summary['amount'], 10000)
+        self.assertEqual(account_balance(self.cash), 15000)
+
+    def test_une_sortie_corrigee_trop_haute_est_refusee(self):
+        self.make_tx(amount=10000, label='Recette')
+        sortie = self.make_tx(tx_type=CashTransaction.Type.OUT, amount=8000,
+                              label='Sortie')
+        page = self.client.post(self.fiche(sortie),
+                                self.payload(sortie, montant='20000'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Solde insuffisant')
+        sortie.refresh_from_db()
+        self.assertEqual(sortie.amount, 8000)
+        self.assertEqual(account_balance(self.cash), 2000)
+
+    def test_le_compte_et_le_sens_ne_changent_pas(self):
+        tx = self.make_tx(amount=10000)
+        self.client.post(self.fiche(tx), self.payload(
+            tx, account=str(self.mobile.pk), tx_type=CashTransaction.Type.OUT))
+        tx.refresh_from_db()
+        self.assertEqual(tx.account_id, self.cash.pk)
+        self.assertEqual(tx.tx_type, CashTransaction.Type.IN)
+
+    def test_sans_motif_la_correction_n_aboutit_pas(self):
+        tx = self.make_tx(amount=10000)
+        page = self.client.post(self.fiche(tx), self.payload(tx, motif=''))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'obligatoire pour corriger')
+        tx.refresh_from_db()
+        self.assertEqual(tx.amount, 10000)
+
+    def test_une_ecriture_annulee_ne_se_corrige_plus(self):
+        tx = self.make_tx(amount=10000)
+        caisse.annuler(tx, motif='Doublon', agent=self.assistant)
+        page = self.client.get(self.fiche(tx), follow=True)
+        self.assertRedirects(
+            page, reverse('core:dashboard:transaction-detail', args=[tx.pk]))
+        self.assertContains(page, 'historique est clos')
+
+
 class ClosureTests(AccountingTestBase):
     def test_closure_computes_theoretical_balance_and_difference(self):
         self.make_tx(amount=30000)
@@ -266,7 +827,7 @@ class ClosureTests(AccountingTestBase):
         self.assertEqual(closure.theoretical_balance, 30000)
         self.assertEqual(closure.counted_amount, 28000)
         self.assertEqual(closure.difference, -2000)
-        self.assertEqual(closure.closed_by, self.comptable)
+        self.assertEqual(closure.closed_by, self.assistant)
         self.assert_audited('CASH_CLOSURE', closure.pk)
 
     def test_duplicate_closure_is_rejected(self):
@@ -327,7 +888,7 @@ class StudentPaymentTests(AccountingTestBase):
         )
         self.assertEqual(payment.amount, 30000)
         self.assertEqual(payment.status, Payment.Status.COMPLETED)
-        self.assertEqual(payment.recorded_by, self.comptable)
+        self.assertEqual(payment.recorded_by, self.assistant)
         self.assertIsNotNone(payment.transaction)
         self.assertEqual(payment.transaction.tx_type, CashTransaction.Type.IN)
         self.assertEqual(payment.transaction.amount, 30000)
@@ -341,14 +902,29 @@ class StudentPaymentTests(AccountingTestBase):
         self.assertEqual(enrollment.payment_state, 'PARTIEL')
         self.assert_audited('PAYMENT_CREATE', payment.pk)
 
+    def test_une_date_posterieure_a_ce_jour_est_refusee(self):
+        """Rien n'entre en caisse avant le jour où le règlement est saisi."""
+        dans_trois_jours = (timezone.localtime()
+                            + timedelta(days=3)).strftime('%Y-%m-%dT%H:%M')
+        avant = Payment.objects.count()
+        caisses = CashTransaction.objects.count()
+        page = self.client.post(
+            reverse('core:dashboard:payment-create'),
+            self.payment_payload(paid_at=dans_trois_jours),
+        )
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "ne peut pas être daté après")
+        self.assertEqual(Payment.objects.count(), avant)
+        self.assertEqual(CashTransaction.objects.count(), caisses)
+
     def test_full_payment_settles_the_enrollment(self):
         self.client.post(
             reverse('core:dashboard:payment-create'),
-            self.payment_payload())
+            self.payment_payload(paid_at=self.local_datetime(minutes=-10)))
         self.client.post(
             reverse('core:dashboard:payment-create'),
             self.payment_payload(
-                amount='60000', paid_at=self.local_datetime(minutes=5)),
+                amount='60000', paid_at=self.local_datetime(minutes=-5)),
         )
         enrollment = Enrollment.objects.get(pk=self.enrollment.pk)
         self.assertEqual(enrollment.total_paid, 90000)
@@ -402,11 +978,16 @@ class StudentPaymentTests(AccountingTestBase):
 
 
 class AccountingPermissionTests(AccountingTestBase):
-    def test_secretary_and_accueil_cannot_read_journal(self):
-        for user in (self.secretaire, self.accueil):
+    def test_le_journal_reste_reserve_au_poste_finance(self):
+        for user in (self.secretaire, self.etudiant):
             client = self.client_for(user)
             response = client.get(reverse('core:dashboard:journal'))
             self.assertEqual(response.status_code, 403)
+
+    def test_l_assistant_administratif_lit_le_journal(self):
+        client = self.client_for(self.assistant)
+        self.assertEqual(
+            client.get(reverse('core:dashboard:journal')).status_code, 200)
 
     def test_direction_can_read_journal(self):
         client = self.client_for(self.direction)
@@ -458,14 +1039,14 @@ class SingleSourceOfTruthTests(AccountingTestBase):
             amount=5000,
             method=Payment.Method.CASH,
             status=Payment.Status.COMPLETED,
-            recorded_by=self.comptable,
+            recorded_by=self.assistant,
         )
         Expense.objects.create(
             category='Fournitures',
             amount=7000,
             occurred_at=self.today,
             description='Dépense hors caisse',
-            created_by=self.comptable,
+            created_by=self.assistant,
         )
 
         response = self.client.get(
@@ -482,7 +1063,7 @@ class SingleSourceOfTruthTests(AccountingTestBase):
             amount=5000,
             method=Payment.Method.CASH,
             status=Payment.Status.COMPLETED,
-            recorded_by=self.comptable,
+            recorded_by=self.assistant,
         )
 
         client = self.client_for(self.direction)
@@ -495,7 +1076,7 @@ class ComptableStudentListTests(BusinessTestBase):
     """La comptable consulte la liste des inscrits, sans écriture."""
 
     def test_comptable_sees_students_list(self):
-        client = self.client_for(self.comptable)
+        client = self.client_for(self.assistant)
         response = client.get(reverse('core:dashboard:student-list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.etudiant.get_full_name())
@@ -505,7 +1086,7 @@ class ComptableStudentListTests(BusinessTestBase):
             response, reverse('core:dashboard:student-create'))
 
     def test_comptable_reads_student_detail_without_write_controls(self):
-        client = self.client_for(self.comptable)
+        client = self.client_for(self.assistant)
         response = client.get(reverse(
             'core:dashboard:student-detail', args=[self.etudiant.id]))
         self.assertEqual(response.status_code, 200)
@@ -529,7 +1110,7 @@ class ComptableStudentListTests(BusinessTestBase):
                     args=[self.etudiant.id]))
 
     def test_comptable_cannot_write_student_records(self):
-        client = self.client_for(self.comptable)
+        client = self.client_for(self.assistant)
         self.assertEqual(
             client.get(reverse('core:dashboard:student-create')).status_code,
             403,
@@ -554,7 +1135,7 @@ class StudentWithoutEnrollmentNoticeTests(BusinessTestBase):
 
     def test_the_account_is_listed_on_the_payment_screen(self):
         self.make_silent_student('silent1@test.local')
-        page = self.client_for(self.comptable).get(
+        page = self.client_for(self.assistant).get(
             reverse('core:dashboard:payment-create'))
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, 'Comptes étudiants sans inscription')
@@ -570,13 +1151,13 @@ class StudentWithoutEnrollmentNoticeTests(BusinessTestBase):
 
     def test_the_comptable_can_also_enroll_from_that_screen(self):
         student = self.make_silent_student('silent3@test.local')
-        page = self.client_for(self.comptable).get(
+        page = self.client_for(self.assistant).get(
             reverse('core:dashboard:payment-create'))
         self.assertContains(page, f'?student={student.id}#inscription')
         self.assertContains(page, 'Inscrire un étudiant')
 
     def test_enrolled_student_is_not_listed(self):
-        page = self.client_for(self.comptable).get(
+        page = self.client_for(self.assistant).get(
             reverse('core:dashboard:payment-create'))
         self.assertNotContains(page, 'Comptes étudiants sans inscription')
         self.assertContains(page, self.etudiant.get_full_name())
@@ -689,7 +1270,7 @@ class PaymentEnrollmentFlowTests(AccountingTestBase):
         )
         self.assertEqual(enrollment.status, Enrollment.Status.PENDING)
         self.assertEqual(enrollment.net_amount, self.course.fee_amount)
-        self.assertEqual(enrollment.registered_by, self.comptable)
+        self.assertEqual(enrollment.registered_by, self.assistant)
         self.assertEqual(Payment.objects.count(), 0)
         self.assert_audited('ENROLLMENT_CREATE', enrollment.pk)
 
@@ -830,7 +1411,7 @@ class PaymentEnrollmentFlowTests(AccountingTestBase):
         for user, route in (
             (self.super_admin, 'core:dashboard:super-admin-dashboard'),
             (self.direction, 'core:dashboard:direction-dashboard'),
-            (self.comptable, 'core:dashboard:comptabilite-dashboard'),
+            (self.assistant, 'core:dashboard:comptabilite-dashboard'),
             (self.peda, 'core:dashboard:resp-peda-dashboard'),
         ):
             page = self.client_for(user).get(reverse(route))
@@ -875,12 +1456,13 @@ class PaymentEnrollmentFlowTests(AccountingTestBase):
     def test_sold_out_enrollment_has_an_explicit_message(self):
         self.client.post(
             reverse('core:dashboard:payment-create'),
-            self.payment_payload(amount='90000'),
+            self.payment_payload(amount='90000',
+                                 paid_at=self.local_datetime(minutes=-10)),
         )
         response = self.client.post(
             reverse('core:dashboard:payment-create'),
             self.payment_payload(
-                amount='1000', paid_at=self.local_datetime(minutes=5)),
+                amount='1000', paid_at=self.local_datetime(minutes=-5)),
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Payment.objects.count(), 1)
@@ -920,3 +1502,141 @@ class PaymentEnrollmentFlowTests(AccountingTestBase):
         self.assertContains(page, enrollment.student.get_full_name())
         self.assertContains(page, reverse(
             'core:dashboard:enrollment-validate', args=[enrollment.pk]))
+
+
+class GrilleDesMoisTests(AccountingTestBase):
+    """L'encaissement par mois : douze cases à cocher, un paiement par mois réglé.
+
+    Le dossier de test doit 90 000 FCFA sur une formation de 3 mois : la grille
+    propose donc 30 000 FCFA par mois, sans que personne n'ait à le re-taper.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('core:dashboard:payment-months')
+        self.annee = self.today.year
+
+    def test_la_grille_propose_la_mensualite_pratiquee_par_le_dossier(self):
+        page = self.client.get(self.url, {'enrollment': self.enrollment.pk})
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page.context['mensualite'], 30000)
+        self.assertEqual(len(page.context['lignes']), 12)
+        self.assertContains(page, 'Mensualité de mars')
+
+    def test_deux_mois_coches_font_deux_paiements_et_deux_ecritures(self):
+        page = self.client.post(self.url, self.mois_payload(
+            mois=['3', '4'], montant_3='30000', montant_4='25000'))
+        self.assertEqual(page.status_code, 302)
+        regles = Payment.objects.filter(
+            motif=Payment.Motif.MONTHLY).order_by('period_month')
+        self.assertEqual([p.period_month for p in regles], [3, 4])
+        self.assertEqual([p.amount for p in regles], [30000, 25000])
+        for paiement in regles:
+            self.assertIsNotNone(paiement.transaction)
+            self.assertEqual(paiement.paid_at.date(), self.today)
+        self.assertEqual(self.enrollment.balance_due, 90000 - 55000)
+
+    def test_un_mois_d_avance_se_date_du_jour_present(self):
+        """Régler un mois à venir est une avance, pas un argent déjà entré.
+
+        La grille datait la recette au premier jour du mois coché : cocher
+        février de l'année suivante écrivait un encaissement dans le futur.
+        """
+        page = self.client.post(self.url, self.mois_payload(
+            annee=str(self.today.year + 1), mois=['2'], montant_2='30000'))
+        self.assertEqual(page.status_code, 302)
+        paiement = Payment.objects.get(period_month=2,
+                                       period_year=self.today.year + 1)
+        self.assertEqual(paiement.paid_at.date(), self.today)
+        self.assertEqual(paiement.transaction.occurred_at.date(), self.today)
+
+    def test_un_mois_deja_regle_ne_se_recoche_pas(self):
+        self.client.post(self.url, self.mois_payload(mois=['5'], montant_5='30000'))
+        avant = Payment.objects.count()
+        page = self.client.post(self.url, self.mois_payload(mois=['5'], montant_5='30000'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'déjà réglé')
+        self.assertEqual(Payment.objects.count(), avant)
+
+    def test_le_mois_regle_une_annee_ne_blocque_pas_l_annee_suivante(self):
+        self.client.post(self.url, self.mois_payload(
+            annee=str(self.annee), mois=['6'], montant_6='30000'))
+        page = self.client.post(self.url, self.mois_payload(
+            annee=str(self.annee + 1), mois=['6'], montant_6='30000'))
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(Payment.objects.filter(period_month=6).count(), 2)
+
+    def test_un_mois_coche_sans_montant_est_refuse(self):
+        page = self.client.post(self.url, self.mois_payload(mois=['7']))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'indiquez le montant')
+        self.assertEqual(Payment.objects.count(), 0)
+
+    def test_la_grille_ne_peut_pas_encaisser_plus_que_le_reste_du(self):
+        page = self.client.post(self.url, self.mois_payload(
+            mois=['1', '2'], montant_1='50000', montant_2='50000'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'dépasse le reste à payer')
+        self.assertEqual(Payment.objects.count(), 0)
+
+    def test_les_frais_dinscription_ne_se_payent_quune_fois(self):
+        page = self.client.post(self.url, self.mois_payload(
+            frais='1', montant_frais='10000'))
+        self.assertEqual(page.status_code, 302)
+        frais = Payment.objects.get(motif=Payment.Motif.ENROLLMENT)
+        self.assertEqual(frais.amount, 10000)
+        self.assertIsNone(frais.period_month)
+
+        page = self.client.post(self.url, self.mois_payload(
+            frais='1', montant_frais='10000'))
+        self.assertContains(page, 'déjà encaissés')
+        self.assertEqual(Payment.objects.filter(
+            motif=Payment.Motif.ENROLLMENT).count(), 1)
+
+    def test_un_mois_saisi_du_temps_plein_protege_le_mois_suivant(self):
+        self.client.post(reverse('core:dashboard:payment-create'),
+                         self.payment_payload(amount='30000',
+                                              motif=Payment.Motif.MONTHLY,
+                                              period_month='9',
+                                              period_year=str(self.annee)))
+        page = self.client.get(self.url, {'enrollment': self.enrollment.pk})
+        self.assertEqual(len(Payment.objects.filter(period_month=9)), 1)
+        self.assertContains(page, 'Mensualité de septembre')
+
+        bloque = self.client.post(self.url, self.mois_payload(
+            mois=['9'], montant_9='30000'))
+        self.assertEqual(Payment.objects.filter(period_month=9).count(), 1)
+
+    def test_la_base_refuse_deux_reglements_du_meme_mois(self):
+        Payment.objects.create(
+            enrollment=self.enrollment, amount=30000, method=Payment.Method.CASH,
+            motif=Payment.Motif.MONTHLY, period_year=self.annee, period_month=11,
+            status=Payment.Status.COMPLETED, recorded_by=self.assistant)
+        with self.assertRaises(IntegrityError):
+            Payment.objects.create(
+                enrollment=self.enrollment, amount=30000,
+                method=Payment.Method.CASH, motif=Payment.Motif.MONTHLY,
+                period_year=self.annee, period_month=11,
+                status=Payment.Status.COMPLETED, recorded_by=self.assistant)
+
+    def test_la_reprise_structure_le_mois_deja_encaisse(self):
+        """La reprise de l'historique lit le mois là où l'import l'avait écrit."""
+        reglee = Payment.objects.create(
+            enrollment=self.enrollment, amount=20000, method=Payment.Method.CASH,
+            paid_at=timezone.make_aware(dt.datetime(2026, 8, 1, 12)),
+            note='Mensualité — août 2026 — classeur')
+        entree = Payment.objects.create(
+            enrollment=self.enrollment, amount=10000, method=Payment.Method.CASH,
+            paid_at=timezone.make_aware(dt.datetime(2026, 3, 5, 12)),
+            note="Frais d'inscription — classeur")
+        module = importlib.import_module(
+            'core.migrations.0011_reprise_mois_paiements')
+
+        module.reprise(apps, None)
+
+        reglee.refresh_from_db()
+        self.assertEqual(reglee.motif, Payment.Motif.MONTHLY)
+        self.assertEqual((reglee.period_year, reglee.period_month), (2026, 8))
+        entree.refresh_from_db()
+        self.assertEqual(entree.motif, Payment.Motif.ENROLLMENT)
+        self.assertIsNone(entree.period_month)

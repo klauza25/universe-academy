@@ -2,6 +2,7 @@ import uuid
 import os
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from django.core.validators import (
     FileExtensionValidator, MaxValueValidator, MinValueValidator, RegexValidator
 )
@@ -21,6 +22,7 @@ class RoleKey(models.TextChoices):
     SUPER_ADMIN = 'SUPER_ADMIN', _("Super Administrateur")
     ADMIN = 'ADMIN', _("Administrateur")
     DIRECTION = 'DIRECTION', _("Direction")
+    ASSISTANT_ADMIN = 'ASSISTANT_ADMIN', _("Assistant administratif")
     SECRETAIRE = 'SECRETAIRE', _("Secrétaire")
     COMPTABLE = 'COMPTABLE', _("Comptable")
     RESPONSABLE_PEDAGOGIQUE = 'RESP_PEDA', _("Responsable pédagogique")
@@ -29,10 +31,16 @@ class RoleKey(models.TextChoices):
     ACCUEIL = 'ACCUEIL', _("Accueil / Contrôle")
 
 
+# Postes fusionnés dans ASSISTANT_ADMIN. Les lignes restent en base pour que
+# l'historique (audit, paiements encaissés, demandes d'accès passées) garde son
+# sens ; ils ne sont plus attribuables nulle part et n'ont plus de menu.
+ROLES_DISSOUS = ('COMPTABLE', 'ACCUEIL')
+
 ROLE_DASHBOARD_ROUTES = {
     'SUPER_ADMIN': 'core:dashboard:super-admin-dashboard',
     'ADMIN': 'core:dashboard:admin-dashboard',
     'DIRECTION': 'core:dashboard:direction-dashboard',
+    'ASSISTANT_ADMIN': 'core:dashboard:comptabilite-dashboard',
     'SECRETAIRE': 'core:dashboard:secretaire-dashboard',
     'COMPTABLE': 'core:dashboard:comptabilite-dashboard',
     'RESP_PEDA': 'core:dashboard:resp-peda-dashboard',
@@ -53,21 +61,48 @@ ELEVATED_ROLES = ('SUPER_ADMIN', 'ADMIN')
 # (SUPER_ADMIN, ADMIN) et la direction restent attribués depuis l'écran
 # « Utilisateurs » par un SUPER_ADMIN, jamais par un formulaire public.
 REQUESTABLE_ROLES = (
-    'ETUDIANT', 'FORMATEUR', 'SECRETAIRE', 'COMPTABLE', 'RESP_PEDA', 'ACCUEIL',
+    'ETUDIANT', 'FORMATEUR', 'SECRETAIRE', 'ASSISTANT_ADMIN', 'RESP_PEDA',
 )
 REQUESTABLE_ROLE_CHOICES = [
     (key, RoleKey(key).label) for key in REQUESTABLE_ROLES
 ]
 
+# Les droits fins que l'éditeur « Permissions » case par case. Une seule liste :
+# la commande de seed la lit pour créer les lignes, l'éditeur pour les nommer.
+PERMISSIONS = [
+    ('users.read', _("Lire les utilisateurs")),
+    ('users.create', _("Créer des utilisateurs")),
+    ('users.edit', _("Modifier des utilisateurs")),
+    ('roles.manage', _("Gérer les rôles")),
+    ('access_requests.review', _("Examiner les demandes d'accès")),
+    ('students.read', _("Lire les dossiers étudiants")),
+    ('students.write', _("Modifier les dossiers étudiants")),
+    ('formations.read', _("Lire les formations")),
+    ('formations.write', _("Modifier les formations")),
+    ('attendance.read', _("Lire les présences")),
+    ('attendance.write', _("Saisir les présences")),
+    ('finance.read', _("Lire les données financières")),
+    ('finance.write', _("Saisir des paiements")),
+    ('scholarship.read', _("Lire les candidatures bourse")),
+    ('scholarship.review', _("Examiner les candidatures bourse")),
+    ('access_events.read', _("Lire le journal des entrées/sorties")),
+    ('access_events.write', _("Enregistrer les entrées/sorties")),
+    ('audit.read', _("Lire le journal d'audit")),
+    ('certificates.issue', _("Délivrer des certificats")),
+]
+PERMISSION_LABELS = dict(PERMISSIONS)
+
 INTERNAL_CODE_PREFIXES = {
     'SUPER_ADMIN': 'UA-ADM',
     'ADMIN': 'UA-ADM',
     'DIRECTION': 'UA-DIR',
+    'ASSISTANT_ADMIN': 'UA-ASY',
     'SECRETAIRE': 'UA-SEC',
-    'COMPTABLE': 'UA-CPT',
     'RESP_PEDA': 'UA-RPD',
     'FORMATEUR': 'UA-FRM',
     'ETUDIANT': 'UA-ETU',
+    # repris des postes dissous : les codes déjà distribués gardent leur racine
+    'COMPTABLE': 'UA-CPT',
     'ACCUEIL': 'UA-ACC',
 }
 
@@ -170,6 +205,29 @@ class User(AbstractUser):
         if first or last:
             return f"{first[:1]}{last[:1]}".upper() or '?'
         return (self.email or '?')[:2].upper()
+
+    def poser_avatar(self, image):
+        """Change la photo de profil et retire du disque celle qu'elle remplace.
+
+        Sans ce nettoyage, chaque changement laisserait un fichier orphelin : la
+        fiche ne montre que la photo en cours, l'ancienne n'est plus référencée
+        nulle part.
+        """
+        ancienne = self.avatar.name if self.avatar else ''
+        stockage = self.avatar.storage
+        self.avatar = image
+        self.save(update_fields=['avatar'])
+        if ancienne:
+            stockage.delete(ancienne)
+
+    def retirer_avatar(self):
+        """Rend la vignette aux initiales et débarrasse le fichier en cours."""
+        if not self.avatar:
+            return False
+        self.avatar.delete(save=False)
+        self.avatar = None
+        self.save(update_fields=['avatar'])
+        return True
 
     @property
     def primary_role(self):
@@ -527,6 +585,14 @@ class StudentSessionNote(models.Model):
         return self.enrollment.student
 
 
+MOIS = (
+    (1, _('janvier')), (2, _('février')), (3, _('mars')), (4, _('avril')),
+    (5, _('mai')), (6, _('juin')), (7, _('juillet')), (8, _('août')),
+    (9, _('septembre')), (10, _('octobre')), (11, _('novembre')),
+    (12, _('décembre')),
+)
+
+
 class Payment(models.Model):
     class Method(models.TextChoices):
         CASH = 'CASH', _("Espèces")
@@ -540,6 +606,11 @@ class Payment(models.Model):
         CANCELLED = 'CANCELLED', _("Annulé")
         REFUNDED = 'REFUNDED', _("Remboursé")
 
+    class Motif(models.TextChoices):
+        MONTHLY = 'MONTHLY', _("Mensualité")
+        ENROLLMENT = 'ENROLLMENT', _("Frais d'inscription")
+        OTHER = 'OTHER', _("Autre paiement")
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     enrollment = models.ForeignKey(
         Enrollment, on_delete=models.PROTECT, related_name='payments'
@@ -551,6 +622,16 @@ class Payment(models.Model):
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.COMPLETED
     )
+    motif = models.CharField(
+        max_length=20, choices=Motif.choices, default=Motif.OTHER,
+        verbose_name=_("Motif du paiement"),
+    )
+    # Le mois que ce règlement solde, distinct de la date d'encaissement :
+    # l'assistant encaisse en février une mensualité de janvier.
+    period_year = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=_("Année du mois réglé"))
+    period_month = models.PositiveIntegerField(
+        null=True, blank=True, choices=MOIS, verbose_name=_("Mois réglé"))
     paid_at = models.DateTimeField(default=timezone.now)
     recorded_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, related_name='recorded_payments'
@@ -565,11 +646,25 @@ class Payment(models.Model):
     class Meta:
         db_table = 'payments'
         ordering = ['-paid_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=('enrollment', 'period_year', 'period_month'),
+                condition=~models.Q(status__in=['CANCELLED', 'REFUNDED'])
+                          & models.Q(period_month__isnull=False),
+                name='payment_month_once_per_enrollment',
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.reference:
             self.reference = f"PAY-{timezone.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
+
+    @property
+    def period_label(self):
+        if not self.period_month:
+            return ''
+        return dict(MOIS)[self.period_month]
 
 
 class Expense(models.Model):
@@ -1373,13 +1468,30 @@ class CashAccount(models.Model):
         MOBILE_MONEY = 'MOBILE_MONEY', _("Mobile Money")
         BANK = 'BANK', _("Compte bancaire")
 
+    class Status(models.TextChoices):
+        ACTIVE = 'ACTIVE', _("Actif")
+        INACTIVE = 'INACTIVE', _("Inactif")
+        ARCHIVED = 'ARCHIVED', _("Archivé")
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
     kind = models.CharField(max_length=20, choices=Kind.choices, default=Kind.CASH)
     currency = models.CharField(max_length=5, default='XAF')
     opening_balance = models.IntegerField(default=0)
     active = models.BooleanField(default=True)
+    description = models.TextField(blank=True)
+    # Un découvert reste interdit tant que ce plafond vaut 0 : il ne se baisse
+    # pas, il se lève compte par compte, par un super administrateur.
+    overdraft_limit = models.PositiveIntegerField(default=0)
+    archived_at = models.DateTimeField(null=True, blank=True)
+    # Un compte archivé ne laisse pas un trou : le remplacement désigne la caisse
+    # qui reprend la saisie, et l'écran le montre à qui consulte l'historique.
+    replaced_by = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='remplacants'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'cash_accounts'
@@ -1388,11 +1500,34 @@ class CashAccount(models.Model):
     def __str__(self):
         return self.name
 
-    def movement_totals(self, start=None, end=None):
-        """Entrées et sorties validées de cette caisse, bornes incluses."""
+    @property
+    def status(self):
+        """État du compte, lu de ses deux marqueurs : rien n'est stocké deux fois."""
+        if self.archived_at:
+            return self.Status.ARCHIVED
+        return self.Status.ACTIVE if self.active else self.Status.INACTIVE
+
+    @property
+    def writable(self):
+        """Un compte archivé ne reçoit plus d'écriture : son solde est figé."""
+        return self.status != self.Status.ARCHIVED
+
+    @property
+    def status_label(self):
+        """Le libellé de l'état, tel que l'écran doit le montrer."""
+        return self.Status(self.status).label
+
+    def movement_totals(self, start=None, end=None, ignored=()):
+        """Entrées et sorties validées de cette caisse, bornes incluses.
+
+        `ignored` exclut des écritures déjà en base : une ligne que l'on modifie
+        ou que l'on annule ne doit pas compter deux fois dans le calcul.
+        """
         base = CashTransaction.objects.filter(
             status=CashTransaction.Status.VALIDATED
         )
+        if ignored:
+            base = base.exclude(id__in=list(ignored))
         if start:
             base = base.filter(occurred_at__date__gte=start)
         if end:
@@ -1411,6 +1546,31 @@ class CashAccount(models.Model):
     def balance_at(self, until_date=None):
         incoming, outgoing = self.movement_totals(end=until_date)
         return self.opening_balance + incoming - outgoing
+
+    def balance_after(self, *, debited=0, credited=0, ignored=()):
+        """Solde de la caisse une fois ce mouvement appliqué.
+
+        Une caisse ne peut pas prêter l'argent qu'elle n'a pas : ce calcul sert
+        de garde à toute écriture qui la débite — écran de caisse, annulation
+        d'une entrée, reprise du journal.
+        """
+        incoming, outgoing = self.movement_totals(ignored=ignored)
+        return self.opening_balance + incoming + credited - outgoing - debited
+
+    def decouvert(self, *, debited=0, credited=0, ignored=()):
+        """Le creux à combler si ce mouvement passait sous le plancher, sinon 0.
+
+        Le plancher vaut −« découvert autorisé » : à 0, comme sur presque tous
+        les comptes, la ligne ne descend jamais sous zéro. Une seule règle,
+        appelée de l'écran, de l'annulation, de l'import et de `save()`.
+        """
+        projet = self.balance_after(debited=debited, credited=credited,
+                                    ignored=ignored)
+        return max(0, -self.overdraft_limit - projet)
+
+    def disponible(self):
+        """Ce que la caisse peut réellement débourser aujourd'hui."""
+        return self.balance + self.overdraft_limit
 
     def totals(self):
         return self.movement_totals()
@@ -1451,6 +1611,11 @@ class CashTransaction(models.Model):
         VALIDATED = 'VALIDATED', _("Validée")
         CANCELLED = 'CANCELLED', _("Annulée")
 
+    class Nature(models.TextChoices):
+        NORMAL = 'NORMAL', _("Écriture ordinaire")
+        ADJUSTMENT = 'ADJUSTMENT', _("Ajustement de solde")
+        RESET = 'RESET', _("Réinitialisation")
+
     Method = Payment.Method
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -1484,6 +1649,15 @@ class CashTransaction(models.Model):
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.VALIDATED
     )
+    nature = models.CharField(
+        max_length=12, choices=Nature.choices, default=Nature.NORMAL
+    )
+    # Une ligne corrigée ou régularisée reste en base : ce lien dit laquelle a
+    # été remplacée, et l'écran peut montrer les deux côte à côte.
+    replaces = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='replacements'
+    )
     note = models.TextField(blank=True)
     created_by = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -1502,7 +1676,68 @@ class CashTransaction(models.Model):
     def save(self, *args, **kwargs):
         if not self.reference:
             self.reference = _next_reference(CashTransaction, 'TRX')
+        self._verrou_solde()
         super().save(*args, **kwargs)
+
+    def _effets(self):
+        """Ce que cette écriture ajoute et retire, caisse par caisse.
+
+        Une entrée ne touche que son compte ; un transfert retire d'un côté et
+        ajoute de l'autre : la garde doit juger les deux.
+        """
+        if self.tx_type == self.Type.IN:
+            return [(self.account, self.amount, 0)]
+        if self.tx_type == self.Type.OUT:
+            return [(self.account, 0, self.amount)]
+        effets = [(self.account, 0, self.amount)]
+        if self.destination_account_id:
+            effets.append((self.destination_account, self.amount, 0))
+        return effets
+
+    def _verrou_solde(self):
+        """Refuser ici, et pas seulement à l'écran, toute écriture à découvert.
+
+        Un import, l'administration, le service d'ajustement ou un script
+        passent tous par cette porte : le solde d'une caisse ne descend jamais
+        sous son plancher, sauf découvert explicitement autorisé sur le compte.
+        Le brouillon reste libre — il ne compte pas en caisse.
+        """
+        if self.status != self.Status.VALIDATED:
+            return
+        if self.account_id is None:
+            # Une écriture sans compte n'est pas une écriture en difficulté :
+            # c'est le champ obligatoire qui doit le dire, pas le solde.
+            return
+        ignorees = ([self.pk] if self.pk and
+                    CashTransaction.objects.filter(pk=self.pk).exists() else [])
+        for caisse, credite, debite in self._effets():
+            if not debite:
+                # Une recette ne peut pas creuser un trou : elle doit passer,
+                # même sur un compte déjà en difficulté, qu'elle contribue à
+                # combler.
+                continue
+            creux = caisse.decouvert(credited=credite, debited=debite,
+                                     ignored=ignorees)
+            if creux:
+                raise ValidationError(_(
+                    'Solde insuffisant sur « %(caisse)s » : cette écriture laisserait un découvert de %(creux)s %(devise)s (découvert autorisé : %(plafond)s). Enregistrez d’abord la recette qui alimente ce compte.') % {
+                        'caisse': caisse.name,
+                        'creux': f'{creux:,}'.replace(',', ' '),
+                        'devise': caisse.currency,
+                        'plafond': f'{caisse.overdraft_limit:,}'.replace(',', ' '),
+                    })
+
+    def clean(self):
+        """Les contrôles du modèle valent aussi pour `full_clean()`."""
+        super().clean()
+        try:
+            self._verrou_solde()
+        except ValidationError as erreur:
+            raise ValidationError({'amount': erreur.messages})
+        if (self.tx_type == self.Type.TRANSFER and self.destination_account_id and
+                self.destination_account_id == self.account_id):
+            raise ValidationError({
+                'destination_account': _("Un transfert doit changer de compte.")})
 
     @property
     def signed_amount(self):

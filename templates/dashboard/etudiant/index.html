@@ -85,6 +85,9 @@
                         {{ payment.amount|floatformat:0 }} FCFA
                     </p>
                     <p class="text-xs ua-muted">{{ payment.paid_at|date:"d/m/Y" }} · {{ payment.get_method_display }}</p>
+                    {% if payment.period_month %}
+                    <p class="text-xs ua-muted">{{ payment.get_motif_display }} · {{ payment.period_label }} {{ payment.period_year }}</p>
+                    {% endif %}
                 </div>
                 <span class="ua-badge
                     {% if payment.status == 'COMPLETED' %}ua-badge-green

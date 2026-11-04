@@ -1,6 +1,7 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html lang="fr">
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -55,6 +56,10 @@
         <table>
             <tr><th>{% translate "Formation" %}</th><td>{{ enrollment.session.course.title }}</td></tr>
             <tr><th>{% translate "Inscription" %}</th><td>{{ enrollment.enrolled_at|date:"d/m/Y" }} · {{ enrollment.get_status_display }}</td></tr>
+            <tr><th>{% translate "Motif" %}</th><td>{{ payment.get_motif_display }}</td></tr>
+            {% if payment.period_month %}
+            <tr><th>{% translate "Mois réglé" %}</th><td>{{ payment.period_label }} {{ payment.period_year }}</td></tr>
+            {% endif %}
             <tr><th>{% translate "Moyen de paiement" %}</th><td>{{ payment.get_method_display }}</td></tr>
             <tr><th>{% translate "Caisse / compte" %}</th><td>{{ payment.transaction.account.name|default:"—" }}</td></tr>
             <tr><th>{% translate "Encaissé par" %}</th><td>{{ payment.recorded_by.display_label|default:"—" }}</td></tr>

@@ -1,0 +1,275 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{% translate "Encaisser les mensualités — Univers Academy" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+{% translate "Année précédente" as lbl_prec %}
+{% translate "Année suivante" as lbl_suiv %}
+{% translate "Total coché :" as lbl_total %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% translate "Encaisser les mois d'un dossier" %}</h1>
+        <p class="ua-page-sub">
+            {% translate "Cochez les mois réglés, ajustez si besoin, un paiement est créé par mois." %}
+        </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'core:dashboard:payment-create' %}" class="ua-btn ua-btn-ghost">
+            {% translate "Un seul paiement" %}
+        </a>
+        <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">
+            {% translate "Journal comptable" %}
+        </a>
+    </div>
+</div>
+
+{% if form.non_field_errors %}
+<div class="ua-card ua-card-pad text-sm font-semibold text-rose-600 mb-4">
+    {{ form.non_field_errors }}
+</div>
+{% endif %}
+
+<section class="ua-card ua-card-pad max-w-3xl">
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        <div class="grid gap-4 sm:grid-cols-3">
+            <div>
+                <label for="{{ form.student.id_for_label }}">{{ form.student.label }}</label>
+                {{ form.student }}
+                {{ form.student.errors }}
+            </div>
+            <div>
+                <label for="{{ form.enrollment.id_for_label }}">
+                    {{ form.enrollment.label }} <span style="color:#e11d48;">*</span>
+                </label>
+                {{ form.enrollment }}
+                {{ form.enrollment.errors }}
+            </div>
+            <div>
+                <label for="{{ form.annee.id_for_label }}">{{ form.annee.label }}</label>
+                <div class="flex items-center gap-2">
+                    {{ form.annee }}
+                    <a class="ua-btn ua-btn-ghost ua-btn-sm" id="prev-year"
+                       href="#" aria-label="{{ lbl_prec }}">‹</a>
+                    <a class="ua-btn ua-btn-ghost ua-btn-sm" id="next-year"
+                       href="#" aria-label="{{ lbl_suiv }}">›</a>
+                </div>
+                {{ form.annee.errors }}
+            </div>
+        </div>
+
+        {% if lignes %}
+        <div class="ua-table-wrap mt-5">
+            <table class="ua-table">
+                <thead>
+                    <tr>
+                        <th class="w-10">{% translate "À encaisser" %}</th>
+                        <th>{% translate "Motif" %}</th>
+                        <th>{% translate "Montant (FCFA)" %}</th>
+                        <th>{% translate "Ce que la caisse sait déjà" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            {% if frais %}
+                            <span class="ua-badge ua-badge-emerald">{% translate "Réglé" %}</span>
+                            {% else %}
+                            <input type="checkbox" name="frais" value="1">
+                            {% endif %}
+                        </td>
+                        <td class="ua-cell-title">{% translate "Frais d'inscription" %}</td>
+                        <td>
+                            {% if frais %}
+                            <span class="ua-muted">{{ frais.amount }}</span>
+                            {% else %}
+                            <input type="number" name="montant_frais" value="{{ frais_montant }}"
+                                   min="1" step="500" class="px-3 py-2 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if frais %}
+                            <span class="ua-cell-sub">
+                                {% blocktrans with d=frais.paid_at|date:"d/m/Y" r=frais.reference %}Encaissé le {{ d }} ({{ r }}){% endblocktrans %}
+                            </span>
+                            {% else %}
+                            <span class="ua-muted text-xs">{% translate "Une seule fois par dossier" %}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% for ligne in lignes %}
+                    <tr{% if ligne.paye %} class="opacity-60"{% endif %}>
+                        <td>
+                            {% if ligne.paye %}
+                            <span class="ua-badge ua-badge-emerald">{% translate "Réglé" %}</span>
+                            {% else %}
+                            <input type="checkbox" name="mois" value="{{ ligne.numero }}">
+                            {% endif %}
+                        </td>
+                        <td class="ua-cell-title">
+                            {% blocktrans with m=ligne.libelle a=annee %}Mensualité de {{ m }} {{ a }}{% endblocktrans %}
+                        </td>
+                        <td>
+                            {% if ligne.paye %}
+                            <span class="ua-muted">{{ ligne.paye.amount }}</span>
+                            {% else %}
+                            <input type="number" name="montant_{{ ligne.numero }}"
+                                   value="{{ ligne.montant }}" min="1" step="1000"
+                                   class="px-3 py-2 text-sm rounded-xl border border-[#e6e7f5] bg-[#fbfbff] outline-none focus:border-indigo-300">
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ligne.paye %}
+                            <span class="ua-cell-sub">
+                                {% blocktrans with d=ligne.paye.paid_at|date:"d/m/Y" r=ligne.paye.reference %}Encaissé le {{ d }} ({{ r }}){% endblocktrans %}
+                            </span>
+                            {% else %}
+                                {% if ligne.montant != mensualite %}
+                                <span class="ua-cell-sub">
+                                    {% blocktrans with m=mensualite %}Suggestion du dossier : {{ m }} FCFA.{% endblocktrans %}
+                                </span>
+                                {% else %}
+                                <span class="ua-muted text-xs">{% translate "Mois libre" %}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-xs ua-muted mt-3">
+            {% blocktrans %}Les montants proposés viennent du dossier : net dû réparti sur la durée de la formation. Un mois déjà encaissé ne se recoche pas.{% endblocktrans %}
+        </p>
+        {% else %}
+        <p class="ua-empty mt-5">
+            {% translate "Choisissez un étudiant puis son dossier : la grille des douze mois s'affiche ici." %}
+        </p>
+        {% endif %}
+
+        <div class="grid gap-4 sm:grid-cols-3 mt-5">
+            <div>
+                <label for="{{ form.method.id_for_label }}">
+                    {{ form.method.label }} <span style="color:#e11d48;">*</span>
+                </label>
+                {{ form.method }}
+                {{ form.method.errors }}
+            </div>
+            <div>
+                <label for="{{ form.account.id_for_label }}">
+                    {{ form.account.label }} <span style="color:#e11d48;">*</span>
+                </label>
+                {{ form.account }}
+                {{ form.account.errors }}
+            </div>
+            <div>
+                <label for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
+                {{ form.note }}
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">
+                {% icon "credit-card" %} {% translate "Encaisser les mois cochés" %}
+            </button>
+            <p class="text-xs ua-muted" id="month-total" aria-live="polite"></p>
+            <a href="{% url 'core:dashboard:comptabilite-dashboard' %}" class="ua-btn ua-btn-ghost">
+                {% translate "Annuler" %}
+            </a>
+        </div>
+    </form>
+</section>
+
+{% if students_without_enrollment %}
+<section class="ua-card ua-card-pad max-w-3xl mt-5">
+    <h2 class="ua-section-title mb-3">{% translate "Comptes étudiants sans inscription" %}</h2>
+    <p class="ua-empty mb-4">
+        {% translate "Un encaissement suppose une inscription validée : ces comptes actifs n'ont encore aucune inscription au dossier." %}
+    </p>
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead>
+                <tr>
+                    <th>{% translate "Étudiant" %}</th>
+                    <th>{% translate "Code" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students_without_enrollment %}
+                <tr>
+                    <td class="ua-cell-title">{{ student.get_full_name|default:student.email }}</td>
+                    <td class="ua-muted">{{ student.internal_code|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<script>
+(function () {
+    var sumLabel = "{{ lbl_total }}";
+    var currentYear = {{ annee|default:0 }};
+    var pickStudent = document.getElementById('id_student');
+    var pickFile = document.getElementById('id_enrollment');
+    var pickYear = document.getElementById('id_annee');
+
+    function target() {
+        var url = new URL(window.location.href);
+        if (pickStudent && pickStudent.value) { url.searchParams.set('student', pickStudent.value); }
+        else { url.searchParams.delete('student'); }
+        if (pickFile && pickFile.value) { url.searchParams.set('enrollment', pickFile.value); }
+        else { url.searchParams.delete('enrollment'); }
+        if (pickYear) { url.searchParams.set('annee', pickYear.value); }
+        return url.toString();
+    }
+
+    if (pickStudent) {
+        pickStudent.addEventListener('change', function () {
+            var url = new URL(window.location.href);
+            if (pickStudent.value) { url.searchParams.set('student', pickStudent.value); }
+            else { url.searchParams.delete('student'); }
+            url.searchParams.delete('enrollment');
+            window.location.assign(url.toString());
+        });
+    }
+    if (pickFile) {
+        pickFile.addEventListener('change', function () {
+            window.location.assign(target());
+        });
+    }
+    document.getElementById('prev-year').addEventListener('click', function (event) {
+        event.preventDefault();
+        pickYear.value = currentYear - 1;
+        window.location.assign(target());
+    });
+    document.getElementById('next-year').addEventListener('click', function (event) {
+        event.preventDefault();
+        pickYear.value = currentYear + 1;
+        window.location.assign(target());
+    });
+
+    var readout = document.getElementById('month-total');
+    if (!readout) { return; }
+    function recount() {
+        var sum = 0;
+        document.querySelectorAll('input[type="checkbox"]').forEach(function (tick) {
+            if (!tick.checked || tick.disabled) { return; }
+            var row = tick.closest('tr');
+            if (!row) { return; }
+            var box = row.querySelector('input[type="number"]');
+            if (box && !box.disabled) { sum += parseInt(box.value, 10) || 0; }
+        });
+        readout.textContent = sumLabel + ' ' + sum.toLocaleString('fr-FR') + ' FCFA.';
+    }
+    document.addEventListener('input', recount);
+    document.addEventListener('change', recount);
+    recount();
+})();
+</script>
+{% endblock %}

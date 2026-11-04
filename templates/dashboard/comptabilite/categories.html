@@ -1,0 +1,50 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{% translate "Catégories du journal — Univers Academy" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% translate "Catégories du journal" %}</h1>
+        <p class="ua-page-sub">{% translate "Chaque écriture est rangée par sens : entrée, sortie ou transfert. Une catégorie qui ne sert plus se désactive, elle ne se supprime pas." %}</p>
+    </div>
+    <a href="{% url 'core:dashboard:journal' %}" class="ua-btn ua-btn-ghost">{% translate "Retour au journal" %}</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Nouvelle catégorie" %}</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Créer" %}</button>
+        </form>
+        <p class="text-xs ua-muted mt-3">{% translate "Le sens d'une catégorie ne change plus une fois créée : il classe les écritures déjà comptabilisées." %}</p>
+    </section>
+
+    <section class="ua-card overflow-hidden xl:col-span-2">
+        <div class="ua-table-wrap">
+            <table class="ua-table">
+                <thead><tr><th>{% translate "Catégorie" %}</th><th>{% translate "Sens" %}</th><th>{% translate "Écritures" %}</th><th>{% translate "État" %}</th><th>{% translate "Administrer" %}</th></tr></thead>
+                <tbody>
+                    {% for categorie in lignes %}
+                    <tr>
+                        <td class="ua-cell-title">{{ categorie.name }}</td>
+                        <td>{{ categorie.get_direction_display }}</td>
+                        <td>{{ categorie.ecritures }}</td>
+                        <td>{% if categorie.active %}{% translate "Active" %}{% else %}{% translate "Désactivée" %}{% endif %}</td>
+                        <td><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:category-update' categorie.id %}">{% translate "Régler" %}</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="ua-empty">{% translate "Aucune catégorie." %}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}

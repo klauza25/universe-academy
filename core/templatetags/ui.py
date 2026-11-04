@@ -3,6 +3,8 @@ from django import template
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from core.taches import tableau_des_files
+
 register = template.Library()
 
 # Minimal line-icon set (Lucide-style geometry) rendered as inline SVG so the
@@ -41,6 +43,8 @@ ICONS = {
     "info": '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
     "sun": '<circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"/>',
     "moon": '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/>',
+    "volume": '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',
+    "volume-off": '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/>',
 }
 
 
@@ -57,6 +61,18 @@ def duree(minutes):
     return f"{hours} h {rest:02d}"
 
 
+@register.inclusion_tag('dashboard/_vignette.html')
+def vignette(personne, css='ua-avatar-sm'):
+    """Vignette d'une personne : sa photo si elle en a une, sinon ses initiales.
+
+    Une liste de visages se reconnaît plus vite qu'une suite de lettres : la
+    photo posée sur une fiche doit donc resurgir partout où la personne est
+    nommée. Le gabarit porte le texte alternatif, seul endroit d'où le
+    catalogue anglais peut l'emprunter.
+    """
+    return {'personne': personne, 'css': css}
+
+
 @register.simple_tag
 def icon(name, css="ua-icon"):
     """Render an inline SVG icon by name."""
@@ -68,3 +84,15 @@ def icon(name, css="ua-icon"):
         css,
         mark_safe(body),
     )
+
+
+@register.inclusion_tag('dashboard/_cloche.html', takes_context=True)
+def cloche(context):
+    """La pastille persistante de la barre : le travail en attente, pas le temps.
+
+    La pile de notifications flottantes s'efface seule, elle ne peut donc pas
+    servir de rappel. Ici le compteur reste allumé tant qu'une file n'est pas
+    vidée par celui qui doit la traiter.
+    """
+    taches, notifications, total = tableau_des_files(context['user'])
+    return {'taches': taches, 'notifications': notifications, 'total': total}

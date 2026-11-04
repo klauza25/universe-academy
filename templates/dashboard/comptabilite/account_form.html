@@ -1,0 +1,76 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{{ compte.name }} — {% translate "Compte financier" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{{ compte.name }}</h1>
+        <p class="ua-page-sub">{{ compte.get_kind_display }} · {{ compte.currency }} · {{ compte.status_label }}</p>
+    </div>
+    <a href="{% url 'core:dashboard:accounts' %}" class="ua-btn ua-btn-ghost">{% translate "Retour aux comptes" %}</a>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <section class="ua-card ua-card-pad xl:col-span-2">
+        <h2 class="ua-section-title mb-4">{% translate "Régler le compte" %}</h2>
+        <form method="post" class="ua-form">
+            {% csrf_token %}
+            {% include "dashboard/_form.html" with form=form %}
+            <button type="submit" class="ua-btn ua-btn-primary mt-3">{% icon "check-circle" %} {% translate "Enregistrer" %}</button>
+        </form>
+        <p class="text-xs ua-muted mt-3">{% translate "Le nom sert de clé aux reprises du journal et le solde d’ouverture ne se réécrit pas : pour corriger un solde, utilisez l’ajustement tracé." %}</p>
+    </section>
+
+    <section class="ua-card ua-card-pad">
+        <h2 class="ua-section-title mb-4">{% translate "Situation" %}</h2>
+        <dl class="space-y-3 text-sm">
+            <div><dt class="text-xs ua-muted">{% translate "Solde d’ouverture" %}</dt><dd>{{ compte.opening_balance }} {{ compte.currency }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Solde calculé" %}</dt><dd><strong>{{ solde }} {{ compte.currency }}</strong></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Disponible pour une sortie" %}</dt><dd>{{ disponible }} {{ compte.currency }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Découvert autorisé" %}</dt><dd>{{ compte.overdraft_limit }} {{ compte.currency }}</dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Brouillons en attente" %}</dt><dd>{{ brouillons }}</dd></div>
+            {% if compte.replaced_by %}
+            <div><dt class="text-xs ua-muted">{% translate "Compte de remplacement" %}</dt><dd>{{ compte.replaced_by.name }}</dd></div>
+            {% endif %}
+            {% if compte.archived_at %}
+            <div><dt class="text-xs ua-muted">{% translate "Archivé le" %}</dt><dd>{{ compte.archived_at|date:"d/m/Y H:i" }}</dd></div>
+            {% endif %}
+        </dl>
+        <div class="flex flex-wrap gap-2 mt-5">
+            <a href="{% url 'core:dashboard:account-adjust' compte.id %}" class="ua-btn ua-btn-light">{% icon "wallet" %} {% translate "Ajuster le solde" %}</a>
+            <a href="{% url 'core:dashboard:account-reset' compte.id %}" class="ua-btn ua-btn-light">{% icon "check-circle" %} {% translate "Réinitialiser la caisse" %}</a>
+        </div>
+    </section>
+</div>
+
+<section class="ua-card overflow-hidden mt-5">
+    <div class="ua-table-wrap">
+        <table class="ua-table">
+            <thead><tr><th>{% translate "Référence" %}</th><th>{% translate "Date effective" %}</th><th>{% translate "Libellé" %}</th><th>{% translate "Entrée" %}</th><th>{% translate "Sortie" %}</th><th>{% translate "Statut" %}</th></tr></thead>
+            <tbody>
+                {% for tx in operations %}
+                <tr>
+                    <td class="ua-cell-title"><a href="{% url 'core:dashboard:transaction-detail' tx.id %}">{{ tx.reference }}</a></td>
+                    <td>{{ tx.occurred_at|date:"d/m/Y H:i" }}</td>
+                    <td>{{ tx.label }}</td>
+                    <td>{% if tx.tx_type == 'IN' %}{{ tx.amount }}{% endif %}</td>
+                    <td>{% if tx.tx_type == 'OUT' %}{{ tx.amount }}{% endif %}</td>
+                    <td>{{ tx.get_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="ua-empty">{% translate "Aucune écriture sur ce compte." %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% translate "Créations et réglages du compte enregistrés dans le journal d’audit." as audit_sous_titre_compte %}
+{% translate "Aucun événement d’audit pour ce compte." as audit_vide_compte %}
+{% include "dashboard/_audit_trail.html" with audit_entries=historique audit_subtitle=audit_sous_titre_compte audit_empty=audit_vide_compte %}
+{% endblock %}

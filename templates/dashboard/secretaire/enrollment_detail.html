@@ -76,11 +76,9 @@
     <section class="ua-card ua-card-pad">
         <div class="flex items-center justify-between mb-4">
             <h2 class="ua-section-title">{% translate "Paiements" %}</h2>
-            {% if not is_elevated %}
-            {% if 'COMPTABLE' in user_roles or 'DIRECTION' in user_roles %}
+            {% if can_record_payment %}
             {% if enrollment.status == 'ACTIVE' or enrollment.status == 'COMPLETED' %}
             <a href="{% url 'core:dashboard:payment-create' %}?enrollment={{ enrollment.id }}" class="ua-btn ua-btn-primary ua-btn-sm">{% icon "credit-card" %} {% translate "Encaisser" %}</a>
-            {% endif %}
             {% endif %}
             {% endif %}
         </div>
@@ -89,6 +87,9 @@
             <div>
                 <span class="ua-cell-title">{{ payment.reference }} · {{ payment.amount }} FCFA</span>
                 <span class="ua-cell-sub block">{{ payment.get_method_display }} · {{ payment.paid_at|date:"d/m/Y H:i" }}</span>
+                {% if payment.period_month %}
+                <span class="ua-cell-sub block">{{ payment.get_motif_display }} · {{ payment.period_label }} {{ payment.period_year }}</span>
+                {% endif %}
             </div>
             <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">{% translate "Reçu" %}</a>
         </div>

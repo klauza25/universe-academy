@@ -72,7 +72,7 @@ def niveau_ressemblance(gauche: object, droite: object) -> str | None:
 # ---------------------------------------------------------------------------
 # Montants
 # ---------------------------------------------------------------------------
-UNITE_MONETAIRE = re.compile(r'(fcfa|xaf|francs?)', re.I)
+UNITE_MONETAIRE = re.compile(r'(fcfa|cfa|xaf|francs?)', re.I)
 MARQUE_SECHE = re.compile(r'[*\-–—x×./]+$')
 NOMBRE = re.compile(r'\d+(?:[.,]\d+)?')
 DIGITES = re.compile(r'[\d.,]+')

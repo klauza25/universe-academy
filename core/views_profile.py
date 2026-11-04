@@ -1,9 +1,10 @@
-"""Profil utilisateur : informations, photo, changement d'email vérifié."""
+"""Profil utilisateur : informations, photo, mot de passe et changement d'email vérifié."""
 import logging
 import os
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.core import signing
 from django.core.mail import send_mail
@@ -11,17 +12,44 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.http import require_POST
 from django.views.static import serve
 
 from .decorators import active_account_required
-from .forms import AvatarForm, EmailChangeForm, ProfileForm
-from .models import AccountStatus, User
+from .forms import (
+    AvatarForm, EmailChangeForm, PasswordChangeForm, ProfileForm,
+)
+from .models import AccountStatus, Notification, ROLE_DASHBOARD_ROUTES, User
 from .utils import log_audit
 
 logger = logging.getLogger(__name__)
 
 EMAIL_TOKEN_SALT = 'univers-academy.email-change'
 EMAIL_TOKEN_MAX_AGE = 60 * 60 * 24  # 24 h
+
+
+def changer_avatar(request, personne):
+    """Pose ou retire la photo de profil d'une personne.
+
+    Un seul chemin pour les deux cas : l'intéressé écran « Mon profil », un
+    membre du personnel depuis la fiche de la personne. Le nettoyage du
+    fichier remplacé et la trace d'audit sont les mêmes dans les deux cas, et
+    le résultat se lit dans la notification.
+    """
+    if request.POST.get('action') == 'avatar_delete':
+        if personne.retirer_avatar():
+            log_audit(request, 'PROFILE_AVATAR_DELETE', 'User', str(personne.id))
+            messages.success(request, _("Photo supprimée, avatar par défaut rétabli."))
+        return
+    formulaire = AvatarForm(request.POST, request.FILES)
+    if formulaire.is_valid():
+        personne.poser_avatar(formulaire.cleaned_data['avatar'])
+        log_audit(request, 'PROFILE_AVATAR', 'User', str(personne.id))
+        messages.success(request, _("Photo de profil enregistrée."))
+        return
+    erreurs = ' '.join(str(e) for liste in formulaire.errors.values() for e in liste)
+    messages.error(request,
+                   _("Photo non enregistrée : %(erreur)s") % {'erreur': erreurs})
 
 
 @login_required
@@ -31,6 +59,7 @@ def profile_view(request):
     profile_form = ProfileForm(instance=user)
     avatar_form = AvatarForm()
     email_form = EmailChangeForm(user=user)
+    password_form = PasswordChangeForm(user=user)
 
     if request.method == 'POST':
         action = request.POST.get('action', 'profile')
@@ -58,22 +87,8 @@ def profile_view(request):
                 messages.success(request, _("Votre profil a été mis à jour."))
                 return redirect('core:dashboard:profile')
 
-        elif action == 'avatar':
-            avatar_form = AvatarForm(request.POST, request.FILES)
-            if avatar_form.is_valid():
-                user.avatar = avatar_form.cleaned_data['avatar']
-                user.save(update_fields=['avatar'])
-                log_audit(request, 'PROFILE_AVATAR', 'User', str(user.id))
-                messages.success(request, _("Photo de profil enregistrée."))
-                return redirect('core:dashboard:profile')
-
-        elif action == 'avatar_delete':
-            if user.avatar:
-                user.avatar.delete(save=False)
-                user.avatar = None
-                user.save(update_fields=['avatar'])
-                log_audit(request, 'PROFILE_AVATAR_DELETE', 'User', str(user.id))
-                messages.success(request, _("Photo supprimée, avatar par défaut rétabli."))
+        elif action in ('avatar', 'avatar_delete'):
+            changer_avatar(request, user)
             return redirect('core:dashboard:profile')
 
         elif action == 'email':
@@ -115,10 +130,28 @@ def profile_view(request):
                     _("L'email de vérification n'a pas pu être envoyé. Le changement n'a pas été appliqué."),
                 )
 
+        elif action == 'password':
+            password_form = PasswordChangeForm(request.POST, user=user)
+            if password_form.is_valid():
+                avant = user.has_usable_password()
+                user.set_password(password_form.cleaned_data['new_password'])
+                user.save(update_fields=['password'])
+                # Sans ceci, Django invalide la session au changement de
+                # hachage et la personne est éjectée de son propre écran.
+                update_session_auth_hash(request, user)
+                log_audit(
+                    request, 'PROFILE_PASSWORD', 'User', str(user.id),
+                    before={'mot_de_passe_defini': avant},
+                    after={'mot_de_passe_defini': True},
+                )
+                messages.success(request, _("Mot de passe modifié."))
+                return redirect('core:dashboard:profile')
+
     return render(request, 'dashboard/profile/index.html', {
         'profile_form': profile_form,
         'avatar_form': avatar_form,
         'email_form': email_form,
+        'password_form': password_form,
         'account_since': user.date_joined,
         'profile_user': user,
     })
@@ -163,6 +196,24 @@ def profile_email_confirm(request, token):
     )
     messages.success(request, _("Votre adresse e-mail a été mise à jour."))
     return redirect('core:dashboard:profile')
+
+
+@login_required
+@active_account_required
+@require_POST
+def notifications_marquer_lues(request):
+    """Éteint la pastille de la cloche pour les notifications lues.
+
+    Seules les notifications du compte connecté sont marquées : la cloche d’un
+    compte ne peut jamais vider la file d’un autre. Le renvoi se fait sur le
+    tableau de bord du rôle, jamais sur une adresse passée par le formulaire.
+    """
+    lues = Notification.objects.filter(
+        user=request.user, is_read=False).update(is_read=True)
+    if lues:
+        messages.success(request, _("Notification(s) marquée(s) comme lue(s)."))
+    return redirect(ROLE_DASHBOARD_ROUTES.get(
+        request.user.primary_role, 'core:dashboard:dashboard-router'))
 
 
 @login_required

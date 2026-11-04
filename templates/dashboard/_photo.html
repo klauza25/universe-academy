@@ -1,0 +1,24 @@
+{% load ui i18n %}
+{## La photo d'une personne : ce que tout le monde voit, et de quoi on la change. #}
+<div class="flex flex-col items-center text-center gap-4">
+    {% vignette personne css="ua-avatar ua-avatar-xl" %}
+    {% if url %}
+    <form method="post" action="{{ url }}" enctype="multipart/form-data" class="ua-form w-full">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="avatar">
+        {{ formulaire.as_p }}
+        <button type="submit" class="ua-btn ua-btn-primary w-full justify-center mt-3">
+            {% icon "user-check" %} {% translate "Enregistrer la photo" %}
+        </button>
+    </form>
+    {% if personne.avatar %}
+    <form method="post" action="{{ url }}" class="w-full">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="avatar_delete">
+        <button type="submit" class="ua-btn ua-btn-ghost w-full justify-center">
+            {% icon "close" %} {% translate "Réinitialiser la photo" %}
+        </button>
+    </form>
+    {% endif %}
+    {% endif %}
+</div>

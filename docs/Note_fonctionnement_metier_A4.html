@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fonctionnement métier d'Univers Academy — note A4</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: #1e2044;
+            background: #f4f5fb;
+            margin: 0;
+            padding: 24px;
+            font-size: 10.5px;
+            line-height: 1.4;
+        }
+        .sheet {
+            max-width: 186mm;
+            margin: 0 auto;
+            background: #fff;
+            padding: 9mm 11mm;
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(30, 32, 68, .08);
+        }
+        .toolbar { max-width: 186mm; margin: 0 auto 14px; display: flex; gap: 8px; align-items: center; }
+        .toolbar button {
+            border: 1px solid #4f46e5; background: #4f46e5; color: #fff;
+            border-radius: 9px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+        }
+        .toolbar span { color: #6b6f96; font-size: 11px; }
+
+        h1 { font-size: 17px; margin: 0 0 3px; letter-spacing: -.2px; }
+        .kicker { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: #6b6f96; margin: 0 0 5px; }
+        .lead { margin: 0; font-size: 10.5px; color: #3b3f66; }
+        h2 { font-size: 11.5px; margin: 11px 0 4px; padding-bottom: 2px; border-bottom: 2px solid #4f46e5; }
+        .meta { font-size: 9.5px; color: #6b6f96; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 3px 5px; border-bottom: 1px solid #e6e7f5; vertical-align: top; text-align: left; }
+        th {
+            font-size: 8.5px; text-transform: uppercase; letter-spacing: .4px; color: #6b6f96;
+            background: #eef0fb;
+        }
+        td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        td.dur { white-space: nowrap; }
+        .step { font-weight: 600; white-space: nowrap; }
+        .step em { display: block; font-style: normal; font-weight: 400; font-size: 8.5px; color: #6b6f96; }
+
+        .cols { display: flex; gap: 12px; margin-top: 4px; }
+        .col { flex: 1 1 0; min-width: 0; }
+        .box { border: 1px solid #e6e7f5; border-radius: 9px; padding: 7px 9px; background: #fafbff; }
+        .formula b { display: block; margin: 3px 0 0; }
+        ul { margin: 3px 0 0; padding-left: 15px; }
+        li { margin-bottom: 2px; }
+        .roles { display: grid; grid-template-columns:1fr 1fr; gap: 2px 14px; margin-top: 3px; }
+        .roles div { border-bottom: 1px dotted #e6e7f5; padding: 2px 0; }
+        .roles b { display: inline-block; min-width: 118px; }
+        .warn { border-left: 4px solid #d97706; }
+        footer { margin-top: 10px; padding-top: 5px; border-top: 1px solid #e6e7f5; }
+
+        @media print {
+            body { background: #fff; padding: 0; font-size: 9.2px; line-height: 1.32; }
+            .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+            .toolbar { display: none; }
+            h2 { margin: 8px 0 3px; }
+            th, td { padding: 2px 5px; }
+            .roles b { min-width: 106px; }
+            th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            h2, .box, .cols, .roles, table, footer { break-inside: avoid; }
+        }
+        @page { size: A4; margin: 12mm; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <button type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+    <span>Format A4, une page. Aperçu avant impression&nbsp;: marges par défaut, sans en-têtes du navigateur.</span>
+</div>
+
+<div class="sheet">
+    <p class="kicker">Univers Academy · note de fonctionnement · à l'usage de la direction</p>
+    <h1>Comment le logiciel suit un étudiant, du catalogue au reçu</h1>
+    <p class="lead">Le centre fait deux choses&nbsp;: suivre <b>qui étudie quoi</b> et <b>qui paie quoi</b>. Tout le reste en découle.</p>
+
+    <h2>1. Le circuit en 7 étapes</h2>
+    <table>
+        <thead>
+        <tr>
+            <th style="width:15%">Étape</th>
+            <th style="width:13%">Qui</th>
+            <th style="width:38%">Ce que le système note</th>
+            <th style="width:34%">Ce que ça débloque</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td class="step">1. Catalogue</td>
+            <td>Direction</td>
+            <td>Les 5 formations, leur durée et leur prix&nbsp;; modules et leçons.</td>
+            <td>Sans catalogue&nbsp;: rien à inscrire, rien à encaisser.</td>
+        </tr>
+        <tr>
+            <td class="step">2. Groupes</td>
+            <td>Resp. pédagogique</td>
+            <td>Une formation, ses dates, sa salle, ses formateurs.</td>
+            <td>On peut y inscrire des étudiants et y programmer des cours.</td>
+        </tr>
+        <tr>
+            <td class="step">3. Accueil</td>
+            <td>Accueil</td>
+            <td>La fiche de chaque personne qui se renseigne.</td>
+            <td>À l'inscription, un compte étudiant (UA-…).</td>
+        </tr>
+        <tr>
+            <td class="step">4. Inscription</td>
+            <td>Secrétariat</td>
+            <td>Étudiant + groupe&nbsp;; prix du catalogue, remise, montant dû. Statut «&nbsp;En attente&nbsp;».</td>
+            <td>L'étudiant est attendu au cours&nbsp;; la caisse attend.</td>
+        </tr>
+        <tr>
+            <td class="step">5. Validation<em>le verrou</em></td>
+            <td>Direction</td>
+            <td>Statut «&nbsp;Active&nbsp;», date et auteur de la décision.</td>
+            <td>Seul ce clic rend le dossier encaissable.</td>
+        </tr>
+        <tr>
+            <td class="step">6. Vie du cours</td>
+            <td>Formateur</td>
+            <td>Date, horaires, contenu, leçon avancée, présences, supports.</td>
+            <td>Progression, cahier de texte, attestation.</td>
+        </tr>
+        <tr>
+            <td class="step">7. Caisse</td>
+            <td>Comptable</td>
+            <td>Encaissement → écriture de caisse + reçu numéroté&nbsp;; solde par compte.</td>
+            <td>Impayés à relancer, journal, clôture de caisse.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>2. L'argent&nbsp;: trois lignes de calcul, jamais un prix tapé à la main</h2>
+    <div class="cols">
+        <div class="col">
+            <div class="box formula">
+                <b>Tarif</b> 20&nbsp;000 FCFA × nombre de mois
+                <b>Montant dû</b> tarif − remise accordée au guichet
+                <b>Reste à payer</b> montant dû − total déjà encaissé
+            </div>
+        </div>
+        <div class="col">
+            <table>
+                <thead><tr><th>Formation</th><th>Durée</th><th style="text-align:right">Prix (FCFA)</th></tr></thead>
+                <tbody>
+                <tr><td>Informatique générale</td><td class="dur">6 mois</td><td class="num">120&nbsp;000</td></tr>
+                <tr><td>Informatique de gestion</td><td class="dur">6 mois</td><td class="num">120&nbsp;000</td></tr>
+                <tr><td>Maintenance informatique</td><td class="dur">6 mois</td><td class="num">120&nbsp;000</td></tr>
+                <tr><td>Excel avancé</td><td class="dur">3 mois</td><td class="num">60&nbsp;000</td></tr>
+                <tr><td>Les langues étrangères</td><td class="dur">3 mois</td><td class="num">60&nbsp;000</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2>3. Les quatre règles qui protègent le centre</h2>
+    <ul>
+        <li><b>Pas de validation, pas d'encaissement</b> — l'étape 5 est le seul verrou&nbsp;; c'est lui qui explique une liste de paiements vide.</li>
+        <li><b>Le rôle décide des droits</b> — un comptable ne crée pas un cours, un formateur n'encaisse pas, le secrétariat ne valide pas ses propres dossiers.</li>
+        <li><b>Le prix vient du catalogue</b> — seule la remise reste une décision humaine, et elle est tracée.</li>
+        <li><b>Le système n'invente rien</b> — heure oubliée → durée «&nbsp;—&nbsp;»&nbsp;; solde jamais négatif&nbsp;; un trop-perçu est bloqué à la saisie et signalé par l'audit.</li>
+    </ul>
+
+    <h2>4. Qui voit quoi</h2>
+    <div class="roles">
+        <div><b>Accueil / secrétariat</b> contacts, étudiants, inscriptions</div>
+        <div><b>Direction</b> validation, catalogue, tableaux de bord</div>
+        <div><b>Resp. pédagogique</b> groupes, modules, progression</div>
+        <div><b>Formateur</b> ses séances&nbsp;: contenu, présences, ressources</div>
+        <div><b>Comptable</b> encaissements, reçus, journal, clôture</div>
+        <div><b>Étudiant</b> son parcours et ses paiements</div>
+    </div>
+
+    <h2>5. Points de vigilance sur les données actuelles</h2>
+    <div class="box warn">
+        <ul>
+            <li>Dossier «&nbsp;Les langues étrangères&nbsp;»&nbsp;: <b>trop-perçu de 60&nbsp;000 FCFA</b> (135&nbsp;000 encaissés pour 75&nbsp;000 dus).</li>
+            <li>Compte de caisse <b>Mobile Money négatif</b> (−5&nbsp;100 FCFA)&nbsp;: une sortie sans entrée correspondante.</li>
+            <li>Des tarifs d'inscription <b>hors catalogue</b> (75&nbsp;000 et 35&nbsp;000 pour une formation à 60&nbsp;000)&nbsp;: remise non saisie ou ancienne grille.</li>
+            <li>Un compte rôle <b>Étudiant</b> avec un code de comptable (UA-CPT-0006)&nbsp;: à reclasser.</li>
+        </ul>
+    </div>
+
+    <footer class="meta">
+        Description du logiciel tel qu'il fonctionne aujourd'hui. Les chiffres de la section 5 proviennent de l'audit des données en cours.
+    </footer>
+</div>
+</body>
+</html>

@@ -28,7 +28,7 @@ class AdminGlobalReadTests(BusinessTestBase):
             enrollment=self.enrollment,
             amount=7000,
             method=Payment.Method.CASH,
-            recorded_by=self.comptable,
+            recorded_by=self.assistant,
         )
         self.record = SessionRecord.objects.create(
             session=self.session,
@@ -123,10 +123,10 @@ class AdminRestrictedWriteTests(BusinessTestBase):
     def test_admin_cannot_assign_roles(self):
         response = self.client.post(reverse(
             'core:dashboard:user-role-assign', args=[self.secretaire.id]),
-            {'role_key': RoleKey.COMPTABLE, 'action': 'add'},
+            {'role_key': RoleKey.ASSISTANT_ADMIN, 'action': 'add'},
         )
         self.assertEqual(response.status_code, 403)
-        self.assertFalse(self.secretaire.has_role(RoleKey.COMPTABLE))
+        self.assertFalse(self.secretaire.has_role(RoleKey.ASSISTANT_ADMIN))
 
     def test_admin_can_review_access_requests(self):
         applicant = self.make_user(

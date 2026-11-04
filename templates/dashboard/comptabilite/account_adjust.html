@@ -1,0 +1,38 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{{ compte.name }} — {% translate "Ajustement de solde" %}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/comptabilite/_nav.html" %}{% endblock %}
+{% block hero %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="ua-page-head">
+    <div>
+        <h1 class="ua-page-title">{% translate "Ajustement de solde" %}</h1>
+        <p class="ua-page-sub">{{ compte.name }} · {% blocktrans with s=solde d=compte.currency %}Solde actuel : {{ s }} {{ d }}{% endblocktrans %}</p>
+    </div>
+    <a href="{% url 'core:dashboard:account-update' compte.id %}" class="ua-btn ua-btn-ghost">{% translate "Retour au compte" %}</a>
+</div>
+
+<section class="ua-card ua-card-pad max-w-2xl">
+    <p class="text-sm ua-muted mb-4">{% translate "Un ajustement n’est ni une recette ni une dépense : c’est la correction assumée d’un solde. Il est écrit dans le journal, motivé, et reste consultable dans l’historique du compte." %}</p>
+    {% if brouillons %}
+    <p class="text-sm text-amber-700 mb-4">{% blocktrans %}Brouillons non validés sur ce compte : {{ n }}. Un ajustement ne les rapproche pas.{% endblocktrans %}</p>
+    {% endif %}
+    {% if disponible != solde %}
+    <p class="text-sm ua-muted mb-4">{% blocktrans with a=disponible d=compte.currency %}Une sortie peut descendre jusqu’à {{ a }} {{ d }} : le découvert autorisé du compte est compris dans ce chiffre.{% endblocktrans %}</p>
+    {% endif %}
+    {% if form.avertissement_sortie %}
+    <div class="ua-card ua-card-pad text-sm font-semibold text-amber-700 mb-4">{{ form.avertissement_sortie }}</div>
+    {% endif %}
+    <form method="post" class="ua-form">
+        {% csrf_token %}
+        {% include "dashboard/_form.html" with form=form %}
+        <div class="flex flex-wrap gap-3 mt-5">
+            <button type="submit" class="ua-btn ua-btn-primary">{% icon "check-circle" %} {% translate "Enregistrer l’ajustement" %}</button>
+            <a href="{% url 'core:dashboard:account-update' compte.id %}" class="ua-btn ua-btn-ghost">{% translate "Annuler" %}</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -12,14 +12,15 @@ from django.utils.translation import gettext_lazy as _
 
 from .decorators import business_write_required, enrollment_validation_required, role_required
 from .forms import (
-    EnrollmentForm, NewEnrollmentForm, StudentDocumentForm, StudentEditForm,
-    StudentForm,
+    AvatarForm, EnrollmentForm, NewEnrollmentForm, StudentDocumentForm,
+    StudentEditForm, StudentForm,
 )
 from .models import (
     Course, CourseSession, Enrollment, Payment, Role, StudentDocument, User,
     UserRole, AccountStatus, Prospect, RoleKey, AuditLog,
 )
 from .utils import log_audit
+from .views_profile import changer_avatar
 
 SECRETARIAT_ROLES = ('SECRETAIRE', 'DIRECTION')
 
@@ -28,7 +29,7 @@ def _students_queryset():
     return User.objects.filter(roles__key=RoleKey.ETUDIANT).distinct()
 
 
-@role_required(*SECRETARIAT_ROLES, 'COMPTABLE')
+@role_required(*SECRETARIAT_ROLES, 'ASSISTANT_ADMIN')
 def student_list(request):
     students = _students_queryset().prefetch_related('roles')
     query = (request.GET.get('q') or '').strip()
@@ -87,7 +88,13 @@ def student_create(request):
             with transaction.atomic():
                 student = form.save(commit=False)
                 student.username = student.email
-                student.account_status = AccountStatus.ACTIVE
+                # Un compte étudiant naît en attente d'approbation. Ouvrir
+                # d'emblée un dossier « Active », c'est déjà l'approuver.
+                student.account_status = (
+                    AccountStatus.ACTIVE
+                    if enroll_form.cleaned_data['status'] == Enrollment.Status.ACTIVE
+                    else AccountStatus.PENDING_APPROVAL
+                )
                 student.generate_internal_code(RoleKey.ETUDIANT)
                 password = form.cleaned_data.get('password')
                 if password:
@@ -146,7 +153,7 @@ def student_create(request):
     })
 
 
-@role_required(*SECRETARIAT_ROLES, 'COMPTABLE')
+@role_required(*SECRETARIAT_ROLES, 'ASSISTANT_ADMIN')
 def student_detail(request, student_id):
     student = get_object_or_404(
         User.objects.prefetch_related('roles'), id=student_id
@@ -181,9 +188,15 @@ def student_detail(request, student_id):
         'total_paid': total_paid,
         'balance': sum(e.balance_due for e in enrollments),
         'doc_form': StudentDocumentForm(),
+        'avatar_form': AvatarForm(),
         'can_manage_documents': (
             not request.user.is_elevated
             and request.user.has_any_role('SECRETAIRE', 'DIRECTION')
+        ),
+        # La photo se pose aux mêmes conditions que l'écriture sur la fiche.
+        'peut_changer_photo': (
+            not request.user.is_elevated
+            and request.user.has_any_role(*SECRETARIAT_ROLES)
         ),
         'audit_entries': AuditLog.objects.filter(
             entity_type='User', entity_id=str(student.id),
@@ -216,6 +229,20 @@ def student_edit(request, student_id):
     return render(request, 'dashboard/secretaire/student_edit.html', {
         'form': form, 'student': student,
     })
+
+
+@business_write_required(*SECRETARIAT_ROLES)
+def student_avatar(request, student_id):
+    """Le secrétariat pose la photo d'un étudiant.
+
+    Une fiche sortie des classeurs ne se connecte jamais : sans cet écran, la
+    photo d'un élève ne pourrait jamais être prise au centre et les listes
+    resteraient en initiales.
+    """
+    etudiant = get_object_or_404(User, id=student_id)
+    if request.method == 'POST':
+        changer_avatar(request, etudiant)
+    return redirect('core:dashboard:student-detail', student_id=etudiant.id)
 
 
 @business_write_required(*SECRETARIAT_ROLES)
@@ -294,19 +321,28 @@ def enrollment_validate(request, enrollment_id):
         before = {'status': enrollment.status}
         enrollment.status = Enrollment.Status.ACTIVE
         enrollment.save(update_fields=['status', 'updated_at'])
+        approuve = False
+        if enrollment.student.account_status == AccountStatus.PENDING_APPROVAL:
+            # Valider le dossier est l'acte d'approbation du compte étudiant.
+            enrollment.student.account_status = AccountStatus.ACTIVE
+            enrollment.student.save(update_fields=['account_status'])
+            approuve = True
         log_audit(
             request, 'ENROLLMENT_VALIDATE', 'Enrollment', str(enrollment.id),
-            before=before, after={'status': enrollment.status},
+            before=before, after={'status': enrollment.status,
+                                  'compte_approuve': approuve},
         )
         messages.success(
             request,
-            _("Inscription validée : le dossier peut désormais être encaissé."),
+            _("Inscription validée : le dossier peut désormais être encaissé.")
+            if not approuve else
+            _("Inscription validée et compte étudiant approuvé."),
         )
     return redirect('core:dashboard:enrollment-detail',
                     enrollment_id=enrollment.id)
 
 
-@role_required(*SECRETARIAT_ROLES, 'COMPTABLE', 'RESP_PEDA')
+@role_required(*SECRETARIAT_ROLES, 'ASSISTANT_ADMIN', 'RESP_PEDA')
 def enrollment_detail(request, enrollment_id):
     enrollment = get_object_or_404(
         Enrollment.objects.select_related('student', 'session__course'),
@@ -363,13 +399,13 @@ def student_document_upload(request, student_id):
     return redirect('core:dashboard:student-detail', student_id=student.id)
 
 
-@role_required(*SECRETARIAT_ROLES, 'COMPTABLE', 'ETUDIANT')
+@role_required(*SECRETARIAT_ROLES, 'ASSISTANT_ADMIN', 'ETUDIANT')
 def student_document_download(request, doc_id):
     document = get_object_or_404(StudentDocument, id=doc_id)
     user = request.user
     is_owner = document.student_id == user.id
     allowed = is_owner or user.has_any_role(
-        'SECRETAIRE', 'DIRECTION', 'COMPTABLE', 'SUPER_ADMIN', 'ADMIN'
+        'SECRETAIRE', 'DIRECTION', 'ASSISTANT_ADMIN', 'SUPER_ADMIN', 'ADMIN'
     )
     if not allowed:
         log_audit(request, 'UNAUTHORIZED_FILE_ACCESS', 'StudentDocument',

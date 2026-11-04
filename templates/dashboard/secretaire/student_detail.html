@@ -4,7 +4,7 @@
 {% block title %}{% blocktrans with n=student.get_full_name|default:student.email %}{{ n }} — Étudiant{% endblocktrans %}{% endblock %}
 
 {% block sidebar_nav %}
-{% if 'COMPTABLE' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
+{% if 'ASSISTANT_ADMIN' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
     {% include "dashboard/comptabilite/_nav.html" %}
 {% else %}
     {% include "dashboard/secretaire/_nav.html" %}
@@ -31,7 +31,7 @@
         <p class="ua-page-sub">{{ student.internal_code|default:"—" }} · {{ student.email }}</p>
     </div>
     <div class="flex flex-wrap gap-2">
-        {% if not is_elevated and 'COMPTABLE' not in user_roles %}
+        {% if not is_elevated and 'ASSISTANT_ADMIN' not in user_roles %}
         <a href="{% url 'core:dashboard:student-edit' student.id %}" class="ua-btn ua-btn-primary">{% icon "settings" %} {{ act_modifier }}</a>
         <a href="{% url 'core:dashboard:enrollment-create' %}?student={{ student.id }}" class="ua-btn ua-btn-light">{% icon "clipboard" %} {{ act_inscription }}</a>
         {% endif %}
@@ -49,6 +49,16 @@
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
     <section class="ua-card ua-card-pad">
         <h2 class="ua-section-title mb-4">{% translate "Informations" %}</h2>
+        {% url 'core:dashboard:student-avatar' student.id as photo_url %}
+        {% if peut_changer_photo %}
+        <div class="mb-5">
+            {% include "dashboard/_photo.html" with personne=student formulaire=avatar_form url=photo_url %}
+        </div>
+        {% else %}
+        <div class="mb-5 flex justify-center">
+            {% vignette student css="ua-avatar ua-avatar-xl" %}
+        </div>
+        {% endif %}
         <dl class="space-y-3 text-sm">
             <div><dt class="text-xs ua-muted">{% translate "Téléphone" %}</dt><dd>{{ student.phone|default:"—" }}</dd></div>
             <div><dt class="text-xs ua-muted">{% translate "Adresse" %}</dt><dd>{{ student.address|default:"—"|linebreaksbr }}</dd></div>
@@ -95,6 +105,9 @@
             <div>
                 <span class="ua-cell-title">{{ payment.reference }} · {{ payment.amount }} FCFA</span>
                 <span class="ua-cell-sub block">{{ payment.enrollment.session.course.title }} · {{ payment.paid_at|date:"d/m/Y H:i" }}</span>
+                {% if payment.period_month %}
+                <span class="ua-cell-sub block">{{ payment.get_motif_display }} · {{ payment.period_label }} {{ payment.period_year }}</span>
+                {% endif %}
             </div>
             <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:payment-receipt' payment.id %}">{% translate "Reçu" %}</a>
         </div>

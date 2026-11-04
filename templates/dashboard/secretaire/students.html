@@ -4,7 +4,7 @@
 {% block title %}{% translate "Étudiants — Univers Academy" %}{% endblock %}
 
 {% block sidebar_nav %}
-{% if 'COMPTABLE' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
+{% if 'ASSISTANT_ADMIN' in user_roles and 'SECRETAIRE' not in user_roles and 'DIRECTION' not in user_roles %}
     {% include "dashboard/comptabilite/_nav.html" %}
 {% else %}
     {% include "dashboard/secretaire/_nav.html" %}
@@ -18,7 +18,7 @@
         <h1 class="ua-page-title">{% translate "Étudiants" %}</h1>
         <p class="ua-page-sub">{% translate "Dossiers administratifs et inscriptions." %}</p>
     </div>
-    {% if not is_elevated and 'COMPTABLE' not in user_roles %}
+    {% if not is_elevated and 'ASSISTANT_ADMIN' not in user_roles %}
     <a href="{% url 'core:dashboard:student-create' %}" class="ua-btn ua-btn-primary">
         {% icon "user-plus" %} {% translate "Nouvel étudiant" %}
     </a>
@@ -65,8 +65,13 @@
                 <tr>
                     <td class="ua-cell-title">{{ student.internal_code|default:"—" }}</td>
                     <td>
-                        <a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-cell-title">{{ student.get_full_name|default:student.email }}</a>
-                        <span class="ua-cell-sub block">{{ student.email }}</span>
+                        <div class="flex items-center gap-3">
+                            {% vignette student %}
+                            <div class="min-w-0">
+                                <a href="{% url 'core:dashboard:student-detail' student.id %}" class="ua-cell-title">{{ student.get_full_name|default:student.email }}</a>
+                                <span class="ua-cell-sub block">{{ student.email }}</span>
+                            </div>
+                        </div>
                     </td>
                     <td>{{ student.phone|default:"—" }}</td>
                     <td>

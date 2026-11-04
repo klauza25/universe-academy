@@ -736,13 +736,6 @@ msgstr "You do not have the required permissions."
 msgid "Consultation seule : cette action relève du rôle métier."
 msgstr "Read-only: this action belongs to the operational role."
 
-msgid ""
-"La validation d'une inscription est réservée à la direction, à la caisse, à "
-"la supervision pédagogique et au super administrateur."
-msgstr ""
-"Validating an enrollment is reserved for Management, the cash desk, the "
-"academic manager and the super administrator."
-
 msgid "Permission refusée."
 msgstr "Permission denied."
 
@@ -927,9 +920,6 @@ msgstr "Visits"
 msgid "Voir les valeurs"
 msgstr "View values"
 
-msgid "Vos informations personnelles et votre photo de profil."
-msgstr "Your personal information and your profile photo."
-
 msgid ""
 "Votre compte est suspendu ou désactivé. Contactez l'administration pour plus"
 " d'informations."
@@ -980,9 +970,6 @@ msgstr ""
 
 msgid "Seules les inscriptions validées sont encaissables."
 msgstr "Only validated enrollments can be paid into."
-
-msgid "Photo de %(name)s"
-msgstr "Photo of %(name)s"
 
 msgid "Page %(p)s / %(t)s"
 msgstr "Page %(p)s of %(t)s"
@@ -1247,10 +1234,6 @@ msgstr "No active cash account."
 
 msgid "Consultation"
 msgstr "View only"
-
-msgid ""
-"Consultation seule : la création d'une caisse relève de la comptabilité."
-msgstr "Read-only: creating a cash account is handled by accounting."
 
 msgid "Nouvelle caisse / compte"
 msgstr "New cash account / account"
@@ -1635,10 +1618,6 @@ msgstr "a single transaction, no duplicates"
 
 msgid "Correction / annulation"
 msgstr "Correction / cancellation"
-
-msgid ""
-"Consultation seule : l'annulation d'une opération relève de la comptabilité."
-msgstr "Read-only: cancelling a transaction is handled by accounting."
 
 msgid "Cette opération est déjà annulée. Son historique est conservé."
 msgstr "This transaction is already cancelled. Its history is kept."
@@ -3923,14 +3902,8 @@ msgstr "Payee/Payer"
 msgid "Opération %(reference)s enregistrée."
 msgstr "Transaction %(reference)s recorded."
 
-msgid "Un motif est obligatoire pour annuler."
-msgstr "A reason is required to cancel."
-
 msgid "Cette opération est déjà annulée."
 msgstr "This transaction is already cancelled."
-
-msgid "Annulation : %(motif)s"
-msgstr "Cancellation: %(motif)s"
 
 msgid "Opération annulée et historisée."
 msgstr "Transaction cancelled and added to the history."
@@ -4185,3 +4158,807 @@ msgstr "Students by program"
 
 msgid "Taux = présents et retards face aux feuilles d’appel remplies."
 msgstr "Rate = present plus late over filled attendance sheets."
+
+msgid "Sons de notification"
+msgstr "Notification sounds"
+
+msgid "Activer ou couper les sons de notification"
+msgstr "Turn notification sounds on or off"
+
+msgid "Fermer cette notification"
+msgstr "Dismiss this notification"
+
+msgid "Tâches en attente"
+msgstr "Pending tasks"
+
+msgid "Voir les tâches en attente"
+msgstr "View pending tasks"
+
+msgid "À traiter"
+msgstr "To process"
+
+msgid "Notifications non lues"
+msgstr "Unread notifications"
+
+msgid "Tout marquer comme lu"
+msgstr "Mark all as read"
+
+msgid "Rien à traiter : tout est à jour."
+msgstr "Nothing to process: everything is up to date."
+
+msgid "Notification(s) marquée(s) comme lue(s)."
+msgstr "Notification(s) marked as read."
+
+msgid "Demandes d'accès à approuver"
+msgstr "Access requests to approve"
+
+msgid "Candidatures de bourse à instruire"
+msgstr "Scholarship applications to review"
+
+msgid "Écritures de caisse en brouillon"
+msgstr "Draft cash entries to post"
+
+msgid "Séances planifiées à saisir"
+msgstr "Planned sessions to fill in"
+
+msgid "Rôle hors de votre périmètre : un super administrateur doit statuer."
+msgstr "Role outside your scope: a super administrator must decide."
+
+msgid "%(mois)s %(annee)s est déjà réglé (%(ref)s)."
+msgstr "%(mois)s %(annee)s is already settled (%(ref)s)."
+
+msgid "%(mois)s : indiquez le montant encaissé."
+msgstr "%(mois)s: enter the amount collected."
+
+msgid ""
+"%(nb)s paiement(s) enregistré(s) · %(total)s FCFA encaissés · reste "
+"%(reste)s FCFA."
+msgstr ""
+"%(nb)s payment(s) recorded · %(total)s FCFA collected · %(reste)s FCFA "
+"remaining."
+
+msgid "Année du mois réglé"
+msgstr "Year of the settled month"
+
+msgid "Année précédente"
+msgstr "Previous year"
+
+msgid "Année réglée"
+msgstr "Settled year"
+
+msgid "Année suivante"
+msgstr "Next year"
+
+msgid "Autre paiement"
+msgstr "Other payment"
+
+msgid "Ce que la caisse sait déjà"
+msgstr "What the cash book already knows"
+
+msgid "Choisissez le dossier à encaisser."
+msgstr "Choose the file to collect."
+
+msgid ""
+"Choisissez un étudiant puis son dossier : la grille des douze mois s'affiche"
+" ici."
+msgstr ""
+"Choose a student, then their file: the twelve-month grid appears here."
+
+msgid "Cochez au moins un mois à encaisser."
+msgstr "Tick at least one month to collect."
+
+msgid ""
+"Cochez les mois réglés, ajustez si besoin, un paiement est créé par mois."
+msgstr ""
+"Tick the months paid, adjust if needed: one payment is created per month."
+
+msgid "Dossier de l'étudiant"
+msgstr "Student's file"
+
+msgid "Encaisser les mensualités — Univers Academy"
+msgstr "Collect the monthly payments — Univers Academy"
+
+msgid "Encaisser les mois cochés"
+msgstr "Collect the ticked months"
+
+msgid "Encaisser les mois d'un dossier"
+msgstr "Collect a file's months"
+
+msgid "Encaissé le %(d)s (%(r)s)"
+msgstr "Collected on %(d)s (%(r)s)"
+
+msgid "Frais d'inscription"
+msgstr "Registration fee"
+
+msgid "Frais d'inscription : indiquez le montant encaissé."
+msgstr "Registration fee: enter the amount collected."
+
+msgid "Le mois de %(mois)s %(annee)s est déjà réglé (%(ref)s)."
+msgstr "The month of %(mois)s %(annee)s is already settled (%(ref)s)."
+
+msgid "Le total dépasse le reste à payer (%(montant)s FCFA)."
+msgstr "The total exceeds the remaining balance (%(montant)s FCFA)."
+
+msgid "Les 12 mois"
+msgstr "All 12 months"
+
+msgid "Les frais d'inscription de ce dossier sont déjà encaissés."
+msgstr "This file's registration fee has already been collected."
+
+msgid ""
+"Les montants proposés viennent du dossier : net dû réparti sur la durée de "
+"la formation. Un mois déjà encaissé ne se recoche pas."
+msgstr ""
+"The suggested amounts come from the file: the net due spread over the length"
+" of the course. A month already collected cannot be ticked again."
+
+msgid "Mensualité"
+msgstr "Monthly payment"
+
+msgid ""
+"Mensualité : le paiement règle un mois précis. Frais d'inscription : "
+"versement unique à l'entrée en formation."
+msgstr ""
+"Monthly payment: the payment settles one specific month. Registration fee: a"
+" single payment on entry."
+
+msgid "Mensualité de %(m)s %(a)s"
+msgstr "Monthly payment of %(m)s %(a)s"
+
+msgid "Mois libre"
+msgstr "Open month"
+
+msgid "Mois réglé"
+msgstr "Settled month"
+
+msgid "Montant (FCFA)"
+msgstr "Amount (FCFA)"
+
+msgid "Motif du paiement"
+msgstr "Payment reason"
+
+msgid "Paiements par mois"
+msgstr "Payments by month"
+
+msgid "Précisez le mois que cette mensualité règle."
+msgstr "Specify the month this monthly payment settles."
+
+msgid "Réglé"
+msgstr "Settled"
+
+msgid "Suggestion du dossier : %(m)s FCFA."
+msgstr "File suggestion: %(m)s FCFA."
+
+msgid "Total coché :"
+msgstr "Ticked total:"
+
+msgid "Un seul paiement"
+msgstr "Single payment"
+
+msgid "Une seule fois par dossier"
+msgstr "Once per file only"
+
+msgid "août"
+msgstr "August"
+
+msgid "avril"
+msgstr "April"
+
+msgid "décembre"
+msgstr "December"
+
+msgid "février"
+msgstr "February"
+
+msgid "janvier"
+msgstr "January"
+
+msgid "juillet"
+msgstr "July"
+
+msgid "juin"
+msgstr "June"
+
+msgid "mai"
+msgstr "May"
+
+msgid "mars"
+msgstr "March"
+
+msgid "novembre"
+msgstr "November"
+
+msgid "octobre"
+msgstr "October"
+
+msgid "septembre"
+msgstr "September"
+
+msgid "À encaisser"
+msgstr "To collect"
+
+msgid "— Aucun —"
+msgstr "— None —"
+
+msgid "Assistant administratif"
+msgstr "Administrative assistant"
+
+msgid ""
+"Ce poste est dissous : attribuez « Assistant administratif », qui reprend "
+"l'accueil et la caisse."
+msgstr ""
+"This post has been dissolved: assign “Administrative assistant”, which now "
+"covers the front desk and the cash office."
+
+msgid ""
+"La validation d'une inscription est réservée à la direction, à l'assistant "
+"administratif, à la supervision pédagogique et au super administrateur."
+msgstr ""
+"Approving an enrollment is reserved for management, the administrative "
+"assistant, academic supervision and the super administrator."
+
+msgid "%(d)s droit(s) accordé(s) sur %(p)s poste(s) éditable(s)."
+msgstr "%(d)s right(s) granted across %(p)s editable post(s)."
+
+msgid ""
+"Chaque case accorde ou retire un droit pour tout un poste. Ce que la caisse "
+"peut faire se décide ici, plus dans le code."
+msgstr ""
+"Each cell grants or withdraws a right for a whole post. What the cash office"
+" may do is decided here, not in the code."
+
+msgid "Créer des utilisateurs"
+msgstr "Create users"
+
+msgid "Droit"
+msgstr "Right"
+
+msgid "Délivrer des certificats"
+msgstr "Issue certificates"
+
+msgid ""
+"Encaisser un paiement étudiant demande le droit « Saisir des paiements » : "
+"un super administrateur peut l'accorder à votre poste."
+msgstr ""
+"Recording a student payment requires the “Record payments” right: a super "
+"administrator can grant it to your post."
+
+msgid "Enregistrer la matrice"
+msgstr "Save the matrix"
+
+msgid "Enregistrer les entrées/sorties"
+msgstr "Log entries and exits"
+
+msgid "Examiner les candidatures bourse"
+msgstr "Review scholarship applications"
+
+msgid "Examiner les demandes d'accès"
+msgstr "Review access requests"
+
+msgid "Gérer les rôles"
+msgstr "Manage roles"
+
+msgid "Lire le journal d'audit"
+msgstr "Read the audit log"
+
+msgid "Lire le journal des entrées/sorties"
+msgstr "Read the entry/exit log"
+
+msgid "Lire les candidatures bourse"
+msgstr "Read scholarship applications"
+
+msgid "Lire les données financières"
+msgstr "Read financial data"
+
+msgid "Lire les dossiers étudiants"
+msgstr "Read student records"
+
+msgid "Lire les formations"
+msgstr "Read programmes"
+
+msgid "Lire les présences"
+msgstr "Read attendance"
+
+msgid "Lire les utilisateurs"
+msgstr "Read users"
+
+msgid ""
+"Matrice enregistrée : %(ajoute)s droit(s) accordé(s), %(retire)s retiré(s)."
+msgstr "Matrix saved: %(ajoute)s right(s) granted, %(retire)s withdrawn."
+
+msgid "Modifier des utilisateurs"
+msgstr "Edit users"
+
+msgid "Modifier les dossiers étudiants"
+msgstr "Edit student records"
+
+msgid "Modifier les formations"
+msgstr "Edit programmes"
+
+msgid "Permissions"
+msgstr "Permissions"
+
+msgid "Permissions — Univers Academy"
+msgstr "Permissions — Univers Academy"
+
+msgid "Rien n'a changé : la matrice est déjà à jour."
+msgstr "Nothing changed: the matrix is already up to date."
+
+msgid "Saisir des paiements"
+msgstr "Record payments"
+
+msgid "Saisir les présences"
+msgstr "Record attendance"
+
+msgid ""
+"Super administrateur et administrateur consultent tous les modules par "
+"construction : leurs cases restent fermées à l'édition."
+msgstr ""
+"The super administrator and the administrator read every module by design: "
+"their cells stay out of reach here."
+
+msgid "accès complet"
+msgstr "full access"
+
+msgid "Inscription validée et compte étudiant approuvé."
+msgstr "Enrollment validated and student account approved."
+
+msgid "Photo non enregistrée : %(erreur)s"
+msgstr "Profile photo not saved: %(erreur)s"
+
+msgid "Photo de %(name)s"
+msgstr "Photo of %(name)s"
+
+msgid "Changer de mot de passe"
+msgstr "Change your password"
+
+msgid "Confirmer le nouveau mot de passe"
+msgstr "Confirm new password"
+
+msgid "Enregistrer le mot de passe"
+msgstr "Save the password"
+
+msgid "Les deux mots de passe ne correspondent pas."
+msgstr "The two passwords do not match."
+
+msgid "Minimum 8 caractères, ni trop simple, ni numérique seul."
+msgstr "At least 8 characters, not too simple, not digits only."
+
+msgid "Mot de passe actuel incorrect."
+msgstr "Current password is incorrect."
+
+msgid "Mot de passe modifié."
+msgstr "Password changed."
+
+msgid "Nouveau mot de passe"
+msgstr "New password"
+
+msgid ""
+"Vos informations personnelles, votre photo, votre mot de passe et votre "
+"adresse e-mail."
+msgstr "Your personal information, photo, password and email address."
+
+msgid ""
+"Vous restez connecté sur cet appareil ; le nouveau mot de passe sert à la "
+"prochaine connexion."
+msgstr ""
+"You stay signed in on this device; the new password is used at the next "
+"sign-in."
+
+msgid "Le paiement ne peut pas être daté après aujourd'hui (%(jour)s)."
+msgstr "The payment cannot be dated after today (%(jour)s)."
+
+msgid "Administrer"
+msgstr "Manage"
+
+msgid ""
+"Ajustement %(reference)s enregistré : solde de %(avant)s à %(apres)s "
+"%(devise)s."
+msgstr ""
+"Adjustment %(reference)s recorded: balance from %(avant)s to %(apres)s "
+"%(devise)s."
+
+msgid "Ajustement de solde"
+msgstr "Balance adjustment"
+
+msgid "Ajuster le solde"
+msgstr "Adjust the balance"
+
+msgid "Archivé le"
+msgstr "Archived on"
+
+msgid "Aucun événement d’audit pour ce compte."
+msgstr "No audit event for this account."
+
+msgid ""
+"Aucune écriture n’est supprimée : la caisse est ramenée à zéro par une "
+"écriture contraire, datée du jour, et tout l’historique reste consultable."
+msgstr ""
+"No entry is deleted: the cash account is brought back to zero by a reversing"
+" entry dated today, and the whole history stays available."
+
+msgid "Aucune écriture sur ce compte."
+msgstr "No entry on this account."
+
+msgid "Baisser le solde"
+msgstr "Lower the balance"
+
+msgid "Brouillons en attente"
+msgstr "Drafts pending"
+
+msgid "Brouillons non rapprochés"
+msgstr "Unreconciled drafts"
+
+msgid "Ce que la remise à zéro emporte"
+msgstr "What the reset takes away"
+
+msgid ""
+"Cette caisse a encore un solde ou des brouillons : désignez le compte qui "
+"les reprend."
+msgstr ""
+"This cash account still holds a balance or drafts: name the account that "
+"will take them over."
+
+msgid "Cette caisse est déjà à zéro : rien à réinitialiser."
+msgstr "This cash account is already at zero: nothing to reset."
+
+msgid "Compte actif"
+msgstr "Active account"
+
+msgid "Compte de remplacement"
+msgstr "Replacement account"
+
+msgid "Compte financier"
+msgstr "Financial account"
+
+msgid "Compte introuvable ou fermé : choisissez une caisse encore ouverte."
+msgstr ""
+"Account not found or closed: choose a cash account that is still open."
+
+msgid "Compte « %(nom)s » mis à jour."
+msgstr "Account “%(nom)s” updated."
+
+msgid "Confirmer la réinitialisation"
+msgstr "Confirm the reset"
+
+msgid "Créations et réglages du compte enregistrés dans le journal d’audit."
+msgstr "Account creations and settings are recorded in the audit log."
+
+msgid "Dernière clôture"
+msgstr "Last closing"
+
+msgid "Disponible pour une sortie"
+msgstr "Available for an outgoing payment"
+
+msgid "Découvert autorisé"
+msgstr "Allowed overdraft"
+
+msgid "Enregistrer l’ajustement"
+msgstr "Record the adjustment"
+
+msgid "Inactif"
+msgstr "Inactive"
+
+msgid "Indiquez le montant de l’ajustement."
+msgstr "Enter the amount of the adjustment."
+
+msgid ""
+"Je confirme : le solde sera ramené à zéro par une écriture de "
+"régularisation, et l’historique restera consultable."
+msgstr ""
+"I confirm: the balance will be brought back to zero by a regularizing entry,"
+" and the history will stay available."
+
+msgid ""
+"La devise d'un compte qui a déjà des écritures ne change pas : ouvrez un "
+"second compte et archivez le premier."
+msgstr ""
+"The currency of an account that already has entries does not change: open a "
+"second account and archive the first one."
+
+msgid "La réinitialisation d’une caisse demande une confirmation explicite."
+msgstr "Resetting a cash account requires explicit confirmation."
+
+msgid ""
+"Le nom sert de clé aux reprises du journal et le solde d’ouverture ne se "
+"réécrit pas : pour corriger un solde, utilisez l’ajustement tracé."
+msgstr ""
+"The name is the key used when the journal is replayed, and the opening "
+"balance is never rewritten: to correct a balance, use the traced adjustment."
+
+msgid ""
+"Lever un découvert exceptionnel est réservé au super administrateur : le "
+"découvert reste interdit par défaut."
+msgstr ""
+"Granting an exceptional overdraft is reserved for the super administrator: "
+"overdraft remains forbidden by default."
+
+msgid "Motif de la réinitialisation"
+msgstr "Reason for the reset"
+
+msgid "Motif de l’ajustement"
+msgstr "Reason for the adjustment"
+
+msgid "Nom du compte"
+msgstr "Account name"
+
+msgid "Relever le solde"
+msgstr "Raise the balance"
+
+msgid "Retour au compte"
+msgstr "Back to account"
+
+msgid "Retour aux comptes"
+msgstr "Back to accounts"
+
+msgid "Régler le compte"
+msgstr "Account settings"
+
+msgid "Réinitialisation"
+msgstr "Reset"
+
+msgid ""
+"Réinitialisation %(reference)s enregistrée : %(solde)s %(devise)s emportés, "
+"%(brouillons)s brouillon(s) non rapproché(s)."
+msgstr ""
+"Reset %(reference)s recorded: %(solde)s %(devise)s carried away, "
+"%(brouillons)s unreconciled draft(s)."
+
+msgid "Réinitialisation de la caisse"
+msgstr "Cash account reset"
+
+msgid "Réinitialiser la caisse"
+msgstr "Reset the cash account"
+
+msgid "Sens de l’ajustement"
+msgstr "Direction of the adjustment"
+
+msgid "Situation"
+msgstr "Account situation"
+
+msgid "Solde actuel : %(s)s %(d)s"
+msgstr "Current balance: %(s)s %(d)s"
+
+msgid "Solde après"
+msgstr "Balance after"
+
+msgid "Solde avant"
+msgstr "Balance before"
+
+msgid "Solde d’ouverture"
+msgstr "Opening balance"
+
+msgid ""
+"Solde insuffisant sur « %(caisse)s » : cette écriture laisserait un "
+"découvert de %(creux)s %(devise)s (découvert autorisé : %(plafond)s). "
+"Enregistrez d’abord la recette qui alimente ce compte."
+msgstr ""
+"Insufficient balance on “%(caisse)s”: this entry would leave an overdraft of"
+" %(creux)s %(devise)s (allowed overdraft: %(plafond)s). First record the "
+"income that funds this account."
+
+msgid "Type de compte"
+msgstr "Account type"
+
+msgid ""
+"Un ajustement n’est ni une recette ni une dépense : c’est la correction "
+"assumée d’un solde. Il est écrit dans le journal, motivé, et reste "
+"consultable dans l’historique du compte."
+msgstr ""
+"An adjustment is neither income nor expense: it is an acknowledged "
+"correction of a balance. It is written to the journal, with its reason, and "
+"stays available in the account history."
+
+msgid "Un ajustement porte un montant non nul."
+msgstr "An adjustment carries a non-zero amount."
+
+msgid "Un motif est obligatoire pour ajuster un solde."
+msgstr "A reason is required to adjust a balance."
+
+msgid "Un motif est obligatoire pour réinitialiser une caisse."
+msgstr "A reason is required to reset a cash account."
+
+msgid "Un transfert doit changer de compte."
+msgstr "A transfer must change account."
+
+msgid ""
+"Une sortie peut descendre jusqu’à %(a)s %(d)s : le découvert autorisé du "
+"compte est compris dans ce chiffre."
+msgstr ""
+"An outgoing payment may go as low as %(a)s %(d)s: the allowed overdraft of "
+"the account is included in that figure."
+
+msgid "Écriture ordinaire"
+msgstr "Ordinary entry"
+
+msgid "Écritures comptabilisées"
+msgstr "Entries accounted for"
+
+msgid "État du compte"
+msgstr "Account status"
+
+msgid "— aucun —"
+msgstr "— none —"
+
+msgid ""
+"Brouillons encore en attente sur ce compte : %(n)s. Validez-les ou jetez-les"
+" avant la remise à zéro."
+msgstr ""
+"Drafts still pending on this account: %(n)s. Validate or discard them before"
+" the reset."
+
+msgid ""
+"Brouillons non validés sur ce compte : %(n)s. Un ajustement ne les rapproche"
+" pas."
+msgstr ""
+"Unvalidated drafts on this account: %(n)s. An adjustment does not reconcile "
+"them."
+
+msgid "Aucun événement d’audit pour cette catégorie."
+msgstr "No audit event for this category."
+
+msgid "Aucune catégorie."
+msgstr "No category."
+
+msgid "Catégorie active"
+msgstr "Active category"
+
+msgid "Catégorie du journal"
+msgstr "Journal category"
+
+msgid "Catégorie « %(nom)s » créée."
+msgstr "Category “%(nom)s” created."
+
+msgid "Catégorie « %(nom)s » mise à jour."
+msgstr "Category “%(nom)s” updated."
+
+msgid "Catégories"
+msgstr "Categories"
+
+msgid "Catégories du journal"
+msgstr "Journal categories"
+
+msgid "Catégories du journal — Univers Academy"
+msgstr "Journal categories — Univers Academy"
+
+msgid ""
+"Chaque écriture est rangée par sens : entrée, sortie ou transfert. Une "
+"catégorie qui ne sert plus se désactive, elle ne se supprime pas."
+msgstr ""
+"Every entry is filed by direction: income, expense or transfer. A category "
+"that is no longer used is deactivated, never deleted."
+
+msgid ""
+"Créations et réglages de la catégorie enregistrés dans le journal d’audit."
+msgstr "Category creations and settings are recorded in the audit log."
+
+msgid "Désactivée"
+msgstr "Deactivated"
+
+msgid ""
+"Le sens d'une catégorie ne change plus une fois créée : il classe les "
+"écritures déjà comptabilisées."
+msgstr ""
+"A category keeps its direction once it is created: it files the entries "
+"already accounted for."
+
+msgid ""
+"Le sens reste fixé : le changer ferait basculer des écritures déjà "
+"comptabilisées d’un côté du journal à l’autre. Désactiver une catégorie la "
+"retire des listes de saisie sans toucher à son passé."
+msgstr ""
+"The direction stays fixed: changing it would move entries already accounted "
+"for from one side of the journal to the other. Deactivating a category only "
+"takes it out of the entry lists, leaving its past untouched."
+
+msgid "Nom de la catégorie"
+msgstr "Category name"
+
+msgid "Nouvelle catégorie"
+msgstr "New category"
+
+msgid "Retour aux catégories"
+msgstr "Back to categories"
+
+msgid "Régler"
+msgstr "Manage"
+
+msgid "Régler la catégorie"
+msgstr "Category settings"
+
+msgid "Sens"
+msgstr "Direction"
+
+msgid "Sens des montants"
+msgstr "Direction of amounts"
+
+msgid "Écritures"
+msgstr "Entries"
+
+msgid "Écritures classées"
+msgstr "Filed entries"
+
+msgid "Ce qui ne se change pas ici"
+msgstr "What does not change here"
+
+msgid "Correction d'une écriture de caisse"
+msgstr "Correction of a cash entry"
+
+msgid "Corriger l'écriture"
+msgstr "Correct the entry"
+
+msgid "Enregistrer la correction"
+msgstr "Save the correction"
+
+msgid "Indiquez le montant corrigé."
+msgstr "Enter the corrected amount."
+
+msgid "La date doit être au format jj/mm/aaaa hh:mm."
+msgstr "The date must use the format dd/mm/yyyy hh:mm."
+
+msgid ""
+"Le motif est obligatoire : il reste attaché à la ligne corrigée et se relit "
+"dans le journal d'audit."
+msgstr ""
+"The reason is required: it stays attached to the corrected line and is read "
+"again in the audit log."
+
+msgid "Motif de la correction"
+msgstr "Reason for the correction"
+
+msgid "Rectifier l'écriture"
+msgstr "Rectify the entry"
+
+msgid "Retour à l'opération"
+msgstr "Back to the operation"
+
+msgid "Sens de l'écriture"
+msgstr "Direction of the entry"
+
+msgid "Solde du compte"
+msgstr "Account balance"
+
+msgid "Un motif est obligatoire pour corriger une écriture."
+msgstr "A reason is required to correct an entry."
+
+msgid "Une écriture annulée ne se corrige pas : son historique est clos."
+msgstr "A cancelled entry is not corrected: its history is closed."
+
+msgid ""
+"Une écriture mise sur la mauvaise caisse s'annule puis se ressaisit à côté :"
+" les deux lignes restent visibles et le journal garde sa suite."
+msgstr ""
+"An entry posted to the wrong cash account is cancelled and re-entered on the"
+" right one: both lines stay visible and the journal keeps its sequence."
+
+msgid "Une écriture porte un montant non nul."
+msgstr "An entry carries a non-zero amount."
+
+msgid "Écriture %(reference)s corrigée."
+msgstr "Entry %(reference)s corrected."
+
+msgid ""
+"Je confirme cette sortie malgré l’avertissement sur le solde disponible."
+msgstr ""
+"I confirm this payout despite the warning about the available balance."
+
+msgid "Je confirme cette baisse de solde malgré l’avertissement."
+msgstr "I confirm this decrease in the balance despite the warning."
+
+msgid "Cochez la case pour valider cette sortie malgré l’avertissement."
+msgstr "Tick the box to approve this payout despite the warning."
+
+msgid "%(nom)s — disponible %(disponible)s %(devise)s"
+msgstr "%(nom)s — available %(disponible)s %(devise)s"
+
+msgid "Solde disponible par caisse"
+msgstr "Available balance by account"
+
+msgid "Solde disponible"
+msgstr "Available balance"
+
+msgid "Solde épuisé"
+msgstr "Balance exhausted"
+
+msgid "Aucun fonds disponible"
+msgstr "No funds available"

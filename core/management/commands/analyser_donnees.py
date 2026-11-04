@@ -73,7 +73,7 @@ class Command(BaseCommand):
             "# Rapport d'analyse des classeurs déposés dans `docs/donnees`",
             '',
             f"Généré le {dt.datetime.now():%d/%m/%Y à %H:%M} par `manage.py analyser_donnees`. "
-            "**Lecture seule : aucune ligne n'a été écrite en base.**",
+            "**Lecture seule : cette commande n'écrit rien en base.**",
             '',
         ]
         rapport = '\n'.join(en_tete + sections) + '\n'
@@ -457,6 +457,8 @@ class Command(BaseCommand):
                     date, statut = outils.parse_date(cellule(ligne, 'date'))
                     fiches.append({
                         'classeur': nom, 'ligne': ligne_no, 'complet': complet,
+                        'nom': outils.normaliser_texte(cellule(ligne, 'nom')),
+                        'prenom': outils.normaliser_texte(cellule(ligne, 'prenom')),
                         'cle': outils.cle_personne(complet),
                         'telephone': outils.normaliser_texte(cellule(ligne, 'telephone')),
                         'email': outils.normaliser_texte(cellule(ligne, 'email')),
@@ -700,19 +702,26 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     def _section_etat_base(self):
         cours = ', '.join(self._titres_catalogue())
+        importees = Enrollment.objects.filter(notes__contains=programme.MARQUE)
+        paye = sum(p.amount for p in Payment.objects.filter(
+            enrollment__in=importees))
+        saisies = Enrollment.objects.count() - importees.count()
         return '\n'.join([
             '## 7. Ce que contient déjà l\'application',
             '',
             f'- Catalogue : {Course.objects.count()} formations — {cours}.',
             f'- Comptes : {User.objects.count()} utilisateurs, dont '
             f'{User.objects.filter(roles__key="ETUDIANT").distinct().count()} étudiants.',
-            f'- {Enrollment.objects.count()} inscriptions et {Payment.objects.count()} paiements '
-            f'enregistrés.',
+            f'- {importees.count()} inscriptions venues des classeurs, '
+            f'{f"{paye:,} FCFA".replace(",", " ")} encaissés, marquées « {programme.MARQUE} ».',
+            (f'- {saisies} inscription(s) restée(s) saisie(s) dans l\'application.'
+             if saisies else
+             '- Rien de ce qui avait été saisi dans l\'application avant les classeurs n\'est resté.'),
             '',
-            'Ces lignes viennent des données de démonstration : noms, tarifs et volumes n\'ont '
-            'rien à voir avec les classeurs. Elles sont conservées telles quelles tant qu\'aucun '
-            'accord explicite n\'est donné, mais elles fausseront les totaux affichés aux '
-            'tableaux de bord tant qu\'elles cohabiteront avec les vraies fiches.',
+            'Les lignes venues des classeurs se reconnaissent à leur marque : une commande '
+            '`importer_etudiants` relancée les retrouve et ne les duplique pas. Une ligne sans '
+            'marque est une écriture de l\'application : elle ne bouge que si l\'opérateur donne '
+            '`--efface`, après une copie de `db.sqlite3` dans `backups/`.',
             '',
         ])
 
@@ -847,38 +856,48 @@ class Command(BaseCommand):
         })
         fiches = [f for f in self.base['lignes'] if f['complet']]
         return '\n'.join([
-            '## 10. Décisions attendues avant la première écriture en base',
+            '## 10. Décisions, vague par vague',
             '',
-            f'1. **Démonstration en base** : {Enrollment.objects.count()} inscriptions et '
-            f'{Payment.objects.count()} paiements de test sont à masquer, décision du 02/11/2026 — '
-            'rien ne sera supprimé. Le mécanisme reste à valider, car quatre de ces lignes portent '
-            "des adresses qui ne ressemblent pas à du jeu d'essai : elles se lisent dans le "
-            'tableau des inscriptions de la caisse, pas dans ce programme. Les masquer effacerait '
-            'de vraies écritures des tableaux de bord.',
+            f'1. **Démonstration en base** : accord du 02/11/2026 pour effacer ce que l\'application '
+            'contenait avant les classeurs. `manage.py importer_etudiants --ecrire --efface` supprime '
+            'les dossiers, paiements et entrées de caisse qui ne portent pas la marque de l\'import ; '
+            'les sorties de caisse, les comptes et le catalogue restent. Une copie de `db.sqlite3` '
+            'dans `backups/` est exigée avant l\'écriture.',
             (f'2. **{len(a_creer)} formations à créer** : {", ".join(a_creer)}. Rien n\'a été '
              'écrit pour elles.' if a_creer else
              '2. **Formations** : acquises — 13 lignes créées le 02/11/2026 par '
              '`manage.py importer_formations` (9 mois, mensualité lue dans les encaissements de '
-             'l\'onglet, de 20 000 à 35 000 FCFA). Les 4 intitulés de promotion deviennent des '
-             'groupes (`CourseSession`) à la vague des inscriptions.'),
-            f'3. **Identité des élèves** : les fiches individuelles ({len(fiches)}) ne couvrent '
-            'pas tous les noms des onglets. Les comptes manquants seraient créés sans e-mail '
-            'ni mot de passe, marqués « dossier incomplet », à finir par le secrétariat.',
+             'l\'onglet, bornée à la bande 20 000–25 000 FCFA). Les intitulés de promotion deviennent '
+             'des groupes (`CourseSession`) à la vague des inscriptions.'),
+            (f'3. **Identité des élèves** : {len(fiches)} lignes de fiches individuelles pour les '
+             'noms des onglets ; les comptes sans adresse reçoivent une adresse de repli '
+             '« @sans-adresse.local » que le secrétariat remplace. Aucun mot de passe : '
+             'la connexion reste à ouvrir par l\'école.'
+             if Enrollment.objects.filter(notes__contains=programme.MARQUE).exists() else
+             '3. **Identité des élèves** : les fiches individuelles ne couvrent '
+             'pas tous les noms des onglets. Les comptes manquants seraient créés sans e-mail '
+             'ni mot de passe, marqués « dossier incomplet », à finir par le secrétariat.'),
             '4. **Un élève, plusieurs formations** : une inscription par onglet, donc plusieurs '
             "dossiers pour un même compte ; aucun tarif déjà encaissé n'est retouché.",
-            '5. **Source des paiements** : le journal de caisse (section 2) est retenu ; les '
-            'feuilles de contrôle mensuel (section 8) sont le même argent et ne seront pas '
-            'repassées. Les cases ambiguës resteront non saisies, avec une liste à régulariser.',
+            '5. **Source des paiements** : la vague 2 retient les cases des onglets de suivi '
+            '(frais d\'inscription et mensualités réellement saisis). Le journal de caisse '
+            '(section 2) sera comparé à part : les feuilles de contrôle mensuel (section 8) sont '
+            'le même argent et ne seront pas repassées. Les cases ambiguës restent non saisies, '
+            'avec une liste à régulariser.',
             '6. **Mois et années** : dans les onglets, les colonnes ne portent que le nom du '
             'mois ; l\'année est déduite de la date d\'inscription. Le journal, lui, indique '
-            '« Mois payé » et « De l\'année » : c\'est lui qui fera foi.',
+            '« Mois payé » et « De l\'année » : c\'est lui qui fera foi à la réconciliation.',
             '7. **Orthographe de la marque** : les documents écrivent « UNIVERSE ACADEMY », '
             'l\'interface « Univers Academy ». Confirmer le nom à afficher.',
             '8. **Equipe Romard** : sans lien avec l\'école ; à écarter.',
+            '9. **Registre des anciens et « FRANCAIS »** : 26 lignes du registre des anciens et '
+            'l\'onglet FRANCAIS sont écartés faute d\'appariement certain avec le catalogue ; '
+            'une décision de la direction les ferait entrer.',
             '',
             'Import par vagues, une copie de `db.sqlite3` dans `backups/` avant chacune. '
-            '**Vague 1 (formations) écrite le 02/11/2026.** Restent : étudiants → inscriptions '
-            'et groupes → paiements → opérations de caisse. Les points 1, 3, 5, 6 et 7 sont '
-            'tranchés côté classeurs ; le point 1 attend un mécanisme, le point 7 une réponse.',
+            '**Vague 1 (formations) et vague 2 (élèves, groupes, inscriptions, encaissements) '
+            'écrites le 02/11/2026.** Reste : la réconciliation avec le journal de caisse. Les '
+            'points 1 à 3 et 9 sont tranchés côté écriture ; les points 5, 6, 7 et 8 attendent '
+            'une réponse de la direction.',
             '',
         ])
