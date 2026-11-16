@@ -1,14 +1,32 @@
 import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv('SECRET_KEY', 'insecure-dev-key')
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-local-development-only'
+    else:
+        raise ImproperlyConfigured(
+            'SECRET_KEY must be configured with a unique value in production.'
+        )
+if not DEBUG and (
+    len(SECRET_KEY) < 50
+    or 'change-me' in SECRET_KEY.lower()
+    or 'replace-with' in SECRET_KEY.lower()
+    or SECRET_KEY.startswith('django-insecure-')
+):
+    raise ImproperlyConfigured(
+        'SECRET_KEY must be a unique, strong value in production.'
+    )
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+GA4_MEASUREMENT_ID = os.getenv('GA4_MEASUREMENT_ID', '').strip()
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -48,6 +66,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.user_profile_context',
                 'core.context_processors.plateforme_context',
+                'core.context_processors.analytics_context',
             ],
         },
     },
@@ -109,9 +128,19 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@univers-academy.com')
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost', 'http://127.0.0.1', 'http://localhost:8000']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://localhost:8000',
+] + [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
 CSRF_COOKIE_HTTPONLY = False
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
@@ -120,6 +149,17 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_SSL_REDIRECT = True
+    # Derrière le proxy de PythonAnywhere (comme de tout hébergeur classique),
+    # le vrai schéma arrive dans X-Forwarded-Proto : sans cette ligne Django
+    # croirait servir du HTTP et bouclerait sur la redirection SSL.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+else:
+    SECURE_SSL_REDIRECT = False
+    SECURE_HSTS_SECONDS = 0
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
