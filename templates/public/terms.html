@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Conditions générales" %} — {{ plateforme.nom }}{% endblock %}
+{% block meta_description %}Conditions générales d’utilisation de la plateforme {{ plateforme.nom }}.{% endblock %}
+{% block social_title %}{% translate "Conditions générales" %} — {{ plateforme.nom }}{% endblock %}
+{% block twitter_title %}{% translate "Conditions générales" %} — {{ plateforme.nom }}{% endblock %}
+
+{% block body %}
+<main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+    <a href="{% url 'core:home' %}" class="text-sm font-medium text-blue-800 underline">{% translate "Retour à l’accueil" %}</a>
+    <h1 class="mt-6 text-3xl font-bold tracking-tight text-slate-900">{% translate "Conditions générales d’utilisation" %}</h1>
+
+    <p class="mt-5 rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm font-medium text-amber-950">
+        {% translate "Brouillon à valider avant publication : l’entité éditrice, le pays et la juridiction compétente n’ont pas encore été confirmés." %}
+    </p>
+
+    <div class="mt-8 space-y-7 text-sm leading-6 text-slate-700">
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Objet et accès au service" %}</h2>
+            <p class="mt-2">{{ plateforme.nom }} fournit une plateforme de gestion académique et de formation. L’accès à un compte peut être soumis à validation par l’établissement. Chaque utilisateur est responsable de la confidentialité de ses identifiants et doit signaler toute utilisation non autorisée.</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Utilisation acceptable" %}</h2>
+            <p class="mt-2">{% translate "L’utilisateur s’engage à fournir des informations exactes, à respecter les droits des autres utilisateurs et à ne pas perturber le service, contourner les contrôles d’accès ou transmettre de contenu illicite ou malveillant." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Candidatures et contenus" %}</h2>
+            <p class="mt-2">{% translate "Une candidature ou une demande d’accès ne garantit ni l’admission ni l’attribution d’une bourse. L’utilisateur doit transmettre des documents exacts et disposer des droits nécessaires sur les contenus qu’il dépose." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Disponibilité et évolution" %}</h2>
+            <p class="mt-2">{% translate "L’établissement met en œuvre des moyens raisonnables pour maintenir le service, sans garantir une disponibilité continue. Des interruptions peuvent être nécessaires pour la maintenance, la sécurité ou l’évolution de la plateforme." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Contact et droit applicable" %}</h2>
+            <p class="mt-2">{% translate "Pour toute question, contactez l’établissement à" %} <a class="font-medium text-blue-800 underline" href="mailto:{{ plateforme.email }}">{{ plateforme.email|default:_("l’adresse de contact de l’établissement") }}</a>. {% translate "Le droit applicable et les modalités de règlement des litiges restent à préciser et doivent être validés par l’entité éditrice." %}</p>
+        </section>
+
+        <p class="border-t border-slate-200 pt-5 text-xs text-slate-600">{% translate "Ce modèle doit être vérifié et adapté avant d’être considéré comme un document contractuel." %}</p>
+    </div>
+</main>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Politique de confidentialité" %} — {{ plateforme.nom }}{% endblock %}
+{% block meta_description %}Politique de confidentialité de {{ plateforme.nom }} : données traitées, cookies et droits des utilisateurs.{% endblock %}
+{% block social_title %}{% translate "Politique de confidentialité" %} — {{ plateforme.nom }}{% endblock %}
+{% block twitter_title %}{% translate "Politique de confidentialité" %} — {{ plateforme.nom }}{% endblock %}
+
+{% block body %}
+<main class="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
+    <a href="{% url 'core:home' %}" class="text-sm font-medium text-blue-800 underline">{% translate "Retour à l’accueil" %}</a>
+    <h1 class="mt-6 text-3xl font-bold tracking-tight text-slate-900">{% translate "Politique de confidentialité" %}</h1>
+
+    <p class="mt-5 rounded-lg border border-amber-400 bg-amber-50 p-4 text-sm font-medium text-amber-950">
+        {% translate "Brouillon à valider avant publication : l’identité légale du responsable, la juridiction applicable et les durées de conservation doivent être confirmées." %}
+    </p>
+
+    <div class="mt-8 space-y-7 text-sm leading-6 text-slate-700">
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Responsable du traitement" %}</h2>
+            <p class="mt-2">{{ plateforme.nom }}. Adresse affichée : {{ plateforme.adresse|default:_("à compléter") }}. Contact : {{ plateforme.email|default:_("à compléter") }}. La dénomination légale et les coordonnées du responsable restent à confirmer.</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Données et finalités" %}</h2>
+            <p class="mt-2">{% translate "La plateforme traite les informations de compte et de contact, les données nécessaires au suivi pédagogique et administratif, ainsi que les informations et pièces transmises dans le cadre des candidatures à une bourse. Ces données servent à gérer les accès, les formations, les demandes, la sécurité et le fonctionnement du service." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Cookies et mesure d’audience" %}</h2>
+            <p class="mt-2">{% translate "Les cookies de session, de sécurité et de langue sont nécessaires au fonctionnement du site. Google Analytics est désactivé par défaut et ne se charge qu’après votre accord explicite via le bandeau de consentement. Vous pouvez modifier votre choix à tout moment avec le bouton « Préférences cookies »." %}</p>
+            <p class="mt-2">{% translate "Sans identifiant de mesure d’audience configuré, aucun script Google Analytics n’est chargé, même si vous acceptez." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Conservation et destinataires" %}</h2>
+            <p class="mt-2">{% translate "Les données sont accessibles aux personnes habilitées selon leurs fonctions. Elles sont conservées pendant la durée nécessaire à la gestion des services et aux obligations applicables ; les durées précises et les modalités d’archivage doivent être définies par l’établissement avant publication." %}</p>
+        </section>
+
+        <section>
+            <h2 class="text-lg font-semibold text-slate-900">{% translate "Vos droits et contact" %}</h2>
+            <p class="mt-2">{% translate "Selon la législation applicable, vous pouvez demander l’accès, la rectification ou la suppression de vos données, ou vous opposer à certains traitements. Adressez votre demande à" %} <a class="font-medium text-blue-800 underline" href="mailto:{{ plateforme.email }}">{{ plateforme.email|default:_("l’adresse de contact de l’établissement") }}</a>. {% translate "Les droits applicables et le délai de réponse doivent être vérifiés au regard de la juridiction retenue." %}</p>
+        </section>
+
+        <p class="border-t border-slate-200 pt-5 text-xs text-slate-600">{% translate "Cette page est un modèle d’information et ne constitue pas un avis juridique." %}</p>
+    </div>
+</main>
+{% endblock %}

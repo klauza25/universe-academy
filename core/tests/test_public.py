@@ -1,5 +1,6 @@
 """Tests des pages publiques, de la connexion locale et de l'inscription."""
 from django.urls import reverse
+from django.test import override_settings
 
 from core.models import (
     AccessRequest, AccountStatus, AuditLog, RoleKey, User,
@@ -12,6 +13,32 @@ class PublicPagesTests(BusinessTestBase):
     def test_landing_page_accessible_anonymously(self):
         response = self.client.get(reverse('core:home'))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'property="og:image"')
+        self.assertContains(response, 'id="cookie-consent"')
+        self.assertContains(response, 'href="/static/img/favicon.svg"')
+
+    def test_legal_pages_are_public_and_linked(self):
+        privacy = self.client.get(reverse('core:privacy'))
+        terms = self.client.get(reverse('core:terms'))
+        self.assertEqual(privacy.status_code, 200)
+        self.assertEqual(terms.status_code, 200)
+        self.assertContains(privacy, 'Brouillon à valider avant publication')
+        self.assertContains(terms, 'Conditions générales d’utilisation')
+
+    def test_robots_and_sitemap_expose_only_public_routes(self):
+        robots = self.client.get(reverse('core:robots'))
+        sitemap = self.client.get(reverse('core:sitemap'))
+        self.assertContains(robots, 'Sitemap:')
+        self.assertContains(robots, 'Disallow: /dashboard/')
+        self.assertContains(sitemap, reverse('core:privacy'))
+        self.assertContains(sitemap, reverse('core:terms'))
+        self.assertNotContains(sitemap, '/dashboard/')
+
+    @override_settings(DEBUG=False)
+    def test_custom_404_page_is_rendered(self):
+        response = self.client.get('/page-inexistante/')
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, 'Retour à l’accueil', status_code=404)
 
     def test_login_page_contains_local_form(self):
         response = self.client.get(reverse('core:login'))
@@ -114,6 +141,20 @@ class LocalLoginTests(BusinessTestBase):
 
 
 class RegistrationTests(BusinessTestBase):
+    def test_registration_honeypot_rejects_automated_submission(self):
+        response = self.client.post(reverse('core:register'), {
+            'first_name': 'Robot',
+            'last_name': 'Test',
+            'email': 'robot@test.local',
+            'requested_role': RoleKey.FORMATEUR,
+            'password': 'RobotPass123!',
+            'password_confirm': 'RobotPass123!',
+            'website': 'https://spam.example',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Le formulaire a été rejeté.')
+        self.assertFalse(User.objects.filter(email='robot@test.local').exists())
+
     def test_register_creates_pending_account_and_access_request(self):
         response = self.client.post(reverse('core:register'), {
             'first_name': 'Nadia',

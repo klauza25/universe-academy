@@ -241,8 +241,14 @@ class ClocheRappelTest(BusinessTestBase):
 
         reponse = client.get(url)
         self.assertEqual(reponse.status_code, 200)
-        self.assertNotEqual(reponse.json()['event_cursor'], avant)
-        self.assertEqual(reponse.json()['total'], 1)
+        etat = reponse.json()
+        self.assertNotEqual(etat['event_cursor'], avant)
+        self.assertEqual(etat['total'], 1)
+        self.assertEqual(etat['tasks'][0]['count'], 1)
+        self.assertEqual(
+            etat['tasks'][0]['url'],
+            reverse('core:dashboard:access-requests'),
+        )
 
     def test_une_demande_declenche_le_sondage_sur_tous_les_dashboards(self):
         client = self.client_for(self.assistant)
@@ -267,6 +273,19 @@ class ClocheRappelTest(BusinessTestBase):
         etat = client.get(url).json()
         self.assertNotEqual(etat['event_cursor'], avant)
         self.assertEqual(etat['total'], 0)
+
+    def test_le_sondage_renvoie_seulement_les_notifications_du_compte(self):
+        self.notification(self.assistant)
+        self.notification(self.etudiant)
+
+        etat = self.client_for(self.assistant).get(
+            reverse('core:dashboard:notifications-poll'),
+        ).json()
+
+        self.assertEqual(len(etat['notifications']), 1)
+        self.assertEqual(etat['notifications'][0]['title'], 'Compte approuvé')
+        self.assertEqual(etat['notifications'][0]['message'],
+                         'Votre compte vient d’être activé.')
 
     def test_le_sondage_est_reserve_aux_comptes_actifs(self):
         reponse = self.client.get(

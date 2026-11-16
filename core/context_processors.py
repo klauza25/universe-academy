@@ -79,3 +79,9 @@ def plateforme_context(request):
     from . import parametres
 
     return {'plateforme': parametres.ligne()}
+
+
+def analytics_context(request):
+    from django.conf import settings
+
+    return {'analytics_measurement_id': settings.GA4_MEASUREMENT_ID}

@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from . import (
-    views, views_accueil, views_comptabilite, views_pedagogie,
+    views, views_legal, views_accueil, views_comptabilite, views_pedagogie,
     views_profile, views_reglages, views_secretariat, views_supervision,
 )
 
@@ -9,6 +9,10 @@ app_name = 'core'
 
 public_urlpatterns = [
     path('', views.home, name='home'),
+    path('confidentialite/', views_legal.privacy_policy, name='privacy'),
+    path('conditions-generales/', views_legal.terms_of_service, name='terms'),
+    path('robots.txt', views_legal.robots_txt, name='robots'),
+    path('sitemap.xml', views_legal.sitemap_xml, name='sitemap'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),

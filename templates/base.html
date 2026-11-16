@@ -6,6 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="{% block meta_description %}{{ plateforme.nom }} — {% translate "plateforme de gestion académique" %}{% endblock %}">
     <title>{% block title %}{{ plateforme.nom }}{% endblock %}</title>
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
+    {% static 'img/logo-univers.jpg' as social_image %}
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+    <meta property="og:title" content="{% block social_title %}{{ plateforme.nom }}{% endblock %}">
+    <meta property="og:description" content="{{ plateforme.nom }} — {{ plateforme.signature }}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ social_image }}">
+    <meta property="og:image:alt" content="{{ plateforme.nom }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{% block twitter_title %}{{ plateforme.nom }}{% endblock %}">
+    <meta name="twitter:description" content="{{ plateforme.nom }} — {{ plateforme.signature }}">
+    <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ social_image }}">
     <meta name="devise" content="{{ plateforme.devise }}">
 
     <!-- Thème résolu avant la peinture : sans ce bloc, la page s'affiche claire
@@ -56,15 +69,10 @@
     <!-- Tailwind CSS compilé -->
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
 
-    <!-- Polices modernes -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
     <style><!--
         /* Police globale */
         html {
-            font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             text-rendering: optimizeLegibility;
@@ -130,6 +138,37 @@
 <body class="min-h-screen">
     {% block body %}{% endblock %}
 
+    <aside id="cookie-consent"
+           data-ga-id="{{ analytics_measurement_id }}"
+           class="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-xl border border-slate-300 bg-white p-4 text-slate-900 shadow-2xl sm:inset-x-6 sm:p-5"
+           role="region" aria-label="{% translate 'Préférences de confidentialité' %}" hidden>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="max-w-xl">
+                <h2 class="text-sm font-semibold">{% translate "Votre confidentialité" %}</h2>
+                <p class="mt-1 text-sm text-slate-700">
+                    {% translate "Les cookies nécessaires assurent le fonctionnement du site. Google Analytics ne sera activé qu’avec votre accord." %}
+                    <a href="{% url 'core:privacy' %}" class="font-medium text-blue-800 underline">{% translate "En savoir plus" %}</a>
+                </p>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2">
+                <button type="button" data-cookie-choice="reject"
+                        class="rounded-lg border border-slate-400 px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-100">
+                    {% translate "Refuser" %}
+                </button>
+                <button type="button" data-cookie-choice="accept"
+                        class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                    {% translate "Accepter" %}
+                </button>
+            </div>
+        </div>
+    </aside>
+    <button id="cookie-settings" type="button"
+            class="fixed bottom-3 left-3 z-40 rounded-lg border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-lg hover:bg-slate-100"
+            aria-controls="cookie-consent" hidden>
+        {% translate "Préférences cookies" %}
+    </button>
+
     {% block extra_scripts %}{% endblock %}
+    <script src="{% static 'js/cookie-consent.js' %}" defer></script>
 </body>
 </html>

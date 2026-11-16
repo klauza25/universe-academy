@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Page introuvable" %} — {{ plateforme.nom }}{% endblock %}
+{% block meta_description %}{% translate "La page demandée n’existe pas ou a été déplacée." %}{% endblock %}
+{% block body %}
+<main class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 text-center">
+    <p class="text-sm font-semibold uppercase tracking-wide text-slate-600">404</p>
+    <h1 class="mt-3 text-3xl font-bold tracking-tight text-slate-900">{% translate "Page introuvable" %}</h1>
+    <p class="mt-3 max-w-md text-slate-700">{% translate "Cette adresse est incorrecte ou la page a été déplacée." %}</p>
+    <a href="{% url 'core:home' %}" class="mt-6 inline-flex rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-700">{% translate "Retour à l’accueil" %}</a>
+</main>
+{% endblock %}

@@ -104,10 +104,28 @@ def logout_view(request):
 @active_account_required
 def notifications_poll(request):
     """État léger de la cloche pour les nouveaux événements du tableau de bord."""
-    _, _, total = tableau_des_files(request.user)
+    taches, notifications, total = tableau_des_files(request.user)
     return JsonResponse({
         'event_cursor': marqueur_evenements(request.user),
         'total': total,
+        'tasks': [
+            {
+                'name': str(tache['nom']),
+                'count': tache['nombre'],
+                'url': tache['url'],
+            }
+            for tache in taches
+        ],
+        'notifications': [
+            {
+                'title': notification.title,
+                'message': notification.message,
+                'created_at': timezone.localtime(
+                    notification.created_at
+                ).strftime('%d/%m/%Y %H:%M'),
+            }
+            for notification in notifications
+        ],
     })
 
 

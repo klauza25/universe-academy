@@ -3879,6 +3879,9 @@ msgstr "Pending tasks"
 msgid "Voir les tâches en attente"
 msgstr "View pending tasks"
 
+msgid "De nouvelles tâches ou notifications sont disponibles."
+msgstr "New tasks or notifications are available."
+
 msgid "À traiter"
 msgstr "To process"
 

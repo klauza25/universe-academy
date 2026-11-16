@@ -9,3 +9,5 @@ urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('', include('core.urls')),
 ]
+
+handler404 = 'core.views_legal.custom_404'

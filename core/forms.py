@@ -62,7 +62,25 @@ class LoginForm(forms.Form):
     )
 
 
-class RegisterForm(forms.ModelForm):
+class PublicHoneypotModelForm(forms.ModelForm):
+    website = forms.CharField(
+        label=_("Laissez ce champ vide"),
+        required=False,
+        widget=forms.TextInput(attrs={
+            'autocomplete': 'off',
+            'tabindex': '-1',
+            'aria-hidden': 'true',
+        }),
+    )
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('website'):
+            raise forms.ValidationError(_("Le formulaire a été rejeté."))
+        return cleaned
+
+
+class RegisterForm(PublicHoneypotModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={
         'class': INPUT_CLASS,
         'placeholder': _('Minimum 8 caractères')
@@ -172,7 +190,7 @@ class UserEditForm(forms.ModelForm):
         }
 
 
-class ScholarshipApplicationForm(forms.ModelForm):
+class ScholarshipApplicationForm(PublicHoneypotModelForm):
     class Meta:
         model = ScholarshipApplication
         fields = [
