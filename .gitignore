@@ -1,5 +1,6 @@
 .env*
 !.env.example
+!.env.pythonanywhere.example
 
 env/
 .venv/
