@@ -15,7 +15,7 @@ Onglet « Consoles » → Bash :
 
 ```bash
 cd /home/VOTRE-COMPTE
-git clone https://github.com/klauza25/universe-academy.git academy
+git clone https://github.com/klauza25/universe-academyPro.git academy
 cd academy
 ```
 
