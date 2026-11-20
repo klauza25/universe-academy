@@ -1,7 +1,19 @@
+import logging
+
+from django.core.mail import send_mail
 from django.db.models import IntegerField, OuterRef, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from .models import AccountStatus, AuditLog, Enrollment, Payment, RoleKey, User
+from . import parametres
+from .models import (
+    AccountStatus, AuditLog, Enrollment, Notification, Payment,
+    RoleKey, ScholarshipApplication, User,
+)
+
+logger = logging.getLogger(__name__)
 
 # Tout rôle autre qu'étudiant désigne un membre du staff. La liste est dérivée
 # de l'énumération pour qu'un rôle ajouté plus tard soit compté sans retouche.
@@ -100,3 +112,73 @@ def log_audit(request, action, entity_type, entity_id,
         after_summary=after,
         ip_address=ip,
     )
+
+
+def notifier_changement_statut_bourse(application, statut_precedent,
+                                      request=None):
+    """Notifie le candidat d'un changement de statut, dans l'application et par e-mail.
+
+    La notification interne est écrite même si le courrier échoue : le candidat
+    la retrouvera dans son espace. ``sent_at`` n'est renseigné que si l'e-mail
+    est effectivement parti, pour ne pas laisser croire à un envoi réussi.
+    """
+    destinataire = (
+        application.applicant_user.email
+        if application.applicant_user else application.email
+    )
+    if not destinataire:
+        return False
+
+    libelles = dict(ScholarshipApplication.Status.choices)
+    contexte = {
+        'reference': application.reference,
+        'avant': libelles.get(statut_precedent, statut_precedent),
+        'apres': application.get_status_display(),
+        'nom': parametres.nom(),
+    }
+    titre = _("Décision sur votre candidature de bourse")
+    message = _(
+        "Le statut de votre candidature %(reference)s est passé de %(avant)s à %(apres)s."
+    ) % contexte
+
+    suivi = reverse('core:bourses:scholarship-tracking')
+    if request is not None:
+        suivi = request.build_absolute_uri(suivi)
+    corps = "\n\n".join(str(partie) for partie in [
+        _("Bonjour,"),
+        message,
+        _("Vous pouvez suivre votre dossier à l’adresse %(url)s avec la référence %(reference)s et le jeton %(jeton)s.") % {
+            'url': suivi,
+            'reference': application.reference,
+            'jeton': application.tracking_token,
+        },
+        _("Cordialement,"),
+        contexte['nom'],
+    ])
+
+    notification = Notification.objects.create(
+        user=application.applicant_user,
+        email=destinataire,
+        title=str(titre),
+        message=message,
+        notification_type=Notification.Type.SCHOLARSHIP_STATUS,
+    )
+    try:
+        envoye = send_mail(
+            _("%(reference)s — %(statut)s — %(nom)s") % {
+                'reference': application.reference,
+                'statut': contexte['apres'],
+                'nom': contexte['nom'],
+            },
+            corps,
+            None,
+            [destinataire],
+            fail_silently=False,
+        )
+    except Exception:
+        logger.exception("Envoi du mail de décision de bourse impossible")  # i18n-exempt: ligne de log interne, jamais affichée
+        envoye = 0
+    if envoye:
+        notification.sent_at = timezone.now()
+        notification.save(update_fields=['sent_at'])
+    return bool(envoye)

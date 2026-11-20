@@ -1811,3 +1811,22 @@ class GrilleDesMoisTests(AccountingTestBase):
         entree.refresh_from_db()
         self.assertEqual(entree.motif, Payment.Motif.ENROLLMENT)
         self.assertIsNone(entree.period_month)
+
+    def test_telechargement_justificatif_transaction(self):
+        """Le justificatif d'une écriture est téléchargeable par les rôles autorisés."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        fichier = SimpleUploadedFile("recu.pdf", b"%PDF-1.4...", content_type="application/pdf")
+        tx = caisse.poster(
+            caisse=self.cash, montant=10000, sens=CashTransaction.Type.IN,
+            libelle="Recette test", piece=fichier, agent=self.assistant,
+        )
+        url = reverse('core:dashboard:transaction-receipt-download', args=[tx.id])
+        self.client.force_login(self.assistant)
+        reponse = self.client.get(url)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse['Content-Type'], 'application/pdf')
+
+        # Refus aux rôles non autorisés (ex: étudiant)
+        self.client.force_login(self.etudiant)
+        reponse = self.client.get(url)
+        self.assertEqual(reponse.status_code, 403)

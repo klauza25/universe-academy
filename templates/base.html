@@ -67,7 +67,7 @@
     </script>
 
     <!-- Tailwind CSS compilé -->
-    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link href="{% static 'css/output.css' %}?v=20261120-2" rel="stylesheet">
 
     <style><!--
         /* Police globale */
@@ -127,6 +127,51 @@
             scroll-behavior: smooth;
         }
 
+        /* Écran de chargement global — CSS critique, avant toute peinture. */
+        .ua-global-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 90;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: linear-gradient(135deg,
+                var(--ua-hero-from, #5b5bf6) 0%,
+                var(--ua-hero-to, #aab4fc) 100%);
+            color: #fff;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+        .ua-global-loading--hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .ua-global-loading-card { text-align: center; }
+        .ua-global-loading-spinner {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 18px;
+            border: 4px solid rgba(255, 255, 255, .35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: ua-sync-spin .8s linear infinite;
+        }
+        .ua-global-loading-title {
+            margin: 0 0 6px;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .ua-global-loading-text {
+            margin: 0;
+            opacity: .85;
+        }
+        @keyframes ua-sync-spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ua-global-loading-spinner { animation-duration: 1.8s; }
+        }
+
         /* Empêcher le flash de contenu non stylé */
         .no-flash {
             opacity: 1 !important;
@@ -136,11 +181,20 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="min-h-screen">
+    <div id="ua-global-loading" class="ua-global-loading" role="status" aria-live="polite">
+        <div class="ua-global-loading-card">
+            <div class="ua-global-loading-spinner" aria-hidden="true"></div>
+            <p class="ua-global-loading-title">{% translate "Chargement…" %}</p>
+            <p class="ua-global-loading-text">{{ plateforme.nom|default:'Univers Academy' }}</p>
+        </div>
+    </div>
+    <noscript><style><!-- .ua-global-loading { display: none; } --></style></noscript>
+
     {% block body %}{% endblock %}
 
     <aside id="cookie-consent"
            data-ga-id="{{ analytics_measurement_id }}"
-           class="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-3xl rounded-xl border border-slate-300 bg-white p-4 text-slate-900 shadow-2xl sm:inset-x-6 sm:p-5"
+           class="fixed inset-x-3 bottom-3 z-20 mx-auto max-w-3xl rounded-xl border border-slate-300 bg-white p-4 text-slate-900 shadow-2xl sm:inset-x-6 sm:p-5"
            role="region" aria-label="{% translate 'Préférences de confidentialité' %}" hidden>
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="max-w-xl">
@@ -162,13 +216,9 @@
             </div>
         </div>
     </aside>
-    <button id="cookie-settings" type="button"
-            class="fixed bottom-3 left-3 z-40 rounded-lg border border-slate-400 bg-white px-3 py-2 text-xs font-medium text-slate-800 shadow-lg hover:bg-slate-100"
-            aria-controls="cookie-consent" hidden>
-        {% translate "Préférences cookies" %}
-    </button>
 
     {% block extra_scripts %}{% endblock %}
+    <script src="{% static 'js/global-loading.js' %}" defer></script>
     <script src="{% static 'js/cookie-consent.js' %}" defer></script>
 </body>
 </html>

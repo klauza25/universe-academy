@@ -11,6 +11,8 @@
 | `.\demarrer.ps1` | `migrer` puis `runserver` : le serveur ne démarre plus sur un schéma en retard. |
 | `.\synchroniser.ps1` | `migrer` puis `synchroniser_classeurs --ecrire`, journalisé dans `synchronisation.log`. Point d'entrée de la tâche planifiée. |
 | `.\installer_tache_synchronisation.ps1` | Installe ou retire la tâche Windows qui appelle `synchroniser.ps1` toutes les heures. |
+| Bouton « Synchroniser les classeurs » | Depuis le tableau de bord super administrateur, ouvre une page de chargement dédiée qui lance la même commande en écriture, avec verrou anti-chevauchement, message de résultat et trace d'audit. |
+| `deploy/pythonanywhere_sync.py` | Point d'entrée quotidien de l'ordonnanceur PythonAnywhere ; lance l'import en écriture après 72 heures depuis la dernière réussite. |
 
 Les feuilles configurées par défaut sont les deux classeurs du bureau :
 
@@ -191,8 +193,9 @@ Get-ScheduledTaskInfo -TaskName "UniversAcademy - Synchronisation" |
   Select-Object LastRunTime, LastTaskResult, NextRunTime
 ```
 
-`LastTaskResult` vaut `0` quand le dernier passage s'est terminé correctement
-(y compris « compte de service absent »). Le détail est toujours dans
+`LastTaskResult` vaut `0` quand le dernier passage s'est terminé correctement.
+Un avertissement « compte de service absent » dans le journal n'empêche pas la
+synchronisation des feuilles publiques ; le détail est toujours dans
 `synchronisation.log`.
 
 ### Équivalent manuel
@@ -210,9 +213,10 @@ schtasks /Run /TN "UniversAcademy - Synchronisation"
 
 - Journal : `synchronisation.log` à la racine du projet. Au-delà de 5 Mo, il
   est renommé `synchronisation.log.1` (un seul fichier d'archive).
-- Sans compte de service, `synchroniser.ps1` applique les migrations puis
-  journalise « Compte de service absent » et sort sans erreur : la tâche peut
-  rester installée sans remplir le journal d'échecs.
+- Sans compte de service, `synchroniser.ps1` journalise « Compte de service
+  absent » puis tente l'export public des feuilles : elles doivent être
+  partagées en lecture. Une feuille privée fait échouer la commande avec un
+  code non nul et le détail dans le journal.
 - Un échec réel (réseau, partage retiré, import en conflit) laisse un code de
   sortie non nul et le détail dans le journal.
 - Pour un passage en lecture seule : `.\synchroniser.ps1 -SansEcrire`.

@@ -39,8 +39,8 @@ from .decorators import (
     super_admin_required,
 )
 from .utils import (
-    enrollments_waiting_validation, log_audit, outstanding_receivables,
-    students_count,
+    enrollments_waiting_validation, log_audit, notifier_changement_statut_bourse,
+    outstanding_receivables, students_count,
 )
 from .taches import marqueur_evenements, tableau_des_files
 from .views_profile import changer_avatar
@@ -547,6 +547,14 @@ def user_edit(request, user_id):
         form = UserEditForm(request.POST, instance=user)
         if form.is_valid():
             updated_user = form.save(commit=False)
+            if updated_user.account_status != AccountStatus.ACTIVE and _is_last_active_super_admin(user):
+                messages.error(
+                    request,
+                    _("Impossible de désactiver ou suspendre le dernier super administrateur actif."),
+                )
+                return render(request, 'dashboard/super_admin/user_form.html', {
+                    'form': form, 'editing': True, 'profile_user': user
+                })
             if (updated_user.account_status == AccountStatus.SUSPENDED and
                     before['status'] != AccountStatus.SUSPENDED):
                 updated_user.disabled_at = timezone.now()
@@ -1090,9 +1098,14 @@ def scholarship_review_detail(request, app_id):
         if not request.user.has_role('SUPER_ADMIN'):
             return HttpResponseForbidden(_("La décision de bourse est réservée au super administrateur."))
         new_status = request.POST.get('status')
-        note = request.POST.get('review_note', '')
+        if new_status not in ScholarshipApplication.Status.values:
+            messages.error(request, _("Statut de bourse inconnu."))
+            return redirect(
+                'core:dashboard:scholarship-review-detail', app.id)
 
-        before = {'status': app.status}
+        note = request.POST.get('review_note', '')
+        statut_precedent = app.status
+        before = {'status': statut_precedent}
         app.status = new_status
         app.reviewed_by = request.user
         app.reviewed_at = timezone.now()
@@ -1103,7 +1116,15 @@ def scholarship_review_detail(request, app_id):
             request, 'SCHOLARSHIP_REVIEW', 'ScholarshipApplication',
             str(app.id), before=before, after={'status': new_status}
         )
+        envoye = None
+        if statut_precedent != new_status:
+            envoye = notifier_changement_statut_bourse(
+                app, statut_precedent, request)
         messages.success(request, _("Statut mis à jour : %(statut)s") % {'statut': app.get_status_display()})
+        if envoye is False:
+            messages.warning(request, _(
+                "Le changement est enregistré, mais l'e-mail au candidat n'a pas pu être envoyé."
+            ))
         return redirect('core:dashboard:scholarship-review-list')
 
     return render(request, 'dashboard/super_admin/scholarship_review.html', {

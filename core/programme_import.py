@@ -22,6 +22,8 @@ FORMATIONS = {
     'anglais': ('Anglais', 'Langues', 25000),
     'italien': ('Italien', 'Langues', 20000),
     'chinois': ('Chinois', 'Langues', 25000),
+    'espagnol': ('Espagnol', 'Langues', 25000),
+    'francais': ('Français', 'Langues', 25000),
     'bureautique': ('Bureautique', 'Informatique', 20000),
     'infographie': ('Infographie', 'Informatique', 20000),
     'a administratif': ('Assistanat administratif', 'Assistanat', 25000),

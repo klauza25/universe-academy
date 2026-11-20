@@ -1,5 +1,7 @@
 """Dashboard comptabilité : journal, opérations, caisses et clôtures."""
 import csv
+import mimetypes
+import os
 from datetime import timedelta
 
 from django.contrib import messages
@@ -7,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction as db_transaction
 from django.db.models import Count, Q, Sum
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -234,6 +236,36 @@ def transaction_detail(request, tx_id):
             entity_type='CashTransaction', entity_id=str(tx.id),
         ).select_related('actor').order_by('-created_at')[:20],
     })
+
+
+@role_required(*FINANCE_ROLES)
+def transaction_receipt_download(request, tx_id):
+    """Télécharge le justificatif rattaché à une écriture ou à une dépense."""
+    tx = get_object_or_404(
+        CashTransaction.objects.select_related('expense_record'),
+        id=tx_id,
+    )
+    file_field = None
+    if tx.receipt:
+        file_field = tx.receipt
+    elif getattr(tx, 'expense_record', None) and tx.expense_record.receipt:
+        file_field = tx.expense_record.receipt
+
+    if not file_field:
+        raise Http404(_("Aucun justificatif disponible pour cette écriture."))
+
+    original_name = os.path.basename(file_field.name)
+    mime_type = mimetypes.guess_type(original_name)[0] or 'application/octet-stream'
+    log_audit(request, 'FILE_ACCESS', 'CashTransaction', str(tx.id))
+    try:
+        return FileResponse(
+            file_field.open('rb'),
+            content_type=mime_type,
+            as_attachment=True,
+            filename=original_name,
+        )
+    except Exception:
+        raise Http404(_("Fichier introuvable sur le serveur."))
 
 
 @cash_write_required(*FINANCE_ROLES)

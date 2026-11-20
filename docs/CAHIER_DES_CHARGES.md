@@ -44,7 +44,7 @@
 
 Univers Academy est une application web de gestion d'un centre de formation. Elle réunit dans une seule base les dossiers étudiants, les inscriptions, le catalogue pédagogique, les groupes, les séances, les présences, les ressources, la caisse, les paiements, les bourses et le journal d'audit. Elle remplace la dispersion entre classeurs Excel/Google Sheets, fichiers locaux et saisies parallèles.
 
-Le système est aujourd'hui fonctionnel sur son cœur métier : authentification locale, dix rôles, dossiers étudiants, inscriptions et encaissements, pédagogie, comptabilité de caisse, supervision, réglages d'établissement, journal d'audit et 684 tests automatisés. Une synchronisation horaire des deux classeurs Google est spécifiée et outillée ; son activation en écriture reste conditionnée à la fourniture du fichier de compte de service Google et au partage des deux feuilles avec son adresse `client_email`.
+Le système est aujourd'hui fonctionnel sur son cœur métier : authentification locale, dix rôles, dossiers étudiants, inscriptions et encaissements, pédagogie, comptabilité de caisse, supervision, réglages d'établissement, journal d'audit et 706 tests automatisés. La synchronisation horaire des deux classeurs Google est spécifiée, outillée et exécutée en écriture : les deux feuilles sont publiques en lecture, ce qui suffit sans compte de service ; celui-ci reste recommandé si les feuilles redeviennent privées.
 
 Le présent document constitue le cahier des charges de référence : il décrit le besoin, le périmètre, les acteurs, les exigences fonctionnelles et non fonctionnelles, les règles de gestion, l'architecture, les intégrations, la sécurité, la recette et les conditions d'exploitation.
 
@@ -516,7 +516,7 @@ Le statut est contrôlé à chaque requête par le middleware `AccountStatusMidd
 | BR-06 | Le `SUPER_ADMIN` seul décide ; l'`ADMIN` consulte le dossier en lecture seule. | M | Réalisé |
 | BR-07 | Auditer la décision de bourse. | M | Réalisé |
 | BR-08 | Gérer les destinations proposées. | S | Réalisé |
-| BR-09 | Notifier le candidat (e-mail ou notification) à chaque changement de statut. | S | À faire |
+| BR-09 | Notifier le candidat (e-mail ou notification) à chaque changement de statut. | S | Réalisé |
 
 ### 5.10 Réglages et années académiques
 
@@ -701,12 +701,13 @@ Le statut est contrôlé à chaque requête par le middleware `AccountStatusMidd
 
 1. La tâche planifiée Windows déclenche `synchroniser.ps1` toutes les heures.
 2. Le script applique les migrations en attente (avec sauvegarde si nécessaire).
-3. Il vérifie la présence du JSON de compte de service ; sans JSON, il journalise « Compte de service absent » et sort sans erreur.
+3. Il journalise l'absence éventuelle du JSON de compte de service mais poursuit : la commande tente alors l'export public des feuilles, qui doivent être partagées en lecture.
 4. La commande télécharge les feuilles configurées, classe les classeurs, produit `RAPPORT_ANALYSE.md`.
 5. En mode écriture : une copie de la base est posée dans `backups/`, puis les importeurs reconnus sont lancés.
 6. Si la base n'a pas changé, la copie est retirée ; si une écriture a eu lieu ou si un importeur échoue, elle est conservée.
-7. Le journal d'exécution est écrit dans `synchronisation.log` (rotation à 5 Mo).
-8. La base reste la source de service : une panne Google ne bloque pas le guichet.
+7. Le super administrateur peut déclencher la même écriture en un clic depuis son tableau de bord ; une confirmation mène à une page de chargement dédiée, un verrou fichier empêche deux clics simultanés et l'issue est tracée dans le journal d'audit.
+8. Le journal d'exécution est écrit dans `synchronisation.log` (rotation à 5 Mo).
+9. La base reste la source de service : une panne Google ne bloque pas le guichet.
 
 ---
 
@@ -940,7 +941,7 @@ Le chemin peut être surchargé par `GOOGLE_APPLICATION_CREDENTIALS` ou `--crede
 - Elle refuse les lancements simultanés (`IgnoreNew` + verrou PowerShell) et s'arrête au bout de 50 minutes.
 - Elle s'exécute avec `-ExecutionPolicy Bypass`.
 - Le journal est `synchronisation.log` ; rotation à 5 Mo vers `synchronisation.log.1`.
-- Sans JSON, le script journalise « Compte de service absent » et sort sans erreur : la tâche peut rester installée.
+- Sans JSON, le script journalise « Compte de service absent » puis tente l'export public des feuilles ; seules les feuilles privées font échouer la commande.
 - Un échec réel (réseau, partage retiré, conflit d'import) laisse un code de sortie non nul et le détail dans le journal.
 - Un import qui entre en conflit avec une saisie applicative s'arrête : `importer_etudiants` refuse d'écraser sans `--efface`.
 
@@ -954,24 +955,21 @@ Le chemin peut être surchargé par `GOOGLE_APPLICATION_CREDENTIALS` ou `--crede
 
 ### 10.7 État actuel et condition de mise en service
 
-| Élément | État au 10/11/2026 |
+| Élément | État au 20/11/2026 |
 |---|---|
 | Tâche horaire | Installée en mode aperçu (`-SansEcrire`). |
-| JSON de compte de service | **Absent** de `C:\Users\KLAUZA_DEV\.config\academy\service-account.json`. |
-| Feuille 1 | Répond HTTP 401 (privée, non partagée). |
+| JSON de compte de service | **Absent** de `C:\Users\KLAUZA_DEV\.config\academy\service-account.json` ; non nécessaire aux feuilles publiques. |
+| Feuille 1 | Répond HTTP 200 (publique). |
 | Feuille 2 | Répond HTTP 200 (publique). |
-| Import en écriture | **Bloqué** tant que le JSON n'existe pas et que les deux feuilles ne sont pas partagées avec son `client_email`. |
+| Import en écriture | **Réalisé** le 20/11/2026 via export public : 2 formations créées, 217 inscriptions, 668 paiements, 1 104 transactions caisse. |
 
 **Procédure de mise en service**
 
-1. Créer le projet Google Cloud, activer Drive API et Sheets API.
-2. Créer le compte de service et télécharger sa clé JSON.
-3. Déposer le JSON au chemin par défaut, hors dépôt.
-4. Partager chaque feuille avec le `client_email`, rôle Lecteur.
-5. Lancer `manage.py etat_google` jusqu'à obtenir un accès complet.
-6. Lancer `manage.py synchroniser_classeurs` (aperçu) et lire `RAPPORT_ANALYSE.md`.
-7. Réinstaller la tâche sans `-SansEcrire`.
-8. Vérifier `LastTaskResult` et `synchronisation.log`.
+1. Vérifier que les deux feuilles sont partagées en lecture (`manage.py etat_google` doit afficher « publique : oui »).
+2. Lancer `.\synchroniser.ps1 -SansEcrire` et lire `docs/donnees/import_<date>/RAPPORT_ANALYSE.md`.
+3. Si le rapport est conforme, lancer `.\synchroniser.ps1` pour écrire en base après sauvegarde.
+4. Pour des feuilles privées : créer le projet Google Cloud, activer Drive API et Sheets API, créer un compte de service, déposer sa clé JSON au chemin par défaut, partager chaque feuille avec le `client_email`, puis relancer `etat_google`.
+5. Vérifier `LastTaskResult` et `synchronisation.log`.
 
 ### 10.8 Critères d'acceptation de l'intégration
 
@@ -1102,7 +1100,7 @@ Le journal conserve : acteur, action, type et identifiant d'entité, résumé av
 
 ### 14.2 État des tests
 
-- **684 tests** exécutés avec succès sur la base de test créée par Django (dernière exécution connue au 10/11/2026).
+- **706 tests** exécutés avec succès sur la base de test créée par Django (dernière exécution connue au 20/11/2026).
 - `manage.py check` : aucun problème.
 - La base de production n'est jamais touchée par les tests.
 - Les tests couvrent notamment : portail, authentification, rôles, profils, visites, prospects, étudiants, inscriptions, pédagogie, comptabilité, permissions, supervision, bourses, réglages, années académiques, imports, synchronisation, sauvegardes, relations et rendu bilingue.
@@ -1244,7 +1242,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\installer_tache_synchr
 
 | Risque | Impact | Mesure |
 |---|---|---|
-| JSON de compte de service absent | Synchronisation en écriture impossible ; la tâche reste en aperçu. | Fournir le JSON, partager les feuilles, exécuter `etat_google`. |
+| JSON de compte de service absent | Les feuilles publiques restent synchronisables ; une feuille privée fait échouer la commande. | Partager les feuilles en lecture ou fournir le JSON et exécuter `etat_google`. |
 | Feuille privée non partagée | HTTP 401, import bloqué. | Partager avec le `client_email`, vérifier les API Drive/Sheets. |
 | Panne réseau ou quota Google | Pas de rafraîchissement. | La base reste servie ; relancer la tâche ; consulter le journal. |
 | Conflit entre saisie applicative et import | Import interrompu. | Le script n'écrase pas sans `--efface` ; arbitrer manuellement. |

@@ -12,6 +12,7 @@ from .models import (
     CashAccount, CashClosure, CashTransaction, TransactionCategory,
     PlatformSetting,
 )
+from .utils import log_audit, notifier_changement_statut_bourse
 
 
 class ConsultationSeule(admin.ModelAdmin):
@@ -131,6 +132,22 @@ class ScholarshipApplicationAdmin(admin.ModelAdmin):
     list_display = ('reference', 'last_name', 'first_name', 'destination', 'status', 'submitted_at')
     list_filter = ('status', 'destination')
     search_fields = ('reference', 'last_name', 'email')
+
+    def save_model(self, request, obj, form, change):
+        statut_precedent = None
+        if change and obj.pk:
+            statut_precedent = ScholarshipApplication.objects.filter(
+                pk=obj.pk
+            ).values_list('status', flat=True).first()
+        super().save_model(request, obj, form, change)
+        if statut_precedent and statut_precedent != obj.status:
+            log_audit(
+                request, 'SCHOLARSHIP_REVIEW', 'ScholarshipApplication',
+                str(obj.pk),
+                before={'status': statut_precedent},
+                after={'status': obj.status},
+            )
+            notifier_changement_statut_bourse(obj, statut_precedent, request)
 
 
 @admin.register(Destination)

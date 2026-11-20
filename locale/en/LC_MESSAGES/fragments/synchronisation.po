@@ -1,0 +1,49 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Univers Academy\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+
+# core/views_synchronisation.py
+msgid "Une synchronisation est déjà en cours."
+msgstr "A synchronization is already in progress."
+
+msgid "Synchronisation impossible : %(detail)s"
+msgstr "Synchronization failed: %(detail)s"
+
+msgid "Synchronisation terminée : %(resume)s"
+msgstr "Synchronization completed: %(resume)s"
+
+# templates/dashboard/super_admin/index.html
+msgid "Lancer la synchronisation des classeurs ? Les données importées seront mises à jour."
+msgstr "Start the spreadsheet synchronization? Imported data will be updated."
+
+msgid "Synchroniser les classeurs"
+msgstr "Synchronize spreadsheets"
+
+msgid "Synchronisation en cours…"
+msgstr "Synchronization in progress…"
+
+msgid "Veuillez patienter : les classeurs sont téléchargés, analysés puis importés."
+msgstr "Please wait: the spreadsheets are being downloaded, analysed and imported."
+
+# templates/dashboard/super_admin/synchronisation.html
+msgid "Synchronisation des classeurs"
+msgstr "Spreadsheet synchronization"
+
+msgid "La synchronisation est lancée. Veuillez patienter…"
+msgstr "Synchronization has started. Please wait…"
+
+msgid "Retour au tableau de bord"
+msgstr "Back to dashboard"
+
+msgid "La synchronisation ne démarre pas automatiquement sans JavaScript."
+msgstr "Synchronization will not start automatically without JavaScript."
+
+msgid "Lancer la synchronisation"
+msgstr "Start synchronization"
+
+# templates/base.html — écran de chargement global
+msgid "Chargement…"
+msgstr "Loading…"

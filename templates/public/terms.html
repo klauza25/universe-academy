@@ -18,7 +18,7 @@
     <div class="mt-8 space-y-7 text-sm leading-6 text-slate-700">
         <section>
             <h2 class="text-lg font-semibold text-slate-900">{% translate "Objet et accès au service" %}</h2>
-            <p class="mt-2">{{ plateforme.nom }} fournit une plateforme de gestion académique et de formation. L’accès à un compte peut être soumis à validation par l’établissement. Chaque utilisateur est responsable de la confidentialité de ses identifiants et doit signaler toute utilisation non autorisée.</p>
+            <p class="mt-2">{% blocktranslate with nom=plateforme.nom %}{{ nom }} fournit une plateforme de gestion académique et de formation. L’accès à un compte peut être soumis à validation par l’établissement. Chaque utilisateur est responsable de la confidentialité de ses identifiants et doit signaler toute utilisation non autorisée.{% endblocktranslate %}</p>
         </section>
 
         <section>

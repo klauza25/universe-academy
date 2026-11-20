@@ -100,22 +100,31 @@ Le HTTPS est automatique sur `*.pythonanywhere.com` ; le projet pose déjà
 
 ## 7. Tâches planifiées (synchronisation Google Sheets)
 
-Sur ce poste Windows, la synchronisation horaire passe par les scripts
+Sur ce poste Windows, la synchronisation passe par les scripts
 `synchroniser.ps1` / `installer_tache_synchronisation.ps1` (Planificateur de
-tâches). Sur PythonAnywhere, l'équivalent est une tâche de l'onglet « Tasks »
-qui appelle directement la commande :
+tâches). Sur PythonAnywhere, créez dans l'onglet « Tasks » une tâche
+**quotidienne** à l'heure souhaitée avec cette commande :
 
 ```bash
 /home/VOTRE-COMPTE/.virtualenvs/academy/bin/python \
-    /home/VOTRE-COMPTE/academy/manage.py synchroniser_classeurs
+    /home/VOTRE-COMPTE/academy/deploy/pythonanywhere_sync.py
 ```
 
+- L'ordonnanceur PythonAnywhere ne propose que des tâches quotidiennes ou
+  horaires. Ce point d'entrée quotidien lance réellement la synchronisation
+  (migrations puis import avec sauvegarde) seulement si au moins 72 heures se
+  sont écoulées depuis sa dernière réussite. Un échec n'avance pas l'échéance :
+  la prochaine tâche quotidienne réessaie.
+- La synchronisation est lancée par cette tâche dédiée, pas depuis le fichier
+  WSGI de l'application.
+- La date de dernière réussite est conservée hors du dépôt dans
+  `~/.local/state/academy/google-sheets-sync-last-success`.
 - Identifiants du compte de service : déposez le JSON **hors du dépôt**,
   p. ex. `/home/VOTRE-COMPTE/secrets/service-account.json`, désigné par la
   variable `GOOGLE_APPLICATION_CREDENTIALS` du `.env` (et les feuilles cibles
   par `CLASSEURS_GOOGLE_IDS`). Diagnostic sans réseau : `etat_google`.
-- **Forfait** : compte gratuit = 1 seule tâche par jour ; la fréquence
-  horaire exige un forfait payant.
+- **Forfait** : la disponibilité des tâches planifiées dépend du forfait et de
+  la date de création du compte ; consultez l'onglet « Tasks ».
 - La fréquence et l'écrasement du miroir restent configurés par les mêmes
   options que sur ce poste (`--feuille`, `--importer`, `--ecrire`…).
 

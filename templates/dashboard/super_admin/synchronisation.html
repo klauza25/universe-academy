@@ -1,0 +1,45 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load ui i18n %}
+
+{% block title %}{% translate "Synchronisation des classeurs" %} — {{ plateforme.nom }}{% endblock %}
+
+{% block sidebar_nav %}{% include "dashboard/admin/_nav.html" %}{% endblock %}
+
+{% block hero_title %}{% translate "Synchronisation des classeurs" %}{% endblock %}
+{% block hero_text %}{% translate "La synchronisation est lancée. Veuillez patienter…" %}{% endblock %}
+{% block hero_actions %}
+<a href="{% url 'core:dashboard:super-admin-dashboard' %}" class="ua-btn ua-btn-ghost">
+    {% icon "grid" %} {% translate "Retour au tableau de bord" %}
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+{% translate "Synchronisation en cours…" as synchronisation_en_cours %}
+{% translate "Veuillez patienter : les classeurs sont téléchargés, analysés puis importés." as synchronisation_patienter %}
+<div class="ua-sync-page" role="status" aria-live="polite">
+    <div class="ua-sync-loading-card">
+        <div class="ua-sync-loading-spinner" aria-hidden="true"></div>
+        <p class="ua-sync-loading-title">{{ synchronisation_en_cours }}</p>
+        <p class="ua-sync-loading-text">{{ synchronisation_patienter }}</p>
+    </div>
+</div>
+
+<form id="sync-lancer-form" method="post"
+      action="{% url 'core:dashboard:synchronisation-classeurs' %}">
+    {% csrf_token %}
+</form>
+<noscript>
+    <p class="ua-sync-loading-text">
+        {% translate "La synchronisation ne démarre pas automatiquement sans JavaScript." %}
+    </p>
+    <button type="submit" form="sync-lancer-form" class="ua-btn ua-btn-light">
+        {% icon "file-text" %} {% translate "Lancer la synchronisation" %}
+    </button>
+</noscript>
+<script>
+(function () {
+    var form = document.getElementById('sync-lancer-form');
+    window.setTimeout(function () { form.submit(); }, 250);
+})();
+</script>
+{% endblock %}

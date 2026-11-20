@@ -47,6 +47,17 @@ def libelle_mois(premier: date) -> str:
     return date_format(premier, 'N Y')
 
 
+def _normaliser_mois(valeur: object) -> date:
+    """Normalise une valeur issue de TruncMonth (str, datetime ou date) en date au 1er du mois."""
+    if isinstance(valeur, str):
+        valeur = date.fromisoformat(valeur[:10])
+    if hasattr(valeur, 'date'):
+        valeur = valeur.date()
+    if isinstance(valeur, date):
+        return valeur.replace(day=1)
+    return valeur
+
+
 def encaissements_par_mois(nombre: int = 6) -> dict:
     """Entrées et sorties de caisse validées, mois par mois."""
     mois = premiers_du_mois(nombre)
@@ -60,8 +71,7 @@ def encaissements_par_mois(nombre: int = 6) -> dict:
         .annotate(total=Sum('amount'))
     )
     for ligne in lignes:
-        # TruncMonth sur un DateTimeField rend un datetime : seul le jour compte pour appairer.
-        jour = ligne['mois'].date() if hasattr(ligne['mois'], 'date') else ligne['mois']
+        jour = _normaliser_mois(ligne['mois'])
         montants.setdefault(jour, {})[ligne['tx_type']] = ligne['total'] or 0
 
     entrees = [montants.get(m, {}).get(CashTransaction.Type.IN, 0) for m in mois]
@@ -157,7 +167,8 @@ def assiduite_par_mois(nombre: int = 6) -> dict:
     )
     cases: dict = {m: {} for m in mois}
     for ligne in lignes:
-        cases.setdefault(ligne['mois'], {})[ligne['status']] = ligne['total']
+        jour = _normaliser_mois(ligne['mois'])
+        cases.setdefault(jour, {})[ligne['status']] = ligne['total']
 
     def colonne(statut):
         return [cases.get(m, {}).get(statut, 0) for m in mois]

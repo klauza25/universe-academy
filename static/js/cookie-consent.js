@@ -2,11 +2,11 @@
     'use strict';
 
     var banner = document.getElementById('cookie-consent');
-    var settingsButton = document.getElementById('cookie-settings');
-    if (!banner || !settingsButton) return;
+    if (!banner) return;
 
     var storageKey = 'ua-cookie-consent-v1';
     var measurementId = banner.getAttribute('data-ga-id') || '';
+    var openers = document.querySelectorAll('[data-cookie-open]');
 
     function loadAnalytics() {
         if (!/^G-[A-Z0-9]+$/.test(measurementId) || document.getElementById('ua-ga-script')) {
@@ -32,12 +32,12 @@
 
     function showBanner() {
         banner.hidden = false;
-        settingsButton.hidden = true;
+        var firstChoice = banner.querySelector('[data-cookie-choice]');
+        if (firstChoice) firstChoice.focus();
     }
 
     function hideBanner() {
         banner.hidden = true;
-        settingsButton.hidden = false;
     }
 
     var choice = null;
@@ -71,5 +71,7 @@
         if (accepted) loadAnalytics();
     });
 
-    settingsButton.addEventListener('click', showBanner);
+    Array.prototype.forEach.call(openers, function (opener) {
+        opener.addEventListener('click', showBanner);
+    });
 })();

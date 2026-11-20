@@ -3,6 +3,10 @@ from .models import AccountStatus
 
 PUBLIC_PATHS = [
     '/',
+    '/confidentialite/',
+    '/conditions-generales/',
+    '/robots.txt',
+    '/sitemap.xml',
     '/login/',
     '/logout/',
     '/register/',

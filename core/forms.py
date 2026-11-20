@@ -116,8 +116,15 @@ class RegisterForm(PublicHoneypotModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get('password') != cleaned.get('password_confirm'):
-            raise forms.ValidationError(_("Les mots de passe ne correspondent pas."))
+        password = cleaned.get('password')
+        password_confirm = cleaned.get('password_confirm')
+        if password and password_confirm and password != password_confirm:
+            self.add_error('password_confirm', _("Les mots de passe ne correspondent pas."))
+        if password:
+            try:
+                validate_password(password)
+            except forms.ValidationError as error:
+                self.add_error('password', error)
         return cleaned
 
 
@@ -161,6 +168,12 @@ class UserCreateForm(forms.ModelForm):
                 'session',
                 _("Un compte étudiant doit être inscrit à un groupe."),
             )
+        password = cleaned.get('password')
+        if password:
+            try:
+                validate_password(password)
+            except forms.ValidationError as error:
+                self.add_error('password', error)
         return cleaned
 
 

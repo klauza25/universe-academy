@@ -15,6 +15,9 @@ class PublicPagesTests(BusinessTestBase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'property="og:image"')
         self.assertContains(response, 'id="cookie-consent"')
+        self.assertNotContains(response, 'id="cookie-settings"')
+        self.assertContains(response, 'id="ua-global-loading"')
+        self.assertContains(response, 'js/global-loading.js')
         self.assertContains(response, 'href="/static/img/favicon.svg"')
 
     def test_legal_pages_are_public_and_linked(self):
@@ -23,6 +26,7 @@ class PublicPagesTests(BusinessTestBase):
         self.assertEqual(privacy.status_code, 200)
         self.assertEqual(terms.status_code, 200)
         self.assertContains(privacy, 'Brouillon à valider avant publication')
+        self.assertContains(privacy, 'data-cookie-open')
         self.assertContains(terms, 'Conditions générales d’utilisation')
 
     def test_robots_and_sitemap_expose_only_public_routes(self):

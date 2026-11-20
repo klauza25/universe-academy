@@ -1,13 +1,17 @@
 """Tests transverses des permissions et du routage des dashboards."""
 from datetime import time as dt_time
+from unittest import mock
 
+from django.contrib import admin as django_admin
+from django.test import RequestFactory
 from django.urls import reverse
 
+from core.admin import ScholarshipApplicationAdmin
 from core.models import (
     AccessEvent, AccessRequest, AccountStatus, Attendance, AuditLog,
     CashAccount, CashTransaction, Contact, Destination, Enrollment, Module,
-    Payment, Prospect, Resource, Role, RoleKey, ROLES_DISSOUS, ScholarshipApplication,
-    SessionRecord, User, UserRole, Visit, VisitReason,
+    Notification, Payment, Prospect, Resource, Role, RoleKey, ROLES_DISSOUS,
+    ScholarshipApplication, SessionRecord, User, UserRole, Visit, VisitReason,
 )
 
 from core.taches import tableau_des_files
@@ -627,12 +631,13 @@ class ScholarshipDecisionTests(BusinessTestBase):
                          ScholarshipApplication.Status.SUBMITTED)
 
     def test_super_admin_decides_and_it_is_audited(self):
-        response = self.client_for(self.super_admin).post(
-            reverse('core:dashboard:scholarship-review-detail',
-                    args=[self.application.id]),
-            {'status': ScholarshipApplication.Status.APPROVED,
-             'review_note': 'Dossier conforme'},
-        )
+        with mock.patch('core.utils.send_mail', return_value=1) as envoi:
+            response = self.client_for(self.super_admin).post(
+                reverse('core:dashboard:scholarship-review-detail',
+                        args=[self.application.id]),
+                {'status': ScholarshipApplication.Status.APPROVED,
+                 'review_note': 'Dossier conforme'},
+            )
         self.assertRedirects(
             response, reverse('core:dashboard:scholarship-review-list'),
             fetch_redirect_response=False,
@@ -641,6 +646,79 @@ class ScholarshipDecisionTests(BusinessTestBase):
         self.assertEqual(self.application.status,
                          ScholarshipApplication.Status.APPROVED)
         self.assertEqual(self.application.reviewed_by, self.super_admin)
+        self.assert_audited('SCHOLARSHIP_REVIEW', self.application.id)
+        notification = Notification.objects.get(
+            notification_type=Notification.Type.SCHOLARSHIP_STATUS)
+        self.assertEqual(notification.user, None)
+        self.assertEqual(notification.email, 'sarah@test.local')
+        self.assertIn(self.application.reference, notification.message)
+        self.assertIsNotNone(notification.sent_at)
+        envoi.assert_called_once()
+        self.assertIn('sarah@test.local', envoi.call_args.args[3])
+
+    def test_notification_sans_email_envoye_quand_smtp_echoue(self):
+        with mock.patch('core.utils.send_mail',
+                        side_effect=Exception('SMTP indisponible')) as envoi:
+            response = self.client_for(self.super_admin).post(
+                reverse('core:dashboard:scholarship-review-detail',
+                        args=[self.application.id]),
+                {'status': ScholarshipApplication.Status.REJECTED,
+                 'review_note': 'Dossier incomplet'},
+                follow=True,
+            )
+        notification = Notification.objects.get(
+            notification_type=Notification.Type.SCHOLARSHIP_STATUS)
+        self.assertIsNone(notification.sent_at)
+        envoi.assert_called_once()
+        contenu = response.content.decode().replace('&#x27;', "'")
+        self.assertIn(
+            "l'e-mail au candidat n'a pas pu être envoyé",
+            contenu,
+        )
+
+    def test_statut_inconnu_est_rejete_sans_ecriture(self):
+        audits = AuditLog.objects.count()
+        with mock.patch('core.utils.send_mail') as envoi:
+            response = self.client_for(self.super_admin).post(
+                reverse('core:dashboard:scholarship-review-detail',
+                        args=[self.application.id]),
+                {'status': 'FORGED_STATUS', 'review_note': 'Tentative'},
+                follow=True,
+            )
+        self.assertContains(response, 'Statut de bourse inconnu.')
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status,
+                         ScholarshipApplication.Status.SUBMITTED)
+        self.assertEqual(AuditLog.objects.count(), audits)
+        self.assertFalse(Notification.objects.exists())
+        envoi.assert_not_called()
+
+    def test_statut_inchange_ne_notifie_pas(self):
+        with mock.patch('core.utils.send_mail') as envoi:
+            self.client_for(self.super_admin).post(
+                reverse('core:dashboard:scholarship-review-detail',
+                        args=[self.application.id]),
+                {'status': ScholarshipApplication.Status.SUBMITTED,
+                 'review_note': 'Dossier incomplet'},
+            )
+        self.assertFalse(Notification.objects.exists())
+        envoi.assert_not_called()
+
+    def test_changement_depuis_l_admin_notifie_aussi(self):
+        self.application.status = ScholarshipApplication.Status.APPROVED
+        requete = RequestFactory().post('/admin/core/scholarshipapplication/')
+        requete.user = self.super_admin
+        requete.META['REMOTE_ADDR'] = '127.0.0.1'
+        gestionnaire = ScholarshipApplicationAdmin(
+            ScholarshipApplication, django_admin.site)
+        with mock.patch('core.utils.send_mail', return_value=1) as envoi:
+            gestionnaire.save_model(
+                requete, self.application, form=None, change=True)
+        notification = Notification.objects.get(
+            notification_type=Notification.Type.SCHOLARSHIP_STATUS)
+        self.assertEqual(notification.email, 'sarah@test.local')
+        self.assertIsNotNone(notification.sent_at)
+        envoi.assert_called_once()
         self.assert_audited('SCHOLARSHIP_REVIEW', self.application.id)
 
 

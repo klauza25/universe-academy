@@ -1,7 +1,12 @@
 """La coquille doit suivre la langue choisie, rester neutre côté thème et
 empiler ses notifications hors du fil de la page."""
 
-from django.test import override_settings
+import re
+from pathlib import Path
+
+import polib
+from django.conf import settings
+from django.test import SimpleTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -292,3 +297,19 @@ class ClocheRappelTest(BusinessTestBase):
             reverse('core:dashboard:notifications-poll'),
         )
         self.assertEqual(reponse.status_code, 302)
+
+
+class CatalogueAnglaisTest(SimpleTestCase):
+    """Une traduction ne peut pas renommer les variables d'un msgid."""
+
+    def test_les_placeholders_sont_identiques(self):
+        chemin = (Path(settings.LOCALE_PATHS[0]) / 'en' / 'LC_MESSAGES'
+                  / 'django.po')
+        catalogue = polib.pofile(str(chemin))
+        motif = re.compile(r'%\((\w+)\)([a-z])')
+        for entree in catalogue:
+            avec = motif.findall(entree.msgid)
+            if not avec:
+                continue
+            with self.subTest(msgid=entree.msgid):
+                self.assertCountEqual(avec, motif.findall(entree.msgstr))

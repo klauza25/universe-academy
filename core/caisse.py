@@ -220,7 +220,7 @@ def annuler(tx, *, motif, requete=None, agent=None):
             requete, 'PAYMENT_CANCEL', payment.pk,
             before=payment_before,
             after={'status': payment.status, 'reason': motif},
-            agent=agent, entity_type='Payment',
+            agent=agent, entity_type='Payment',  # i18n-exempt: type d'entité stocké dans le journal, jamais affiché
         )
     return tx
 
@@ -306,6 +306,22 @@ def corriger(tx, *, montant=None, categorie=None, libelle=None, survenu=None,
     sortie = (nouveau_montant - entree) if tx.status == CashTransaction.Status.VALIDATED else 0
     juger(tx.account, sortie=sortie, survenu=survenu or tx.occurred_at,
           nature=CashTransaction.Nature.NORMAL, ignorees=[tx.pk])
+    if tx.status == CashTransaction.Status.VALIDATED:
+        if tx.tx_type == CashTransaction.Type.IN:
+            creux = tx.account.decouvert(credited=nouveau_montant, ignored=[tx.pk])
+            if creux:
+                raise ValidationError(
+                    _("Correction refusée : réduire cette recette laisserait un découvert de %(creux)s %(devise)s sur « %(caisse)s ».")
+                    % {'creux': _chiffre(creux), 'devise': tx.account.currency, 'caisse': tx.account.name}
+                )
+        elif tx.tx_type == CashTransaction.Type.TRANSFER and tx.destination_account_id:
+            _verrouiller(tx.destination_account)
+            creux_dest = tx.destination_account.decouvert(credited=nouveau_montant, ignored=[tx.pk])
+            if creux_dest:
+                raise ValidationError(
+                    _("Correction refusée : réduire ce transfert laisserait un découvert de %(creux)s %(devise)s sur « %(caisse)s ».")
+                    % {'creux': _chiffre(creux_dest), 'devise': tx.destination_account.currency, 'caisse': tx.destination_account.name}
+                )
     tx.amount = nouveau_montant
     if categorie is not None:
         tx.category = categorie

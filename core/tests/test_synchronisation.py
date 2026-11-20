@@ -331,3 +331,80 @@ class MigrerTest(TestCase):
         from core.management.commands.migrer import migrations_en_attente
 
         self.assertEqual(migrations_en_attente(), [])
+
+
+class PythonAnywhereSyncTest(SimpleTestCase):
+    def test_synchronise_immediatement_et_persiste_apres_succes(self):
+        from datetime import datetime, timezone
+        from unittest.mock import patch
+
+        from deploy.pythonanywhere_sync import PROJECT_DIR, run_sync
+
+        maintenant = datetime(2026, 11, 20, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as dossier:
+            etat = Path(dossier) / 'last-success'
+            with patch('deploy.pythonanywhere_sync.subprocess.run') as run:
+                self.assertEqual(run_sync(etat, maintenant), 0)
+
+            self.assertEqual(run.call_count, 2)
+            self.assertEqual(run.call_args_list[0].args[0][-1], 'migrer')
+            self.assertEqual(run.call_args_list[1].args[0][-2:],
+                             ['synchroniser_classeurs', '--ecrire'])
+            self.assertTrue(all(call.kwargs['cwd'] == PROJECT_DIR
+                                for call in run.call_args_list))
+            self.assertEqual(
+                datetime.fromisoformat(etat.read_text(encoding='utf-8')),
+                maintenant)
+
+    def test_ne_synchronise_pas_avant_72_heures(self):
+        from datetime import datetime, timedelta, timezone
+        from unittest.mock import patch
+
+        from deploy.pythonanywhere_sync import run_sync
+
+        derniere = datetime(2026, 11, 17, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as dossier:
+            etat = Path(dossier) / 'last-success'
+            etat.write_text(derniere.isoformat(), encoding='utf-8')
+            with patch('deploy.pythonanywhere_sync.subprocess.run') as run:
+                self.assertEqual(
+                    run_sync(etat, derniere + timedelta(days=3) -
+                             timedelta(seconds=1)), 0)
+
+            run.assert_not_called()
+            self.assertEqual(
+                datetime.fromisoformat(etat.read_text(encoding='utf-8')),
+                derniere)
+
+    def test_synchronise_a_partir_de_72_heures(self):
+        from datetime import datetime, timedelta, timezone
+        from unittest.mock import patch
+
+        from deploy.pythonanywhere_sync import run_sync
+
+        derniere = datetime(2026, 11, 17, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as dossier:
+            etat = Path(dossier) / 'last-success'
+            etat.write_text(derniere.isoformat(), encoding='utf-8')
+            with patch('deploy.pythonanywhere_sync.subprocess.run') as run:
+                self.assertEqual(
+                    run_sync(etat, derniere + timedelta(days=3)), 0)
+
+            self.assertEqual(run.call_count, 2)
+
+    def test_echec_ne_met_pas_a_jour_la_derniere_reussite(self):
+        from datetime import datetime, timezone
+        import subprocess
+        from unittest.mock import patch
+
+        from deploy.pythonanywhere_sync import run_sync
+
+        maintenant = datetime(2026, 11, 20, 12, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as dossier:
+            etat = Path(dossier) / 'last-success'
+            with patch('deploy.pythonanywhere_sync.subprocess.run',
+                       side_effect=subprocess.CalledProcessError(1, 'sync')):
+                with self.assertRaises(subprocess.CalledProcessError):
+                    run_sync(etat, maintenant)
+
+            self.assertFalse(etat.exists())

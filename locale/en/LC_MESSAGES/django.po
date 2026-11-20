@@ -1113,8 +1113,11 @@ msgstr "Edit program"
 msgid "Supprimer du catalogue"
 msgstr "Remove from catalog"
 
-msgid "Retirer cette formation du catalogue ? Les inscriptions et l’historique seront conservés."
-msgstr "Remove this program from the catalog? Enrollments and history will be kept."
+msgid ""
+"Retirer cette formation du catalogue ? Les inscriptions et l’historique "
+"seront conservés."
+msgstr ""
+"Remove this program from the catalog? Enrollments and history will be kept."
 
 msgid "Réactiver cette formation ?"
 msgstr "Restore this program?"
@@ -1158,7 +1161,9 @@ msgstr "Program created."
 msgid "Formation mise à jour."
 msgstr "Program updated."
 
-msgid "Formation retirée du catalogue. Les inscriptions et l'historique sont conservés."
+msgid ""
+"Formation retirée du catalogue. Les inscriptions et l'historique sont "
+"conservés."
 msgstr "Program removed from the catalog. Enrollments and history are kept."
 
 msgid "Formation réactivée."
@@ -2660,7 +2665,9 @@ msgstr "No student matches these criteria."
 msgid ""
 "%(n)s formation%(fp)s suivie%(fp)s et %(t)s présence%(ep)s "
 "enregistrée%(ep)s."
-msgstr "%(n)s program%(fp)s followed and %(t)s attendance%(ep)s recorded."
+msgstr ""
+"%(n)s program%(fp)s followed%(fp)s and %(t)s attendance%(ep)s "
+"recorded%(ep)s."
 
 msgid "(facultatif)"
 msgstr "(optional)"
@@ -5174,17 +5181,19 @@ msgid "Paiement enregistré."
 msgstr "Payment recorded."
 
 msgid "%(mois)s %(annee)s est déjà soldé."
-msgstr ""
+msgstr "%(mois)s %(annee)s is already on sale."
 
 msgid "%(mois)s %(annee)s n'est pas compris dans la période d'inscription."
-msgstr ""
+msgstr "%(mois)s %(annee)s is not included in the registration period."
 
 msgid ""
 "%(mois)s : le montant dépasse le reste de la mensualité (%(reste)s %(dv)s)."
 msgstr ""
+"%(mois)s: the amount exceeds the remainder of the monthly payment (%(reste)s"
+" %(dv)s)."
 
 msgid "Adresse e-mail"
-msgstr ""
+msgstr "E-mail address"
 
 msgid "Afficher"
 msgstr "Show"
@@ -5193,120 +5202,132 @@ msgid "Masquer"
 msgstr "Hide"
 
 msgid "Ce dossier existe déjà pour ce groupe."
-msgstr ""
+msgstr "This folder already exists for this group."
 
 msgid "Ce mois n'est pas compris dans l'inscription."
-msgstr ""
+msgstr "This month is not included in the registration."
 
 msgid "Cette adresse existe déjà : sélectionnez le compte étudiant."
-msgstr ""
+msgstr "This address already exists: select the student account."
 
 msgid "Cette soumission a déjà été enregistrée."
-msgstr ""
+msgstr "This submission has already been saved."
 
 msgid ""
 "Choisissez un étudiant puis son dossier : les mois de sa période "
 "d'inscription s'affichent ici."
 msgstr ""
+"Choose a student then their file: the months of their registration period "
+"are displayed here."
 
 msgid ""
 "Cochez un mois pour enregistrer le montant versé; un solde partiel pourra "
 "être complété ensuite."
 msgstr ""
+"Check a month to record the amount paid; a partial balance can then be "
+"completed."
 
 msgid "Compte étudiant existant"
-msgstr ""
+msgstr "Existing student account"
 
 msgid "Date du paiement"
-msgstr ""
+msgstr "Payment date"
 
 msgid "Dernier jour d'accès et de facturation de cette inscription."
-msgstr ""
+msgstr "Last day of access and billing for this registration."
 
 msgid "Dû"
-msgstr ""
+msgstr "Of"
 
 msgid "Ex. Groupe du soir"
-msgstr ""
+msgstr "Ex. Evening group"
 
 msgid "Historique des paiements"
-msgstr ""
+msgstr "Payment history"
 
 msgid "Hors période d'inscription"
-msgstr ""
+msgstr "Outside of registration period"
 
 msgid "Inscription créée."
-msgstr ""
+msgstr "Registration created."
 
 msgid "Inscription et paiement enregistrés."
-msgstr ""
+msgstr "Registration and payment recorded."
 
 msgid "La mensualité de %(mois)s %(annee)s est déjà soldée."
-msgstr ""
+msgstr "The monthly payment of %(mois)s %(annee)s has already been paid."
 
 msgid "Le dossier ne couvre pas le mois de %(mois)s %(annee)s."
-msgstr ""
+msgstr "The file does not cover the month of %(mois)s %(annee)s."
 
 msgid ""
 "Le montant d'un paiement étudiant ne peut pas être modifié sans réconcilier "
 "son reçu. Annulez-le avec un motif puis saisissez le montant corrigé."
 msgstr ""
+"The amount of a student payment cannot be changed without reconciling its "
+"receipt. Cancel it with a reason then enter the corrected amount."
 
 msgid "Le montant dépasse le reste actualisé de cette mensualité."
-msgstr ""
+msgstr "The amount exceeds the discounted remainder of this monthly payment."
 
 msgid "Le montant dépasse le reste de la mensualité (%(montant)s %(dv)s)."
 msgstr ""
+"The amount exceeds the rest of the monthly payment (%(montant)s %(dv)s)."
 
 msgid ""
 "Le montant dépasse le reste à payer actualisé du dossier (%(montant)s "
 "%(dv)s)."
 msgstr ""
+"The amount exceeds the updated outstanding balance of the file (%(montant)s "
+"%(dv)s)."
 
 msgid ""
 "Le montant proposé est le reste de l'échéance du mois. La mensualité dépend "
 "du tarif figé à l'inscription et de la remise accordée."
 msgstr ""
+"The amount offered is the remainder of the month's due date. The monthly "
+"payment depends on the price fixed at registration and the discount granted."
 
 msgid "Mode de paiement"
-msgstr ""
+msgstr "Payment method"
 
 msgid "Mois"
-msgstr ""
+msgstr "Month"
 
 msgid "Montant reçu"
 msgstr "Amount received"
 
 msgid "Nom du groupe"
-msgstr ""
+msgstr "Group name"
 
 msgid "Premier paiement (facultatif)"
-msgstr ""
+msgstr "First payment (optional)"
 
 msgid "Reste"
-msgstr ""
+msgstr "Stay"
 
 msgid "Situation des mensualités"
-msgstr ""
+msgstr "Monthly payment situation"
 
 msgid ""
 "Tarif mensuel de référence; le tarif des inscriptions existantes reste figé."
 msgstr ""
+"Reference monthly rate; the price of existing registrations remains fixed."
 
 msgid "Tarif mensuel figé au moment de l'inscription."
-msgstr ""
+msgstr "Monthly rate fixed at the time of registration."
 
 msgid "Tarif repris automatiquement du catalogue."
-msgstr ""
+msgstr "Price automatically taken from the catalog."
 
 msgid "Type de paiement"
-msgstr ""
+msgstr "Payment type"
 
 msgid "Versé : %(v)s / %(a)s · dernier versement le %(d)s (%(r)s)"
-msgstr ""
+msgstr "Paid: %(v)s / %(a)s · last payment on %(d)s (%(r)s)"
 
 msgid "mois"
-msgstr ""
+msgstr "month"
 
 msgid "— Choisir un mois —"
 msgstr "— Choose a month —"
@@ -5318,4 +5339,349 @@ msgid "Objectifs"
 msgstr "Objectives"
 
 msgid "Nom, email ou identifiant…"
+msgstr "Name, email or username…"
+
+msgid ""
+"%(nom)s fournit une plateforme de gestion académique et de formation. "
+"L’accès à un compte peut être soumis à validation par l’établissement. "
+"Chaque utilisateur est responsable de la confidentialité de ses identifiants"
+" et doit signaler toute utilisation non autorisée."
 msgstr ""
+"%(nom)s provides an academic management and training platform. Access to an "
+"account may be subject to validation by the establishment. Each user is "
+"responsible for the confidentiality of their identifiers and must report any"
+" unauthorized use."
+
+msgid "%(nom)s. Adresse affichée :"
+msgstr "%(nom)s. Address displayed:"
+
+msgid "Accepter"
+msgstr "Accept"
+
+msgid "Aucun justificatif disponible pour cette écriture."
+msgstr "No supporting documentation available for this entry."
+
+msgid ""
+"Brouillon à valider avant publication : l’entité éditrice, le pays et la "
+"juridiction compétente n’ont pas encore été confirmés."
+msgstr ""
+"Draft to be validated before publication: the publishing entity, country and"
+" competent jurisdiction have not yet been confirmed."
+
+msgid ""
+"Brouillon à valider avant publication : l’identité légale du responsable, la"
+" juridiction applicable et les durées de conservation doivent être "
+"confirmées."
+msgstr ""
+"Draft to be validated before publication: the legal identity of the person "
+"responsible, the applicable jurisdiction and the retention periods must be "
+"confirmed."
+
+msgid "Candidatures et contenus"
+msgstr "Applications and content"
+
+msgid ""
+"Ce modèle doit être vérifié et adapté avant d’être considéré comme un "
+"document contractuel."
+msgstr ""
+"This model must be checked and adapted before being considered as a "
+"contractual document."
+
+msgid "Cette adresse est incorrecte ou la page a été déplacée."
+msgstr "This address is incorrect or the page has been moved."
+
+msgid ""
+"Cette page est un modèle d’information et ne constitue pas un avis "
+"juridique."
+msgstr ""
+"This page is an information model and does not constitute legal advice."
+
+msgid "Conditions générales"
+msgstr "General conditions"
+
+msgid "Conditions générales d’utilisation"
+msgstr "General conditions of use"
+
+msgid "Confidentialité"
+msgstr "Confidentiality"
+
+msgid "Connectez-vous à votre espace de formation sur"
+msgstr "Connect to your training space on"
+
+msgid "Conservation et destinataires"
+msgstr "Conservation and recipients"
+
+msgid "Contact :"
+msgstr "Contact :"
+
+msgid "Contact et droit applicable"
+msgstr "Contact and applicable law"
+
+msgid "Cookies et mesure d’audience"
+msgstr "Cookies and audience measurement"
+
+msgid ""
+"Correction refusée : réduire ce transfert laisserait un découvert de "
+"%(creux)s %(devise)s sur « %(caisse)s »."
+msgstr ""
+"Correction refused: reducing this transfer would leave an overdraft of "
+"%(creux)s %(devise)s on “%(caisse)s”."
+
+msgid ""
+"Correction refusée : réduire cette recette laisserait un découvert de "
+"%(creux)s %(devise)s sur « %(caisse)s »."
+msgstr ""
+"Correction refused: reducing this recipe would leave an overdraft of "
+"%(creux)s %(devise)s on “%(caisse)s”."
+
+msgid "Créez un compte sur"
+msgstr "Create an account on"
+
+msgid "Disponibilité et évolution"
+msgstr "Availability and evolution"
+
+msgid "Données et finalités"
+msgstr "Data and purposes"
+
+msgid "Déposez une candidature à une bourse d’études auprès de"
+msgstr "Submit an application for a scholarship to"
+
+msgid "En savoir plus"
+msgstr "Learn more"
+
+msgid "Fichier introuvable sur le serveur."
+msgstr "File not found on server."
+
+msgid ""
+"Impossible de désactiver ou suspendre le dernier super administrateur actif."
+msgstr "Unable to disable or suspend the last active super administrator."
+
+msgid "Informations légales"
+msgstr "Legal information"
+
+msgid ""
+"La dénomination légale et les coordonnées du responsable restent à "
+"confirmer."
+msgstr ""
+"The legal name and contact details of the person responsible remain to be "
+"confirmed."
+
+msgid "La page demandée n’existe pas ou a été déplacée."
+msgstr "The requested page does not exist or has been moved."
+
+msgid ""
+"La plateforme traite les informations de compte et de contact, les données "
+"nécessaires au suivi pédagogique et administratif, ainsi que les "
+"informations et pièces transmises dans le cadre des candidatures à une "
+"bourse. Ces données servent à gérer les accès, les formations, les demandes,"
+" la sécurité et le fonctionnement du service."
+msgstr ""
+"The platform processes account and contact information, data necessary for "
+"educational and administrative monitoring, as well as information and "
+"documents transmitted as part of scholarship applications. This data is used"
+" to manage access, training, requests, security and the operation of the "
+"service."
+
+msgid "Laissez ce champ vide"
+msgstr "Leave this field empty"
+
+msgid ""
+"Le droit applicable et les modalités de règlement des litiges restent à "
+"préciser et doivent être validés par l’entité éditrice."
+msgstr ""
+"The applicable law and the terms of dispute resolution remain to be "
+"clarified and must be validated by the publishing entity."
+
+msgid "Le formulaire a été rejeté."
+msgstr "The form was rejected."
+
+msgid ""
+"Les cookies nécessaires assurent le fonctionnement du site. Google Analytics"
+" ne sera activé qu’avec votre accord."
+msgstr ""
+"Necessary cookies ensure that the site functions. Google Analytics will only"
+" be activated with your consent."
+
+msgid ""
+"Les données sont accessibles aux personnes habilitées selon leurs fonctions."
+" Elles sont conservées pendant la durée nécessaire à la gestion des services"
+" et aux obligations applicables ; les durées précises et les modalités "
+"d’archivage doivent être définies par l’établissement avant publication."
+msgstr ""
+"The data is accessible to authorized people according to their functions. "
+"They are kept for the period necessary for the management of the services "
+"and the applicable obligations; the precise durations and archiving methods "
+"must be defined by the establishment before publication."
+
+msgid ""
+"Les droits applicables et le délai de réponse doivent être vérifiés au "
+"regard de la juridiction retenue."
+msgstr ""
+"The applicable rights and response time must be verified with regard to the "
+"chosen jurisdiction."
+
+msgid ""
+"L’utilisateur s’engage à fournir des informations exactes, à respecter les "
+"droits des autres utilisateurs et à ne pas perturber le service, contourner "
+"les contrôles d’accès ou transmettre de contenu illicite ou malveillant."
+msgstr ""
+"The user undertakes to provide accurate information, to respect the rights "
+"of other users and not to disrupt the service, circumvent access controls or"
+" transmit illicit or malicious content."
+
+msgid ""
+"L’établissement met en œuvre des moyens raisonnables pour maintenir le "
+"service, sans garantir une disponibilité continue. Des interruptions peuvent"
+" être nécessaires pour la maintenance, la sécurité ou l’évolution de la "
+"plateforme."
+msgstr ""
+"The establishment implements reasonable means to maintain the service, "
+"without guaranteeing continuous availability. Interruptions may be necessary"
+" for maintenance, security or evolution of the platform."
+
+msgid "Objet et accès au service"
+msgstr "Purpose and access to the service"
+
+msgid "Page introuvable"
+msgstr "Page not found"
+
+msgid "Politique de confidentialité"
+msgstr "Privacy Policy"
+
+msgid "Pour toute question, contactez l’établissement à"
+msgstr "For any questions, contact the establishment at"
+
+msgid "Préférences cookies"
+msgstr "Cookie preferences"
+
+msgid "Préférences de confidentialité"
+msgstr "Privacy Preferences"
+
+msgid "Responsable du traitement"
+msgstr "Data controller"
+
+msgid "Retour à l’accueil"
+msgstr "Return to home"
+
+msgid "Réalisé par Klaus Samba"
+msgstr "Directed by Klaus Samba"
+
+msgid ""
+"Sans identifiant de mesure d’audience configuré, aucun script Google "
+"Analytics n’est chargé, même si vous acceptez."
+msgstr ""
+"Without an audience measurement ID configured, no Google Analytics script is"
+" loaded, even if you accept."
+
+msgid ""
+"Selon la législation applicable, vous pouvez demander l’accès, la "
+"rectification ou la suppression de vos données, ou vous opposer à certains "
+"traitements. Adressez votre demande à"
+msgstr ""
+"Depending on applicable legislation, you may request access, rectification "
+"or deletion of your data, or object to certain processing. Send your request"
+" to"
+
+msgid ""
+"Une candidature ou une demande d’accès ne garantit ni l’admission ni "
+"l’attribution d’une bourse. L’utilisateur doit transmettre des documents "
+"exacts et disposer des droits nécessaires sur les contenus qu’il dépose."
+msgstr ""
+"An application or request for access does not guarantee admission or the "
+"award of a scholarship. The user must transmit accurate documents and have "
+"the necessary rights to the content they post."
+
+msgid "Utilisation acceptable"
+msgstr "Acceptable use"
+
+msgid "Vos droits et contact"
+msgstr "Your rights and contact"
+
+msgid "Votre confidentialité"
+msgstr "Your privacy"
+
+msgid "et demandez l’accès à votre espace de formation."
+msgstr "and request access to your training space."
+
+msgid "%(reference)s — %(statut)s — %(nom)s"
+msgstr "%(reference)s — %(statut)s — %(nom)s"
+
+msgid "Cordialement,"
+msgstr "Sincerely,"
+
+msgid "Décision sur votre candidature de bourse"
+msgstr "Decision on your scholarship application"
+
+msgid ""
+"Le changement est enregistré, mais l'e-mail au candidat n'a pas pu être "
+"envoyé."
+msgstr ""
+"The change is saved, but the email to the candidate could not be sent."
+
+msgid ""
+"Le statut de votre candidature %(reference)s est passé de %(avant)s à "
+"%(apres)s."
+msgstr ""
+"The status of your %(reference)s application has changed from %(avant)s to "
+"%(apres)s."
+
+msgid "Statut de bourse inconnu."
+msgstr "Scholarship status unknown."
+
+msgid ""
+"Vous pouvez suivre votre dossier à l’adresse %(url)s avec la référence "
+"%(reference)s et le jeton %(jeton)s."
+msgstr ""
+"You can track your file at %(url)s with reference %(reference)s and token "
+"%(jeton)s."
+
+msgid ""
+"Les cookies de session, de sécurité et de langue sont nécessaires au "
+"fonctionnement du site. Google Analytics est désactivé par défaut et ne se "
+"charge qu’après votre accord explicite via le bandeau de consentement. Vous "
+"pouvez modifier votre choix à tout moment depuis cette page."
+msgstr ""
+"Session, security and language cookies are necessary for the site to "
+"function. Google Analytics is disabled by default and only loads after your "
+"explicit consent via the consent banner. You can change your choice at any "
+"time from this page."
+
+msgid "Une synchronisation est déjà en cours."
+msgstr "A synchronization is already in progress."
+
+msgid "Synchronisation impossible : %(detail)s"
+msgstr "Synchronization failed: %(detail)s"
+
+msgid "Synchronisation terminée : %(resume)s"
+msgstr "Synchronization completed: %(resume)s"
+
+msgid ""
+"Lancer la synchronisation des classeurs ? Les données importées seront mises"
+" à jour."
+msgstr "Start the spreadsheet synchronization? Imported data will be updated."
+
+msgid "Synchroniser les classeurs"
+msgstr "Synchronize spreadsheets"
+
+msgid "Synchronisation en cours…"
+msgstr "Synchronization in progress…"
+
+msgid ""
+"Veuillez patienter : les classeurs sont téléchargés, analysés puis importés."
+msgstr ""
+"Please wait: the spreadsheets are being downloaded, analysed and imported."
+
+msgid "Synchronisation des classeurs"
+msgstr "Spreadsheet synchronization"
+
+msgid "La synchronisation est lancée. Veuillez patienter…"
+msgstr "Synchronization has started. Please wait…"
+
+msgid "La synchronisation ne démarre pas automatiquement sans JavaScript."
+msgstr "Synchronization will not start automatically without JavaScript."
+
+msgid "Lancer la synchronisation"
+msgstr "Start synchronization"
+
+msgid "Chargement…"
+msgstr "Loading…"

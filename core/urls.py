@@ -3,6 +3,7 @@ from django.urls import path, include
 from . import (
     views, views_legal, views_accueil, views_comptabilite, views_pedagogie,
     views_profile, views_reglages, views_secretariat, views_supervision,
+    views_synchronisation,
 )
 
 app_name = 'core'
@@ -52,6 +53,12 @@ dashboard_urlpatterns = [
     path('super-admin/access-requests/', views.access_requests_list, name='access-requests'),
     path('super-admin/access-requests/<uuid:request_id>/', views.access_request_review, name='access-request-review'),
     path('super-admin/audit/', views.audit_log_view, name='audit-log'),
+    path('super-admin/synchronisation/',
+         views_synchronisation.page_synchronisation,
+         name='synchronisation-page'),
+    path('super-admin/synchronisation/lancer/',
+         views_synchronisation.synchroniser_classeurs,
+         name='synchronisation-classeurs'),
     path('super-admin/finances/', views_supervision.finance_supervision,
          name='finance-supervision'),
     path('super-admin/scholarships/', views.scholarship_review_list, name='scholarship-review-list'),
@@ -135,6 +142,7 @@ dashboard_urlpatterns = [
     path('comptabilite/journal/', views_comptabilite.journal, name='journal'),
     path('comptabilite/operations/nouvelle/', views_comptabilite.transaction_create, name='transaction-create'),
     path('comptabilite/operations/<uuid:tx_id>/', views_comptabilite.transaction_detail, name='transaction-detail'),
+    path('comptabilite/operations/<uuid:tx_id>/justificatif/', views_comptabilite.transaction_receipt_download, name='transaction-receipt-download'),
     path('comptabilite/operations/<uuid:tx_id>/corriger/', views_comptabilite.transaction_edit, name='transaction-edit'),
     path('comptabilite/caisses/', views_comptabilite.account_list, name='accounts'),
     path('comptabilite/categories/', views_comptabilite.category_list, name='categories'),

@@ -174,7 +174,7 @@ def student_create(request):
 @role_required(*SECRETARIAT_ROLES, 'ASSISTANT_ADMIN')
 def student_detail(request, student_id):
     student = get_object_or_404(
-        User.objects.prefetch_related('roles'), id=student_id
+        _students_queryset().prefetch_related('roles'), id=student_id
     )
     enrollments = Enrollment.objects.filter(student=student).select_related(
         'session__course'
@@ -261,7 +261,7 @@ def student_detail(request, student_id):
 
 @business_write_required(*SECRETARIAT_ROLES)
 def student_edit(request, student_id):
-    student = get_object_or_404(User, id=student_id)
+    student = get_object_or_404(_students_queryset(), id=student_id)
     form = StudentEditForm(instance=student)
     if request.method == 'POST':
         before = {
@@ -294,7 +294,7 @@ def student_avatar(request, student_id):
     photo d'un élève ne pourrait jamais être prise au centre et les listes
     resteraient en initiales.
     """
-    etudiant = get_object_or_404(User, id=student_id)
+    etudiant = get_object_or_404(_students_queryset(), id=student_id)
     if request.method == 'POST':
         changer_avatar(request, etudiant)
     return redirect('core:dashboard:student-detail', student_id=etudiant.id)
@@ -502,7 +502,7 @@ def enrollment_detail(request, enrollment_id):
 
 @business_write_required(*SECRETARIAT_ROLES)
 def student_document_upload(request, student_id):
-    student = get_object_or_404(User, id=student_id)
+    student = get_object_or_404(_students_queryset(), id=student_id)
     if request.method == 'POST':
         form = StudentDocumentForm(request.POST, request.FILES)
         if form.is_valid():

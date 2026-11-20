@@ -4,9 +4,10 @@ from django.core.exceptions import ImproperlyConfigured
 import dj_database_url
 from dotenv import load_dotenv
 
-load_dotenv()
-
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(BASE_DIR / '.env')
+
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
 SECRET_KEY = os.getenv('SECRET_KEY', '')
 if not SECRET_KEY:
@@ -25,7 +26,11 @@ if not DEBUG and (
     raise ImproperlyConfigured(
         'SECRET_KEY must be a unique, strong value in production.'
     )
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 GA4_MEASUREMENT_ID = os.getenv('GA4_MEASUREMENT_ID', '').strip()
 
 INSTALLED_APPS = [
@@ -137,7 +142,7 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ]
-CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -154,8 +159,8 @@ if not DEBUG:
     # croirait servir du HTTP et bouclerait sur la redirection SSL.
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-    SECURE_HSTS_PRELOAD = False
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 else:
     SECURE_SSL_REDIRECT = False

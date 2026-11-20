@@ -10,6 +10,12 @@
 {% blocktrans with p=pending_requests s=scholarship_pending %}{{ p }} demande(s) d'accès et {{ s }} candidature(s) bourse attendent votre validation.{% endblocktrans %}
 {% endblock %}
 {% block hero_actions %}
+{% translate "Lancer la synchronisation des classeurs ? Les données importées seront mises à jour." as confirmation_sync %}
+<a href="{% url 'core:dashboard:synchronisation-page' %}"
+   class="ua-btn ua-btn-light"
+   onclick="return confirm('{{ confirmation_sync|escapejs }}');">
+    {% icon "file-text" %} {% translate "Synchroniser les classeurs" %}
+</a>
 <a href="{% url 'core:dashboard:access-requests' %}" class="ua-btn ua-btn-light">
     {% icon "clipboard" %} {% translate "Traiter les demandes" %}
 </a>

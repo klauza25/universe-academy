@@ -8,7 +8,7 @@
 # docs/SYNCHRONISATION_GOOGLE.md). Chaque passage est ajouté à
 # synchronisation.log, archivé dans synchronisation.log.1 au-delà de 5 Mo.
 # Deux passages ne peuvent pas se chevaucher ; sans compte de service, la
-# synchronisation Google est ignorée proprement après les migrations.
+# synchronisation tente l'export public des feuilles (à partager en lecture).
 
 param(
     [switch]$SansEcrire,
@@ -91,15 +91,13 @@ try {
         $identifiants = Join-Path $HOME '.config\academy\service-account.json'
     }
 
-    if (-not (Test-Path -LiteralPath $identifiants -PathType Leaf)) {
+    $arguments = @('manage.py', 'synchroniser_classeurs')
+    if (Test-Path -LiteralPath $identifiants -PathType Leaf) {
+        $arguments += @('--credentials', $identifiants)
+    } else {
         Ecrire-Journal ("Compte de service absent : {0}" -f $identifiants)
-        Ecrire-Journal 'Synchronisation Google ignorée ; la base n''a pas été modifiée.'
-        Ecrire-Journal 'Configuration : docs/SYNCHRONISATION_GOOGLE.md, section 2.'
-        exit 0
+        Ecrire-Journal 'Tentative en export public : les feuilles doivent être partagées en lecture.'
     }
-
-    $arguments = @('manage.py', 'synchroniser_classeurs',
-                   '--credentials', $identifiants)
     if (-not $SansEcrire) { $arguments += '--ecrire' }
 
     & $python @arguments *>> $journal

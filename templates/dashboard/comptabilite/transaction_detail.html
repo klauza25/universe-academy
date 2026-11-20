@@ -44,7 +44,7 @@
             <div><dt class="text-xs ua-muted">{% translate "Description" %}</dt><dd>{{ tx.description|default:"—"|linebreaksbr }}</dd></div>
             <div><dt class="text-xs ua-muted">{% translate "Commentaire" %}</dt><dd>{{ tx.note|default:"—"|linebreaksbr }}</dd></div>
             {% if tx.receipt %}
-            <div><dt class="text-xs ua-muted">{% translate "Justificatif" %}</dt><dd><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ tx.receipt.url }}">{% translate "Ouvrir le fichier" %}</a></dd></div>
+            <div><dt class="text-xs ua-muted">{% translate "Justificatif" %}</dt><dd><a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:transaction-receipt-download' tx.id %}">{% translate "Ouvrir le fichier" %}</a></dd></div>
             {% endif %}
             {% if student_payment %}
             <div><dt class="text-xs ua-muted">{% translate "Paiement étudiant lié" %}</dt>
@@ -63,7 +63,7 @@
                     {{ expense.category }} · {{ expense.status }}
                     <p class="text-xs ua-muted mt-1">{{ expense.description|truncatechars:160 }}</p>
                     {% if expense.receipt %}
-                    <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{{ expense.receipt.url }}" target="_blank" rel="noopener">{% translate "Justificatif de la dépense" %}</a>
+                    <a class="ua-btn ua-btn-ghost ua-btn-sm" href="{% url 'core:dashboard:transaction-receipt-download' tx.id %}" target="_blank" rel="noopener">{% translate "Justificatif de la dépense" %}</a>
                     {% endif %}
                 </dd>
             </div>
